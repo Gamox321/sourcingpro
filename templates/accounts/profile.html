@@ -1,0 +1,88 @@
+{% extends 'base.html' %}
+
+{% block title %}Mi Perfil{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h1 class="h3 text-gray-800">Mi Perfil</h1>
+</div>
+
+<div class="row">
+    <div class="col-lg-4 mb-4">
+        <div class="card shadow text-center">
+            <div class="card-body">
+                <i class="fas fa-user-circle fa-5x text-gray-300 mb-3"></i>
+                <h4>{{ user.nombre }}</h4>
+                <p class="text-muted">{{ user.email }}</p>
+                {% for r in user_roles %}
+                <span class="badge bg-primary">{{ r.get_nombre_display }}</span>
+                {% empty %}
+                <span class="badge bg-secondary">Sin rol</span>
+                {% endfor %}
+                <hr>
+                <a href="{% url 'accounts:password_change' %}" class="btn btn-warning btn-sm">
+                    <i class="fas fa-key me-1"></i>Cambiar contraseña
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-8 mb-4">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">Información de la cuenta</h6>
+            </div>
+            <div class="card-body">
+                <dl class="row">
+                    <dt class="col-sm-4">Nombre</dt>
+                    <dd class="col-sm-8">{{ user.nombre }}</dd>
+                    <dt class="col-sm-4">Correo</dt>
+                    <dd class="col-sm-8">{{ user.email }}</dd>
+                    <dt class="col-sm-4">Último acceso</dt>
+                    <dd class="col-sm-8">{{ user.last_login|date:'d/m/Y H:i'|default:'—' }}</dd>
+                    <dt class="col-sm-4">Miembro desde</dt>
+                    <dd class="col-sm-8">{{ user.date_joined|date:'d/m/Y H:i' }}</dd>
+                    <dt class="col-sm-4">Activo</dt>
+                    <dd class="col-sm-8">
+                        {% if user.is_active %}
+                        <span class="badge bg-success">Sí</span>
+                        {% else %}
+                        <span class="badge bg-danger">No</span>
+                        {% endif %}
+                    </dd>
+                    <dt class="col-sm-4">Contraseña temporal</dt>
+                    <dd class="col-sm-8">
+                        {% if user.contrasena_temporal %}
+                        <span class="badge bg-warning text-dark">Sí — Debe cambiarla</span>
+                        {% else %}
+                        <span class="badge bg-success">No</span>
+                        {% endif %}
+                    </dd>
+                </dl>
+            </div>
+        </div>
+
+        <div class="card shadow">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">Notificaciones recientes</h6>
+            </div>
+            <div class="card-body">
+                <ul class="list-unstyled small">
+                    {% for n in notificaciones_recientes %}
+                    <li class="mb-2 pb-2 border-bottom">
+                        <strong>{{ n.tipo_evento }}</strong>
+                        <p class="mb-0 text-muted">{{ n.contenido|truncatechars:100 }}</p>
+                        <span class="text-xs text-muted">{{ n.fecha_envio|date:'d/m/Y H:i' }}</span>
+                    </li>
+                    {% empty %}
+                    <li class="text-muted text-center">Sin notificaciones recientes.</li>
+                    {% endfor %}
+                </ul>
+                <a href="{% url 'notifications:list' %}" class="btn btn-sm btn-primary">
+                    <i class="fas fa-bell me-1"></i>Ver todas
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

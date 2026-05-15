@@ -1,0 +1,204 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Kanban — Tablero de Tareas{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h1 class="h3 text-gray-800">Tablero Kanban</h1>
+    <a href="{% url 'processes:process_type_select' %}" class="btn btn-primary">
+        <i class="fas fa-plus me-1"></i>Nuevo Proceso
+    </a>
+</div>
+
+<div class="row mb-3">
+    <div class="col-lg-4 col-md-6 mb-3">
+        <div class="card border-left-primary shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">Procesos activos</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">{{ resumen.procesos_activos }}</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-tasks fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-4 col-md-6 mb-3">
+        <div class="card border-left-info shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-info text-uppercase mb-1">Tareas pendientes</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">{{ resumen.tareas_pendientes }}</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-clock fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-4 col-md-6 mb-3">
+        <div class="card border-left-danger shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-danger text-uppercase mb-1">Críticas</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">{{ resumen.tareas_criticas }}</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-exclamation-triangle fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-4 col-md-6 mb-3">
+        <div class="card border-left-success shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-success text-uppercase mb-1">Trabajadores activos</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">{{ resumen.workers_activos }}</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-users fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-4 col-md-6 mb-3">
+        <div class="card border-left-warning shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">Vencidas hoy</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">{{ resumen.vencidas_hoy }}</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-calendar-times fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-4 col-md-6 mb-3">
+        <div class="card border-left-secondary shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-secondary text-uppercase mb-1">Notificaciones</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">{{ resumen.notificaciones_pendientes }}</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-bell fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="load-indicator">
+    {% include 'kanban/_load_indicator.html' %}
+</div>
+
+<form method="get" id="kanban-filters" class="row g-2 mb-3">
+    <div class="col-md-3">
+        <input type="text" name="q" class="form-control" placeholder="Buscar por trabajador..." value="{{ filtro_q }}">
+    </div>
+    <div class="col-md-2">
+        <select name="tipo_proceso" class="form-select">
+            <option value="">Todos los procesos</option>
+            <option value="contratacion" {% if filtro_tipo_proceso == 'contratacion' %}selected{% endif %}>Contratación</option>
+            <option value="cambio_ceco" {% if filtro_tipo_proceso == 'cambio_ceco' %}selected{% endif %}>Cambio CeCo</option>
+            <option value="termino" {% if filtro_tipo_proceso == 'termino' %}selected{% endif %}>Término</option>
+            <option value="despido" {% if filtro_tipo_proceso == 'despido' %}selected{% endif %}>Despido</option>
+        </select>
+    </div>
+    <div class="col-md-2">
+        <select name="area" class="form-select">
+            <option value="">Todas las áreas</option>
+            <option value="ti" {% if filtro_area == 'ti' %}selected{% endif %}>TI</option>
+            <option value="prevencion" {% if filtro_area == 'prevencion' %}selected{% endif %}>Prevención</option>
+            <option value="logistica" {% if filtro_area == 'logistica' %}selected{% endif %}>Logística</option>
+            <option value="finanzas" {% if filtro_area == 'finanzas' %}selected{% endif %}>Finanzas</option>
+        </select>
+    </div>
+    <div class="col-md-1">
+        <button type="submit" class="btn btn-primary w-100"><i class="fas fa-filter"></i></button>
+    </div>
+    <div class="col-md-2">
+        <div class="form-check mt-2">
+            <input type="checkbox" name="archivadas" value="1" class="form-check-input" id="archivadas"
+                   {% if mostrar_archivadas %}checked{% endif %}
+                   onchange="this.form.submit()">
+            <label class="form-check-label small" for="archivadas">Mostrar archivadas</label>
+        </div>
+    </div>
+    <div class="col-md-2">
+        <a href="{% url 'kanban:board' %}" class="btn btn-outline-secondary w-100">
+            <i class="fas fa-times me-1"></i>Limpiar filtros
+        </a>
+    </div>
+</form>
+
+<div class="kanban-board row flex-nowrap overflow-auto" style="min-height: 60vh;">
+    <div class="col-md-4 px-1">
+        <div class="card shadow mb-4 h-100">
+            <div class="card-header bg-secondary text-white d-flex justify-content-between">
+                <span><i class="fas fa-clock me-1"></i>Pendientes</span>
+                <span class="badge bg-light text-dark">{{ pendientes|length }}</span>
+            </div>
+            <div class="card-body kanban-column" data-column="pendientes" id="col-pendientes">
+                {% include 'kanban/_column.html' with tasks=pendientes columna='pendientes' %}
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4 px-1">
+        <div class="card shadow mb-4 h-100">
+            <div class="card-header bg-primary text-white d-flex justify-content-between">
+                <span><i class="fas fa-spinner me-1"></i>En Proceso</span>
+                <span class="badge bg-light text-dark">{{ en_proceso|length }}</span>
+            </div>
+            <div class="card-body kanban-column" data-column="en-proceso" id="col-en-proceso">
+                {% include 'kanban/_column.html' with tasks=en_proceso columna='en-proceso' %}
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4 px-1">
+        <div class="card shadow mb-4 h-100">
+            <div class="card-header bg-success text-white d-flex justify-content-between">
+                <span><i class="fas fa-check me-1"></i>Completadas</span>
+                <span class="badge bg-light text-dark">{{ completadas|length }}</span>
+            </div>
+            <div class="card-body kanban-column" data-column="completadas" id="col-completadas">
+                {% include 'kanban/_column.html' with tasks=completadas columna='completadas' %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="cardDetailModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content" id="cardDetailContent">
+            <div class="modal-body text-center py-5">
+                <i class="fas fa-spinner fa-spin fa-2x"></i>
+                <p class="mt-2">Cargando...</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+<script src="{% static 'js/kanban.js' %}"></script>
+{% endblock %}

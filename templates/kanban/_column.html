@@ -1,0 +1,54 @@
+{% load static %}
+{% for task in tasks %}
+<div class="kanban-card card mb-2 {% if task.urgencia == 'critica' %}border-danger{% endif %}"
+     data-task-id="{{ task.pk }}"
+     onclick="abrirDetalle({{ task.pk }})"
+     style="cursor: pointer;">
+    <div class="card-body p-2">
+        <div class="d-flex justify-content-between">
+            <small class="text-muted">
+                {% if task.proceso.tipo == 'contratacion' %}
+                    <span class="badge bg-primary">Contratación</span>
+                {% elif task.proceso.tipo == 'cambio_ceco' %}
+                    <span class="badge bg-info">Cambio CeCo</span>
+                {% elif task.proceso.tipo == 'termino' %}
+                    <span class="badge bg-warning text-dark">Término</span>
+                {% elif task.proceso.tipo == 'despido' %}
+                    <span class="badge bg-danger">Despido</span>
+                {% endif %}
+            </small>
+            {% if task.urgencia == 'critica' %}
+                <small class="text-danger fw-bold"><i class="fas fa-exclamation-triangle"></i> Crítica</small>
+            {% endif %}
+        </div>
+
+        <div class="fw-bold small mt-1">{{ task.get_tipo_display }}</div>
+
+        <div class="small">
+            <i class="fas fa-user me-1"></i>{{ task.proceso.trabajador.nombre }}
+        </div>
+
+        <div class="small text-muted">
+            <i class="fas fa-tag me-1"></i>{{ task.proceso.trabajador.cargo }}
+        </div>
+
+        {% if task.plazo_limite %}
+        <div class="small text-muted">
+            <i class="fas fa-calendar me-1"></i>{{ task.plazo_limite|date:'d/m/Y' }}
+        </div>
+        {% endif %}
+
+        <div class="small text-muted mt-1">
+            <i class="fas fa-user-circle me-1"></i>{{ task.usuario_responsable.nombre|default:'Sin asignar' }}
+            {% if task.usuario_responsable == request.user %}
+                <span class="badge bg-warning text-dark ms-1">Tú</span>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% empty %}
+<div class="text-center text-muted small py-4">
+    <i class="fas fa-inbox fa-2x mb-2"></i>
+    <p>Sin tareas</p>
+</div>
+{% endfor %}

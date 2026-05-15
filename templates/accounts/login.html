@@ -1,0 +1,61 @@
+{% extends 'base.html' %}
+{% load widget_tweaks %}
+
+{% block title %}Iniciar Sesión{% endblock %}
+
+{% block auth_content %}
+<div class="row justify-content-center align-items-center min-vh-100">
+    <div class="col-xl-5 col-lg-6 col-md-8">
+        <div class="card o-hidden border-0 shadow-lg">
+            <div class="card-body p-0">
+                <div class="p-5">
+                    <div class="text-center">
+                        <i class="fas fa-hard-hat fa-3x text-primary mb-3"></i>
+                        <h1 class="h4 text-gray-900 mb-1">SourcingPro</h1>
+                        <p class="text-muted mb-4">Sistema de Gestión del Ciclo de Vida del Trabajador</p>
+                    </div>
+
+                    {% if messages %}
+                        {% for message in messages %}
+                            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                                {{ message }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+
+                    {% if form.errors and not messages %}
+                        <div class="alert alert-danger" role="alert">
+                            Correo electrónico o contraseña incorrectos.
+                        </div>
+                    {% endif %}
+
+                    <form method="post" class="user">
+                        {% csrf_token %}
+
+                        <div class="mb-3">
+                            {{ form.username|add_class:'form-control form-control-user'|attr:'placeholder:Correo electrónico' }}
+                        </div>
+
+                        <div class="mb-3">
+                            {{ form.password|add_class:'form-control form-control-user'|attr:'placeholder:Contraseña' }}
+                        </div>
+
+                        <button type="submit" class="btn btn-primary btn-user btn-block w-100 mb-3">
+                            <i class="fas fa-sign-in-alt me-2"></i>Iniciar Sesión
+                        </button>
+                    </form>
+
+                    <hr>
+
+                    <div class="text-center">
+                        <a class="small" href="{% url 'accounts:password_reset' %}">
+                            ¿Olvidaste tu contraseña?
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,233 @@
+{% extends 'base.html' %}
+
+{% block title %}Proceso #{{ process.pk }}{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h1 class="h3 text-gray-800">
+        {% if process.tipo == 'contratacion' %}
+            <span class="badge bg-primary fs-6">{{ process.get_tipo_display }}</span>
+        {% elif process.tipo == 'cambio_ceco' %}
+            <span class="badge bg-info fs-6">{{ process.get_tipo_display }}</span>
+        {% elif process.tipo == 'termino' %}
+            <span class="badge bg-warning fs-6">{{ process.get_tipo_display }}</span>
+        {% else %}
+            <span class="badge bg-danger fs-6">{{ process.get_tipo_display }}</span>
+        {% endif %}
+        #{{ process.pk }} — {{ process.trabajador.nombre }}
+    </h1>
+    <div>
+        <a href="{% url 'processes:process_list' %}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left me-1"></i>Volver
+        </a>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-3 mb-4">
+        <div class="card border-left-primary shadow h-100 py-2">
+            <div class="card-body">
+                <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">Estado</div>
+                <div>
+                    {% if process.estado == 'en_curso' %}
+                        <span class="badge bg-success fs-6">En curso</span>
+                    {% elif process.estado == 'completado' %}
+                        <span class="badge bg-secondary fs-6">Completado</span>
+                    {% else %}
+                        <span class="badge bg-dark fs-6">Cancelado</span>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3 mb-4">
+        <div class="card border-left-success shadow h-100 py-2">
+            <div class="card-body">
+                <div class="text-xs font-weight-bold text-success text-uppercase mb-1">Trabajador</div>
+                <div class="h5 mb-0 font-weight-bold">
+                    <a href="{% url 'workers:worker_detail' process.trabajador.pk %}">
+                        {{ process.trabajador.nombre }}
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% if process.tipo == 'cambio_ceco' %}
+    <div class="col-md-3 mb-4">
+        <div class="card border-left-info shadow h-100 py-2">
+            <div class="card-body">
+                <div class="text-xs font-weight-bold text-info text-uppercase mb-1">CeCo Destino</div>
+                <div class="h5 mb-0 font-weight-bold text-gray-800">{{ process.ceco_destino.nombre|default:'—' }}</div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <div class="col-md-3 mb-4">
+        <div class="card border-left-warning shadow h-100 py-2">
+            <div class="card-body">
+                <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">Inicio</div>
+                <div class="h5 mb-0 font-weight-bold text-gray-800">{{ process.fecha_inicio|date:'d/m/Y H:i' }}</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card shadow mb-4">
+    <div class="card-header py-3">
+        <h6 class="m-0 font-weight-bold text-primary">Detalles del Proceso</h6>
+    </div>
+    <div class="card-body">
+        <dl class="row">
+            <dt class="col-sm-3">Tipo</dt>
+            <dd class="col-sm-9">{{ process.get_tipo_display }}</dd>
+
+            <dt class="col-sm-3">Estado</dt>
+            <dd class="col-sm-9">{{ process.get_estado_display }}</dd>
+
+            <dt class="col-sm-3">Trabajador</dt>
+            <dd class="col-sm-9">{{ process.trabajador.nombre }} ({{ process.trabajador.run }})</dd>
+
+            <dt class="col-sm-3">Iniciado por</dt>
+            <dd class="col-sm-9">{{ process.usuario_inicio.nombre }}</dd>
+
+            {% if process.ceco_origen %}
+            <dt class="col-sm-3">CeCo origen</dt>
+            <dd class="col-sm-9">{{ process.ceco_origen.nombre }}</dd>
+            {% endif %}
+
+            {% if process.ceco_destino %}
+            <dt class="col-sm-3">CeCo destino</dt>
+            <dd class="col-sm-9">{{ process.ceco_destino.nombre }}</dd>
+            {% endif %}
+
+            {% if process.motivo %}
+            <dt class="col-sm-3">Motivo</dt>
+            <dd class="col-sm-9">{{ process.motivo }}</dd>
+            {% endif %}
+
+            {% if process.causal_legal %}
+            <dt class="col-sm-3">Causal legal</dt>
+            <dd class="col-sm-9">{{ process.causal_legal }}</dd>
+            {% endif %}
+
+            {% if process.fecha_cierre %}
+            <dt class="col-sm-3">Fecha de cierre</dt>
+            <dd class="col-sm-9">{{ process.fecha_cierre|date:'d/m/Y H:i' }}</dd>
+            {% endif %}
+        </dl>
+    </div>
+</div>
+
+<div class="card shadow mb-4">
+    <div class="card-header py-3 d-flex justify-content-between align-items-center">
+        <h6 class="m-0 font-weight-bold text-primary">Tareas</h6>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Tarea</th>
+                        <th>Responsable</th>
+                        <th>Estado</th>
+                        <th>Urgencia</th>
+                        <th>Plazo</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for task in tareas %}
+                    <tr class="{% if task.omitida %}table-secondary{% endif %}">
+                        <td>
+                            {{ task.get_tipo_display }}
+                            {% if task.omitida %}
+                                <br><small class="text-muted">Omitida: {{ task.motivo_omision }}</small>
+                            {% endif %}
+                        </td>
+                        <td>{{ task.usuario_responsable.nombre|default:'Sin asignar' }}</td>
+                        <td>
+                            {% if task.estado == 'pendiente' %}
+                                <span class="badge bg-secondary">Pendiente</span>
+                            {% elif task.estado == 'en_proceso' %}
+                                <span class="badge bg-primary">En proceso</span>
+                            {% elif task.estado == 'completada' %}
+                                <span class="badge bg-success">Completada</span>
+                            {% elif task.estado == 'vencida' %}
+                                <span class="badge bg-danger">Vencida</span>
+                            {% elif task.estado == 'escalada' %}
+                                <span class="badge bg-warning">Escalada</span>
+                            {% elif task.estado == 'gestionado_externo' %}
+                                <span class="badge bg-info">Gest. externo</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if task.urgencia == 'critica' %}
+                                <span class="badge bg-danger">Crítica</span>
+                            {% else %}
+                                <span class="badge bg-info">Normal</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ task.plazo_limite|date:'d/m/Y'|default:'—' }}</td>
+                        <td>
+                            {% if process.estado == 'en_curso' and not task.omitida %}
+                                {% if task.estado != 'completada' and task.estado != 'gestionado_externo' %}
+                                <form method="post" action="{% url 'processes:task_complete' process.pk task.pk %}" class="d-inline">
+                                    {% csrf_token %}
+                                    {% if task.tipo == 'finiquito_coordinacion' %}
+                                        <button type="submit" class="btn btn-sm btn-info" title="Marcar como gestionado externamente">
+                                            <i class="fas fa-external-link-alt"></i> Gest. externo
+                                        </button>
+                                    {% else %}
+                                        <button type="submit" class="btn btn-sm btn-success" title="Completar">
+                                            <i class="fas fa-check"></i> Completar
+                                        </button>
+                                    {% endif %}
+                                </form>
+                                {% endif %}
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6" class="text-center text-muted">Sin tareas asociadas.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+{% if process.estado == 'en_curso' %}
+<div class="card shadow mb-4">
+    <div class="card-header py-3">
+        <h6 class="m-0 font-weight-bold text-primary">Acciones del Proceso</h6>
+    </div>
+    <div class="card-body">
+        {% if process.requiere_confirmacion_rrhh %}
+        <form method="post" action="{% url 'processes:process_close' process.pk %}" class="d-inline">
+            {% csrf_token %}
+            <input type="hidden" name="accion" value="completar">
+            <button type="submit" class="btn btn-success" onclick="return confirm('¿Confirmar cierre del proceso?')">
+                <i class="fas fa-check-circle me-1"></i>Confirmar Cierre (RRHH)
+            </button>
+        </form>
+        {% endif %}
+
+        <form method="post" action="{% url 'processes:process_close' process.pk %}" class="d-inline">
+            {% csrf_token %}
+            <input type="hidden" name="accion" value="cancelar">
+            <div class="input-group mt-2">
+                <input type="text" name="motivo_cancelacion" class="form-control" placeholder="Motivo de cancelación" required>
+                <button type="submit" class="btn btn-danger" onclick="return confirm('¿Cancelar este proceso?')">
+                    <i class="fas fa-times me-1"></i>Cancelar Proceso
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
