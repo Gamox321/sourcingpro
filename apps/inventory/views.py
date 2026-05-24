@@ -160,12 +160,13 @@ class AssetReturnView(RoleRequiredMixin, View):
         asignacion.estado_devolucion = estado_dev
         asignacion.save(update_fields=['fecha_devolucion', 'estado_devolucion'])
 
+        if asset.estado == Asset.EstadoChoices.ASIGNADO:
+            asset.cambiar_estado(Asset.EstadoChoices.PENDIENTE_DEVOLUCION)
+
         if estado_dev == AssetAssignment.EstadoDevolucionChoices.BUENO:
             asset.cambiar_estado(Asset.EstadoChoices.DISPONIBLE)
         elif estado_dev == AssetAssignment.EstadoDevolucionChoices.DANADO:
             asset.cambiar_estado(Asset.EstadoChoices.EN_REVISION)
-        else:
-            asset.cambiar_estado(Asset.EstadoChoices.PENDIENTE_DEVOLUCION)
 
         messages.success(request, f'Devolución de {asset.codigo} registrada.')
         return redirect('inventory:asset_detail', pk=pk)

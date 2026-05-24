@@ -2,6 +2,16 @@
 
 {% block title %}Nuevo Proceso{% endblock %}
 
+{% block breadcrumbs %}
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="/"><i class="fas fa-home"></i></a></li>
+        <li class="breadcrumb-item"><a href="{% url 'processes:process_list' %}">Procesos</a></li>
+        <li class="breadcrumb-item active">Nuevo Proceso</li>
+    </ol>
+</nav>
+{% endblock %}
+
 {% block content %}
 <div class="card shadow mb-4">
     <div class="card-header py-3">

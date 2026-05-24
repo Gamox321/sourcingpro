@@ -5,11 +5,15 @@ from django.contrib.auth.views import (
     LoginView, LogoutView, PasswordChangeView,
     PasswordResetView, PasswordResetConfirmView,
 )
+from django.db import models
 from django.shortcuts import redirect
 from django.urls import reverse_lazy
-from django.views.generic import TemplateView
+from django.utils import timezone
+from django.views.generic import ListView, CreateView, UpdateView, TemplateView
 
-from .forms import LoginForm, PasswordChangeForm
+from apps.accounts.decorators import RoleRequiredMixin
+from .forms import LoginForm, PasswordChangeForm, CustomUserCreationForm
+from .models import User, Role, UserRole
 
 
 class CustomLoginView(LoginView):
@@ -19,7 +23,10 @@ class CustomLoginView(LoginView):
 
     def form_valid(self, form):
         user = form.get_user()
+        self.request.session['login_time'] = timezone.now().isoformat()
         if user.contrasena_temporal:
+            user.intentos_fallidos = 0
+            user.save(update_fields=['intentos_fallidos'])
             login(self.request, user)
             messages.warning(
                 self.request,
@@ -87,6 +94,72 @@ class CustomPasswordResetView(PasswordResetView):
 class CustomPasswordResetConfirmView(PasswordResetConfirmView):
     template_name = 'accounts/password_reset_confirm.html'
     success_url = reverse_lazy('accounts:password_reset_complete')
+
+
+class UserListView(RoleRequiredMixin, ListView):
+    model = User
+    template_name = 'accounts/user_list.html'
+    context_object_name = 'users'
+    roles_requeridos = ['administrador']
+    paginate_by = 20
+
+    def get_queryset(self):
+        qs = User.objects.prefetch_related('roles').order_by('email')
+        q = self.request.GET.get('q', '').strip()
+        if q:
+            qs = qs.filter(models.Q(email__icontains=q) | models.Q(nombre__icontains=q))
+        return qs
+
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        ctx['query'] = self.request.GET.get('q', '')
+        return ctx
+
+
+class UserCreateView(RoleRequiredMixin, CreateView):
+    model = User
+    form_class = CustomUserCreationForm
+    template_name = 'accounts/user_form.html'
+    roles_requeridos = ['administrador']
+    success_url = reverse_lazy('accounts:user_list')
+
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        ctx['titulo'] = 'Nuevo Usuario'
+        ctx['roles_disponibles'] = Role.objects.all()
+        return ctx
+
+    def form_valid(self, form):
+        response = super().form_valid(form)
+        roles_ids = self.request.POST.getlist('roles')
+        for rid in roles_ids:
+            UserRole.objects.create(usuario=self.object, rol_id=rid)
+        messages.success(self.request, f'Usuario {self.object.email} creado exitosamente.')
+        return response
+
+
+class UserUpdateView(RoleRequiredMixin, UpdateView):
+    model = User
+    template_name = 'accounts/user_form.html'
+    fields = ['nombre', 'is_active', 'contrasena_temporal']
+    roles_requeridos = ['administrador']
+    success_url = reverse_lazy('accounts:user_list')
+
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        ctx['titulo'] = f'Editar Usuario: {self.object.email}'
+        ctx['roles_disponibles'] = Role.objects.all()
+        ctx['roles_actuales'] = list(self.object.roles.values_list('id', flat=True))
+        return ctx
+
+    def form_valid(self, form):
+        response = super().form_valid(form)
+        UserRole.objects.filter(usuario=self.object).delete()
+        roles_ids = self.request.POST.getlist('roles')
+        for rid in roles_ids:
+            UserRole.objects.create(usuario=self.object, rol_id=rid)
+        messages.success(self.request, 'Usuario actualizado exitosamente.')
+        return response
 
 
 class ProfileView(LoginRequiredMixin, TemplateView):

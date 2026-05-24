@@ -185,6 +185,7 @@ class KanbanCardDetailView(RoleRequiredMixin, TemplateView):
         ctx['user_roles'] = set(
             self.request.user.roles.values_list('nombre', flat=True)
         )
+        ctx['es_responsable'] = task.usuario_responsable == self.request.user
         from apps.audit.models import AuditLog
         ctx['historial'] = AuditLog.objects.filter(
             tabla_afectada='tarea',

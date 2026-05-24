@@ -60,10 +60,12 @@ def _enviar_email(usuario, tipo_evento, asunto, contenido_html, proceso=None, ta
 
     send_mail(
         subject=asunto,
-        message=contenido_html,
+        message=contenido_html.replace('\n', '\n'),
         from_email=settings.DEFAULT_FROM_EMAIL or 'noreply@sourcingpro.cl',
         recipient_list=[usuario.email],
         fail_silently=True,
+        html_message=f'<html><body style="font-family:Arial,sans-serif;padding:20px">'
+                     f'{contenido_html.replace(chr(10), "<br>")}</body></html>',
     )
 
     Notification.objects.create(

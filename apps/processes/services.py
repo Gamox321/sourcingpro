@@ -53,12 +53,9 @@ TASK_TYPE_ROLE_MAP = {
 
 
 def _find_user_for_role(role_name):
-    user = User.objects.filter(
+    return User.objects.filter(
         is_active=True, roles__nombre=role_name
     ).distinct().first()
-    if user:
-        return user
-    return User.objects.filter(is_active=True).distinct().first()
 
 
 def _make_aware(dt):
@@ -311,6 +308,10 @@ def completar_tarea(task):
     task.estado = Task.EstadoChoices.COMPLETADA
     task.fecha_completado = timezone.now()
     task.save(update_fields=['estado', 'fecha_completado'])
+
+    if (task.tipo == Task.TipoChoices.DEVOLUCION_ACTIVOS
+            and task.proceso.tipo == Process.TipoChoices.CAMBIO_CECO):
+        _completar_devolucion_cambio_ceco(task.proceso)
 
     _notificar_iniciador(
         task.proceso, 'tarea_cambio_estado',

@@ -3,6 +3,15 @@
 
 {% block title %}Trabajadores{% endblock %}
 
+{% block breadcrumbs %}
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="/"><i class="fas fa-home"></i></a></li>
+        <li class="breadcrumb-item active">Trabajadores</li>
+    </ol>
+</nav>
+{% endblock %}
+
 {% block content %}
 <div class="d-flex justify-content-between align-items-center mb-3">
     <h1 class="h3 text-gray-800">Trabajadores</h1>
@@ -108,7 +117,7 @@
             <ul class="pagination justify-content-center">
                 {% if page_obj.has_previous %}
                 <li class="page-item">
-                    <a class="page-link" href="?page={{ page_obj.previous_page_number }}&q={{ query }}&estado={{ filtro_estado }}&ceco={{ filtro_ceco }}&cargo={{ filtro_cargo }}">Anterior</a>
+                    <a class="page-link" href="?page={{ page_obj.previous_page_number }}&q={{ query }}&estado={{ filtro_estado }}&ceco={{ filtro_ceco }}&cargo={{ filtro_cargo }}&incluir_eliminados={{ incluir_eliminados }}">Anterior</a>
                 </li>
                 {% endif %}
                 <li class="page-item active">
@@ -116,7 +125,7 @@
                 </li>
                 {% if page_obj.has_next %}
                 <li class="page-item">
-                    <a class="page-link" href="?page={{ page_obj.next_page_number }}&q={{ query }}&estado={{ filtro_estado }}&ceco={{ filtro_ceco }}&cargo={{ filtro_cargo }}">Siguiente</a>
+                    <a class="page-link" href="?page={{ page_obj.next_page_number }}&q={{ query }}&estado={{ filtro_estado }}&ceco={{ filtro_ceco }}&cargo={{ filtro_cargo }}&incluir_eliminados={{ incluir_eliminados }}">Siguiente</a>
                 </li>
                 {% endif %}
             </ul>

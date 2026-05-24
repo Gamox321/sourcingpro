@@ -13,5 +13,4 @@ urlpatterns = [
     path('procesos/<int:pk>/', views.ProcessDetailView.as_view(), name='process_detail'),
     path('procesos/<int:pk>/cerrar/', views.ProcessCloseView.as_view(), name='process_close'),
     path('procesos/<int:pk>/tareas/<int:task_pk>/completar/', views.TaskCompleteView.as_view(), name='task_complete'),
-    path('procesos/<int:pk>/tareas/<int:task_pk>/editar/', views.TaskUpdateView.as_view(), name='task_update'),
 ]

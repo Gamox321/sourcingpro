@@ -85,7 +85,7 @@ class NotificationDropdownView(RoleRequiredMixin, ListView):
     model = Notification
     template_name = 'notifications/_dropdown.html'
     context_object_name = 'notifications'
-    roles_requeridos = []
+    roles_requeridos = ['administrador', 'rrhh', 'jefatura', 'ti', 'prevencion', 'finanzas', 'logistica']
 
     def get_queryset(self):
         return Notification.objects.filter(

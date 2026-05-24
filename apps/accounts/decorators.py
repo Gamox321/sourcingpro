@@ -31,6 +31,5 @@ class RoleRequiredMixin:
             request.user.roles.values_list('nombre', flat=True)
         )
         if not user_roles.intersection(self.roles_requeridos):
-            from django.http import HttpResponseForbidden
-            return HttpResponseForbidden('Acceso denegado')
+            raise PermissionDenied
         return super().dispatch(request, *args, **kwargs)

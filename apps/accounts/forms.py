@@ -1,7 +1,7 @@
 from django import forms
 from django.contrib.auth.forms import (
     AuthenticationForm, PasswordChangeForm, PasswordResetForm,
-    SetPasswordForm, UserCreationForm,
+    SetPasswordForm, UserCreationForm as DjangoUserCreationForm,
 )
 from django.core.exceptions import ValidationError
 
@@ -31,7 +31,7 @@ class LoginForm(AuthenticationForm):
             )
 
 
-class UserCreationForm(UserCreationForm):
+class CustomUserCreationForm(DjangoUserCreationForm):
     email = forms.EmailField(
         label='Correo electrónico',
         widget=forms.EmailInput(attrs={'class': 'form-control'}),

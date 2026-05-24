@@ -18,6 +18,12 @@ class WorkerListView(RoleRequiredMixin, ListView):
 
     def get_queryset(self):
         qs = Worker.objects.select_related('centro_costo_actual')
+
+        user = self.request.user
+        if user.roles.filter(nombre='jefatura').exists():
+            cecos = user.cecos_a_cargo.filter(estado='activo')
+            qs = qs.filter(centro_costo_actual__in=cecos)
+
         q = self.request.GET.get('q', '').strip()
         estado = self.request.GET.get('estado', '')
         ceco = self.request.GET.get('ceco', '')
@@ -48,7 +54,10 @@ class WorkerListView(RoleRequiredMixin, ListView):
         ctx['filtro_cargo'] = self.request.GET.get('cargo', '')
         ctx['incluir_eliminados'] = self.request.GET.get('incluir_eliminados', '')
         from apps.clients.models import CostCenter
-        ctx['costcenters'] = CostCenter.objects.filter(estado='activo')
+        cecos_qs = CostCenter.objects.filter(estado='activo')
+        if self.request.user.roles.filter(nombre='jefatura').exists():
+            cecos_qs = cecos_qs.filter(jefatura=self.request.user)
+        ctx['costcenters'] = cecos_qs
         return ctx
 
 

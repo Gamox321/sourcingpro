@@ -3,6 +3,16 @@
 
 {% block title %}{% if object %}Editar{% else %}Nuevo{% endif %} Activo{% endblock %}
 
+{% block breadcrumbs %}
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="/"><i class="fas fa-home"></i></a></li>
+        <li class="breadcrumb-item"><a href="{% url 'inventory:asset_list' %}">Inventario</a></li>
+        <li class="breadcrumb-item active">{% if object %}Editar{% else %}Nuevo{% endif %} Activo</li>
+    </ol>
+</nav>
+{% endblock %}
+
 {% block content %}
 <div class="row justify-content-center">
     <div class="col-xl-6 col-lg-8">
@@ -18,7 +28,11 @@
                     {% for field in form %}
                     <div class="mb-3">
                         <label class="form-label">{{ field.label }}</label>
-                        {{ field|add_class:'form-control' }}
+                        {% if field.errors %}
+                        {% render_field field class="form-control is-invalid" %}
+                        {% else %}
+                        {% render_field field class="form-control" %}
+                        {% endif %}
                         {% if field.errors %}
                         <div class="text-danger small">{{ field.errors }}</div>
                         {% endif %}

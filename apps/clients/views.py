@@ -17,6 +17,11 @@ class CostCenterListView(RoleRequiredMixin, ListView):
 
     def get_queryset(self):
         qs = CostCenter.objects.select_related('cliente', 'jefatura')
+
+        user = self.request.user
+        if user.roles.filter(nombre='jefatura').exists():
+            qs = qs.filter(jefatura=user)
+
         q = self.request.GET.get('q', '').strip()
         estado = self.request.GET.get('estado', '')
         if q:
