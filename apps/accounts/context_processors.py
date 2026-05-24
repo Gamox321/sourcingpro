@@ -12,9 +12,9 @@ def user_roles(request):
 def session_expiry(request):
     if not request.user.is_authenticated:
         return {}
-    login_time = request.session.get('login_time')
-    if login_time:
-        elapsed = (timezone.now() - login_time).total_seconds()
+    last_login = request.user.last_login
+    if last_login and timezone.is_aware(last_login):
+        elapsed = (timezone.now() - last_login).total_seconds()
         remaining = max(0, settings.SESSION_COOKIE_AGE - elapsed)
         return {'session_remaining_seconds': int(remaining)}
     return {}

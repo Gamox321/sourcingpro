@@ -1,4 +1,9 @@
-document.addEventListener('DOMContentLoaded', function () {
+/* ------------------------------------------------------------------ */
+/*  Kanban — SortableJS + event delegation                              */
+/* ------------------------------------------------------------------ */
+
+/* Initialise Sortable on each column */
+function iniciarSortable() {
     document.querySelectorAll('.kanban-column').forEach(function (col) {
         new Sortable(col, {
             group: 'kanban',
@@ -21,8 +26,9 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         });
     });
-});
+}
 
+/* API call to update task state */
 function actualizarTarea(taskId, estado) {
     fetch('/kanban/tarea/' + taskId + '/actualizar/', {
         method: 'POST',
@@ -46,8 +52,11 @@ function actualizarTarea(taskId, estado) {
     });
 }
 
+/* Open card detail modal */
 function abrirDetalle(taskId) {
-    var modal = new bootstrap.Modal(document.getElementById('cardDetailModal'));
+    var modalEl = document.getElementById('cardDetailModal');
+    if (!modalEl) return;
+    var modal = new bootstrap.Modal(modalEl);
     var content = document.getElementById('cardDetailContent');
     content.innerHTML = '<div class="modal-body text-center py-5"><i class="fas fa-spinner fa-spin fa-2x"></i><p class="mt-2">Cargando...</p></div>';
     modal.show();
@@ -59,6 +68,7 @@ function abrirDetalle(taskId) {
         });
 }
 
+/* Reload load indicator */
 function actualizarIndicadorCarga() {
     fetch('/kanban/carga/')
         .then(function (r) { return r.text(); })
@@ -68,6 +78,7 @@ function actualizarIndicadorCarga() {
         });
 }
 
+/* CSRF helper */
 function getCSRFToken() {
     var cookies = document.cookie.split(';');
     for (var i = 0; i < cookies.length; i++) {
@@ -78,3 +89,35 @@ function getCSRFToken() {
     }
     return '';
 }
+
+/* ------------------------------------------------------------------ */
+/*  Event delegation — replaces onclick in templates                    */
+/* ------------------------------------------------------------------ */
+document.addEventListener('DOMContentLoaded', function () {
+    iniciarSortable();
+
+    /* Click on a kanban card → open detail modal */
+    document.addEventListener('click', function (e) {
+        var card = e.target.closest('[data-task-id]');
+        if (card && !e.target.closest('a, button, .dropdown-menu, .dropdown-toggle')) {
+            abrirDetalle(card.dataset.taskId);
+        }
+    });
+
+    /* Click on a state-change dropdown item → update task */
+    document.addEventListener('click', function (e) {
+        var item = e.target.closest('[data-cambiar-estado]');
+        if (!item) return;
+        e.preventDefault();
+        actualizarTarea(item.dataset.taskId, item.dataset.cambiarEstado);
+        var modal = bootstrap.Modal.getInstance(document.getElementById('cardDetailModal'));
+        if (modal) modal.hide();
+    });
+
+    /* "Show archived" checkbox auto-submit */
+    document.addEventListener('change', function (e) {
+        if (e.target.matches('#archivadas')) {
+            e.target.closest('form').submit();
+        }
+    });
+});

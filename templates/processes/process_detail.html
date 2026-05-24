@@ -221,7 +221,7 @@
         <form method="post" action="{% url 'processes:process_close' process.pk %}" class="d-inline">
             {% csrf_token %}
             <input type="hidden" name="accion" value="completar">
-            <button type="submit" class="btn btn-success" onclick="return confirm('¿Confirmar cierre del proceso?')">
+            <button type="submit" class="btn btn-success" data-confirm="¿Confirmar cierre del proceso?">
                 <i class="fas fa-check-circle me-1"></i>Confirmar Cierre (RRHH)
             </button>
         </form>
@@ -232,7 +232,7 @@
             <input type="hidden" name="accion" value="cancelar">
             <div class="input-group mt-2">
                 <input type="text" name="motivo_cancelacion" class="form-control" placeholder="Motivo de cancelación" required>
-                <button type="submit" class="btn btn-danger" onclick="return confirm('¿Cancelar este proceso?')">
+                <button type="submit" class="btn btn-danger" data-confirm="¿Cancelar este proceso?">
                     <i class="fas fa-times me-1"></i>Cancelar Proceso
                 </button>
             </div>

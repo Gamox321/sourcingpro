@@ -51,7 +51,7 @@
                 <div class="row g-0 align-items-center">
                     <div class="col me-2">
                         <div class="text-xs font-weight-bold text-success text-uppercase mb-1">RUN</div>
-                        <div class="h5 mb-0 font-weight-bold text-gray-800">{{ worker.run }}</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800" data-copy="{{ worker.run }}" style="cursor:pointer" title="Copiar RUN">{{ worker.run }}</div>
                     </div>
                 </div>
             </div>
@@ -251,7 +251,7 @@
     </div>
     <div class="card-body">
         <p class="text-muted">Eliminar lógicamente a este trabajador. Esta acción lo ocultará de las vistas estándar.</p>
-        <form method="post" action="{% url 'workers:worker_delete' worker.pk %}" onsubmit="return confirm('¿Estás seguro de eliminar lógicamente a {{ worker.nombre }}?');">
+        <form method="post" action="{% url 'workers:worker_delete' worker.pk %}" data-confirm-form="¿Estás seguro de eliminar lógicamente a {{ worker.nombre }}?">
             {% csrf_token %}
             <button type="submit" class="btn btn-danger">
                 <i class="fas fa-trash me-1"></i>Eliminar Lógicamente

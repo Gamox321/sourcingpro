@@ -8,7 +8,7 @@ from django.contrib.auth.views import (
 from django.db import models
 from django.shortcuts import redirect
 from django.urls import reverse_lazy
-from django.utils import timezone
+
 from django.views.generic import ListView, CreateView, UpdateView, TemplateView
 
 from apps.accounts.decorators import RoleRequiredMixin
@@ -23,7 +23,6 @@ class CustomLoginView(LoginView):
 
     def form_valid(self, form):
         user = form.get_user()
-        self.request.session['login_time'] = timezone.now().isoformat()
         if user.contrasena_temporal:
             user.intentos_fallidos = 0
             user.save(update_fields=['intentos_fallidos'])

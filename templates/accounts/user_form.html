@@ -18,7 +18,7 @@
                 <h6 class="m-0 font-weight-bold text-primary">{{ titulo }}</h6>
             </div>
             <div class="card-body">
-                <form method="post">
+                <form method="post" data-dirty>
                     {% csrf_token %}
                     {% for field in form %}
                     <div class="mb-3">

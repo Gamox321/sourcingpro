@@ -1,0 +1,41 @@
+<div id="load-indicator" hx-swap-oob="true">
+    {% include 'kanban/_load_indicator.html' %}
+</div>
+
+<div class="kanban-board row flex-nowrap overflow-auto" style="min-height: 60vh;" id="kanban-board">
+    <div class="col-md-4 px-1">
+        <div class="card shadow mb-4 h-100">
+            <div class="card-header bg-secondary text-white d-flex justify-content-between">
+                <span><i class="fas fa-clock me-1"></i>Pendientes</span>
+                <span class="badge bg-light text-dark">{{ pendientes|length }}</span>
+            </div>
+            <div class="card-body kanban-column" data-column="pendientes" id="col-pendientes">
+                {% include 'kanban/_column.html' with tasks=pendientes columna='pendientes' %}
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4 px-1">
+        <div class="card shadow mb-4 h-100">
+            <div class="card-header bg-primary text-white d-flex justify-content-between">
+                <span><i class="fas fa-spinner me-1"></i>En Proceso</span>
+                <span class="badge bg-light text-dark">{{ en_proceso|length }}</span>
+            </div>
+            <div class="card-body kanban-column" data-column="en-proceso" id="col-en-proceso">
+                {% include 'kanban/_column.html' with tasks=en_proceso columna='en-proceso' %}
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4 px-1">
+        <div class="card shadow mb-4 h-100">
+            <div class="card-header bg-success text-white d-flex justify-content-between">
+                <span><i class="fas fa-check me-1"></i>Completadas</span>
+                <span class="badge bg-light text-dark">{{ completadas|length }}</span>
+            </div>
+            <div class="card-body kanban-column" data-column="completadas" id="col-completadas">
+                {% include 'kanban/_column.html' with tasks=completadas columna='completadas' %}
+            </div>
+        </div>
+    </div>
+</div>

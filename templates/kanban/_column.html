@@ -2,7 +2,6 @@
 {% for task in tasks %}
 <div class="kanban-card card mb-2 {% if task.urgencia == 'critica' %}border-danger{% endif %}"
      data-task-id="{{ task.pk }}"
-     onclick="abrirDetalle({{ task.pk }})"
      style="cursor: pointer;">
     <div class="card-body p-2">
         <div class="d-flex justify-content-between">

@@ -117,9 +117,11 @@
     {% include 'kanban/_load_indicator.html' %}
 </div>
 
-<form method="get" id="kanban-filters" class="row g-2 mb-3">
+<form method="get" id="kanban-filters" class="row g-2 mb-3"
+      hx-get="{% url 'kanban:board' %}" hx-target="#kanban-board" hx-swap="outerHTML" hx-trigger="submit, change delay:300ms">
     <div class="col-md-3">
-        <input type="text" name="q" class="form-control" placeholder="Buscar por trabajador..." value="{{ filtro_q }}">
+        <input type="text" name="q" class="form-control" placeholder="Buscar por trabajador..." value="{{ filtro_q }}"
+               hx-trigger="keyup changed delay:400ms" hx-target="#kanban-board" hx-swap="outerHTML" hx-get="{% url 'kanban:board' %}">
     </div>
     <div class="col-md-2">
         <select name="tipo_proceso" class="form-select">
@@ -145,8 +147,7 @@
     <div class="col-md-2">
         <div class="form-check mt-2">
             <input type="checkbox" name="archivadas" value="1" class="form-check-input" id="archivadas"
-                   {% if mostrar_archivadas %}checked{% endif %}
-                   onchange="this.form.submit()">
+                   {% if mostrar_archivadas %}checked{% endif %}>
             <label class="form-check-label small" for="archivadas">Mostrar archivadas</label>
         </div>
     </div>
@@ -157,7 +158,7 @@
     </div>
 </form>
 
-<div class="kanban-board row flex-nowrap overflow-auto" style="min-height: 60vh;">
+<div class="kanban-board row flex-nowrap overflow-auto" style="min-height: 60vh;" id="kanban-board">
     <div class="col-md-4 px-1">
         <div class="card shadow mb-4 h-100">
             <div class="card-header bg-secondary text-white d-flex justify-content-between">

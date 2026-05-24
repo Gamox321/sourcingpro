@@ -64,6 +64,11 @@ class KanbanBoardView(RoleRequiredMixin, TemplateView):
     template_name = 'kanban/board.html'
     roles_requeridos = ['administrador', 'rrhh', 'jefatura', 'ti', 'prevencion', 'finanzas', 'logistica']
 
+    def get_template_names(self):
+        if self.request.headers.get('HX-Request') == 'true':
+            return ['kanban/_board_partial.html']
+        return ['kanban/board.html']
+
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
         qs = _get_tasks_queryset(self.request)

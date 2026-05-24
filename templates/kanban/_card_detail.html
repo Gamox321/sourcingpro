@@ -117,11 +117,11 @@
             <i class="fas fa-exchange-alt me-1"></i>Cambiar Estado
         </button>
         <ul class="dropdown-menu">
-            <li><a class="dropdown-item" href="#" onclick="actualizarTarea({{ task.pk }}, 'pendiente')">Pendiente</a></li>
-            <li><a class="dropdown-item" href="#" onclick="actualizarTarea({{ task.pk }}, 'en_proceso')">En proceso</a></li>
-            <li><a class="dropdown-item" href="#" onclick="actualizarTarea({{ task.pk }}, 'completada')">Completada</a></li>
+            <li><a class="dropdown-item" href="#" data-task-id="{{ task.pk }}" data-cambiar-estado="pendiente">Pendiente</a></li>
+            <li><a class="dropdown-item" href="#" data-task-id="{{ task.pk }}" data-cambiar-estado="en_proceso">En proceso</a></li>
+            <li><a class="dropdown-item" href="#" data-task-id="{{ task.pk }}" data-cambiar-estado="completada">Completada</a></li>
             {% if task.tipo == 'finiquito_coordinacion' %}
-            <li><a class="dropdown-item" href="#" onclick="actualizarTarea({{ task.pk }}, 'gestionado_externo')">Gestionado externo</a></li>
+            <li><a class="dropdown-item" href="#" data-task-id="{{ task.pk }}" data-cambiar-estado="gestionado_externo">Gestionado externo</a></li>
             {% endif %}
         </ul>
     </div>
