@@ -1,0 +1,218 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Procesos - RRHH{% endblock %}
+
+{% block breadcrumbs %}
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{% url 'rrhh:dashboard' %}"><i class="fas fa-home"></i></a></li>
+        <li class="breadcrumb-item"><a href="{% url 'rrhh:dashboard' %}">RRHH</a></li>
+        <li class="breadcrumb-item active">Procesos</li>
+    </ol>
+</nav>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h1 class="h3 text-gray-800">Procesos</h1>
+    <div class="btn-group">
+        <a href="?tipo=contratacion" class="btn btn-sm {% if filtro_tipo == 'contratacion' %}btn-primary{% else %}btn-outline-primary{% endif %}">Contratación</a>
+        <a href="?tipo=cambio_ceco" class="btn btn-sm {% if filtro_tipo == 'cambio_ceco' %}btn-info{% else %}btn-outline-info{% endif %}">Cambio CeCo</a>
+        <a href="?tipo=termino" class="btn btn-sm {% if filtro_tipo == 'termino' %}btn-warning{% else %}btn-outline-warning{% endif %}">Término</a>
+        <a href="?tipo=despido" class="btn btn-sm {% if filtro_tipo == 'despido' %}btn-danger{% else %}btn-outline-danger{% endif %}">Despido</a>
+        <a href="?" class="btn btn-sm {% if not filtro_tipo %}btn-secondary{% else %}btn-outline-secondary{% endif %}">Todos</a>
+    </div>
+</div>
+
+{% if processes %}
+<div class="card shadow mb-4">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Proceso</th>
+                        <th>Trabajador</th>
+                        <th>CeCo Origen</th>
+                        <th>CeCo Destino</th>
+                        <th>Fecha Inicio</th>
+                        <th>Estado</th>
+                        <th>Tareas</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for proceso in processes %}
+                    <tr>
+                        <td>
+                            <strong>{{ proceso.get_tipo_display }} #{{ proceso.pk }}</strong>
+                        </td>
+                        <td>
+                            <a href="{% url 'rrhh:proceso_detalle' proceso.pk %}">{{ proceso.trabajador.nombre }}</a>
+                            <small class="text-muted d-block">{{ proceso.trabajador.run }}</small>
+                        </td>
+                        <td>{{ proceso.ceco_origen.nombre|default:"—" }}</td>
+                        <td>{{ proceso.ceco_destino.nombre|default:"—" }}</td>
+                        <td>{{ proceso.fecha_inicio|date:"d/m/Y" }}</td>
+                        <td>
+                            <span class="badge {% if proceso.estado == 'en_curso' %}bg-info{% elif proceso.estado == 'completado' %}bg-success{% elif proceso.estado == 'cancelado' %}bg-secondary{% else %}bg-warning{% endif %}">
+                                {{ proceso.get_estado_display }}
+                            </span>
+                        </td>
+                        <td>
+                            {% with completadas=proceso.tareas.filter|length %}
+                            {% with total=proceso.tareas.count %}
+                            <span class="badge bg-success">{{ completadas }}/{{ total }}</span>
+                            {% endwith %}
+                            {% endwith %}
+                        </td>
+                        <td>
+                            <a href="{% url 'rrhh:proceso_detalle' proceso.pk %}" class="btn btn-sm btn-outline-primary">
+                                <i class="fas fa-eye"></i> Ver Detalle
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+{% if is_paginated %}
+<nav aria-label="Paginación" class="mt-4">
+    <ul class="pagination justify-content-center">
+        {% if page_obj.has_previous %}
+        <li class="page-item">
+            <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if filtro_tipo %}&tipo={{ filtro_tipo }}{% endif %}{% if filtro_estado %}&estado={{ filtro_estado }}{% endif %}">Anterior</a>
+        </li>
+        {% endif %}
+        <li class="page-item active">
+            <span class="page-link">Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}</span>
+        </li>
+        {% if page_obj.has_next %}
+        <li class="page-item">
+            <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if filtro_tipo %}&tipo={{ filtro_tipo }}{% endif %}{% if filtro_estado %}&estado={{ filtro_estado }}{% endif %}">Siguiente</a>
+        </li>
+        {% endif %}
+    </ul>
+</nav>
+{% endif %}
+
+{% else %}
+<div class="alert alert-info">
+    <i class="fas fa-info-circle me-2"></i>
+    <strong>Sin procesos:</strong> No se encontraron procesos con los filtros seleccionados.
+</div>
+{% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h1 class="h3 text-gray-800">Procesos</h1>
+    <a href="{% url 'processes:process_type_select' %}" class="btn btn-primary">
+        <i class="fas fa-plus me-1"></i>Nuevo Proceso
+    </a>
+</div>
+
+<div class="card shadow mb-4">
+    <div class="card-header bg-light py-3">
+        <h6 class="m-0 font-weight-bold text-primary">Listado de Procesos</h6>
+    </div>
+    <div class="card-body">
+        <form method="get" class="row g-2 mb-3">
+            <div class="col-md-3">
+                <select name="tipo" class="form-select">
+                    <option value="">Todos los tipos</option>
+                    <option value="contratacion" {% if filtro_tipo == 'contratacion' %}selected{% endif %}>Contratación</option>
+                    <option value="cambio_ceco" {% if filtro_tipo == 'cambio_ceco' %}selected{% endif %}>Cambio CeCo</option>
+                    <option value="termino" {% if filtro_tipo == 'termino' %}selected{% endif %}>Término</option>
+                    <option value="despido" {% if filtro_tipo == 'despido' %}selected{% endif %}>Despido</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <select name="estado" class="form-select">
+                    <option value="">Todos los estados</option>
+                    <option value="en_curso" {% if filtro_estado == 'en_curso' %}selected{% endif %}>En curso</option>
+                    <option value="completado" {% if filtro_estado == 'completado' %}selected{% endif %}>Completado</option>
+                    <option value="cancelado" {% if filtro_estado == 'cancelado' %}selected{% endif %}>Cancelado</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-primary w-100"><i class="fas fa-filter"></i> Filtrar</button>
+            </div>
+            <div class="col-md-2">
+                <a href="{% url 'rrhh:procesos' %}" class="btn btn-outline-secondary w-100">
+                    <i class="fas fa-times me-1"></i>Limpiar
+                </a>
+            </div>
+        </form>
+
+        <div class="table-responsive">
+            <table class="table table-hover table-sm">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Tipo</th>
+                        <th>Trabajador</th>
+                        <th>Estado</th>
+                        <th>Fecha Inicio</th>
+                        <th>Iniciado por</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for process in processes %}
+                    <tr>
+                        <td>#{{ process.pk }}</td>
+                        <td>
+                            <span class="badge {% if process.tipo == 'contratacion' %}bg-success{% elif process.tipo == 'despido' %}bg-danger{% elif process.tipo == 'termino' %}bg-warning{% else %}bg-info{% endif %}">
+                                {{ process.get_tipo_display }}
+                            </span>
+                        </td>
+                        <td>{{ process.trabajador.nombre }}</td>
+                        <td>
+                            <span class="badge {% if process.estado == 'en_curso' %}bg-primary{% elif process.estado == 'completado' %}bg-success{% else %}bg-secondary{% endif %}">
+                                {{ process.get_estado_display }}
+                            </span>
+                        </td>
+                        <td>{{ process.fecha_inicio|date:"d/m/Y H:i" }}</td>
+                        <td>{{ process.usuario_inicio.nombre }}</td>
+                        <td>
+                            <a href="{% url 'processes:process_detail' pk=process.pk %}" class="btn btn-sm btn-outline-primary">
+                                <i class="fas fa-eye"></i>
+                            </a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="7" class="text-center text-muted">No se encontraron procesos</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        {% if is_paginated %}
+        <nav aria-label="Paginación">
+            <ul class="pagination pagination-sm justify-content-center">
+                {% if page_obj.has_previous %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if filtro_tipo %}&tipo={{ filtro_tipo }}{% endif %}{% if filtro_estado %}&estado={{ filtro_estado }}{% endif %}">Anterior</a>
+                </li>
+                {% endif %}
+                <li class="page-item active">
+                    <span class="page-link">Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}</span>
+                </li>
+                {% if page_obj.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if filtro_tipo %}&tipo={{ filtro_tipo }}{% endif %}{% if filtro_estado %}&estado={{ filtro_estado }}{% endif %}">Siguiente</a>
+                </li>
+                {% endif %}
+            </ul>
+        </nav>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

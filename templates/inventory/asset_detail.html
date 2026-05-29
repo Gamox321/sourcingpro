@@ -1,0 +1,230 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ asset.nombre }}{% endblock %}
+
+{% block breadcrumbs %}
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="/"><i class="fas fa-home"></i></a></li>
+        <li class="breadcrumb-item"><a href="{% url 'inventory:asset_list' %}">Inventario</a></li>
+        <li class="breadcrumb-item active">{{ asset.codigo }} — {{ asset.nombre }}</li>
+    </ol>
+</nav>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h1 class="h3 text-gray-800">{{ asset.codigo }} — {{ asset.nombre }}</h1>
+    <div>
+        <a href="{% url 'inventory:asset_list' %}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left me-1"></i>Volver
+        </a>
+        {% if asset.estado != 'dado_de_baja' %}
+        <a href="{% url 'inventory:asset_edit' asset.pk %}" class="btn btn-warning">
+            <i class="fas fa-edit me-1"></i>Editar
+        </a>
+        {% endif %}
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-primary shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row g-0 align-items-center">
+                    <div class="col me-2">
+                        <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">Estado</div>
+                        <div class="h5 mb-0">
+                            {% if asset.estado == 'disponible' %}
+                                <span class="badge bg-success fs-6">Disponible</span>
+                            {% elif asset.estado == 'asignado' %}
+                                <span class="badge bg-primary fs-6">Asignado</span>
+                            {% elif asset.estado == 'en_revision' %}
+                                <span class="badge bg-warning fs-6">En revisión</span>
+                            {% elif asset.estado == 'pendiente_devolucion' %}
+                                <span class="badge bg-info fs-6">Pendiente devolución</span>
+                            {% else %}
+                                <span class="badge bg-secondary fs-6">Dado de baja</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-success shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row g-0 align-items-center">
+                    <div class="col me-2">
+                        <div class="text-xs font-weight-bold text-success text-uppercase mb-1">Tipo</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">{{ asset.tipo.nombre }}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-info shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row g-0 align-items-center">
+                    <div class="col me-2">
+                        <div class="text-xs font-weight-bold text-info text-uppercase mb-1">Código</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800" data-copy="{{ asset.codigo }}" style="cursor:pointer" title="Copiar código">{{ asset.codigo }}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-warning shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row g-0 align-items-center">
+                    <div class="col me-2">
+                        <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">Registro</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">{{ asset.fecha_registro|date:'d/m/Y' }}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    {% if asset.estado == 'disponible' %}
+    <div class="col-md-6 mb-4">
+        <div class="card shadow">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">Asignar a Trabajador</h6>
+            </div>
+            <div class="card-body">
+                <form method="post" action="{% url 'inventory:asset_assign' asset.pk %}">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label class="form-label">Seleccionar trabajador</label>
+                        <select name="trabajador" class="form-select" required>
+                            <option value="">— Seleccionar —</option>
+                            {% for w in trabajadores_disponibles %}
+                            <option value="{{ w.id }}">{{ w.nombre }} ({{ w.run }})</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-hand-pointer me-1"></i>Asignar Activo
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    {% if asset.estado == 'asignado' %}
+    <div class="col-md-6 mb-4">
+        <div class="card shadow">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-warning">Registrar Devolución</h6>
+            </div>
+            <div class="card-body">
+                <form method="post" action="{% url 'inventory:asset_return' asset.pk %}">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label class="form-label">Asignación activa</label>
+                        <select name="asignacion" class="form-select" required>
+                            <option value="">— Seleccionar —</option>
+                            {% for as in asignaciones %}
+                            {% if not as.fecha_devolucion %}
+                            <option value="{{ as.id }}">{{ as.trabajador.nombre }} ({{ as.fecha_asignacion|date }})</option>
+                            {% endif %}
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Estado de devolución</label>
+                        <select name="estado_devolucion" class="form-select" required>
+                            <option value="">— Seleccionar —</option>
+                            <option value="bueno">Bueno</option>
+                            <option value="danado">Dañado</option>
+                            <option value="con_perdida">Con pérdida</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="btn btn-warning">
+                        <i class="fas fa-undo-alt me-1"></i>Registrar Devolución
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    {% if asset.estado != 'dado_de_baja' %}
+    <div class="col-md-6 mb-4">
+        <div class="card shadow border-danger">
+            <div class="card-header py-3 bg-danger text-white">
+                <h6 class="m-0 font-weight-bold">Dar de Baja</h6>
+            </div>
+            <div class="card-body">
+                <form method="post" action="{% url 'inventory:asset_baja' asset.pk %}">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label class="form-label">Motivo de baja</label>
+                        <textarea name="motivo_baja" class="form-control" rows="2" required></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-danger" data-confirm="¿Dar de baja este activo? Esta acción no se puede revertir.">
+                        <i class="fas fa-times-circle me-1"></i>Dar de Baja
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<div class="card shadow mb-4">
+    <div class="card-header py-3">
+        <h6 class="m-0 font-weight-bold text-primary">Historial de Asignaciones</h6>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-sm">
+                <thead>
+                    <tr>
+                        <th>Trabajador</th>
+                        <th>Fecha asignación</th>
+                        <th>Fecha devolución</th>
+                        <th>Estado devolución</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for as in asignaciones %}
+                    <tr>
+                        <td>{{ as.trabajador.nombre }}</td>
+                        <td>{{ as.fecha_asignacion|date:'d/m/Y H:i' }}</td>
+                        <td>{{ as.fecha_devolucion|date:'d/m/Y H:i'|default:'—' }}</td>
+                        <td>
+                            {% if as.estado_devolucion %}
+                                {% if as.estado_devolucion == 'bueno' %}
+                                    <span class="badge bg-success">Bueno</span>
+                                {% elif as.estado_devolucion == 'danado' %}
+                                    <span class="badge bg-warning">Dañado</span>
+                                {% else %}
+                                    <span class="badge bg-danger">Con pérdida</span>
+                                {% endif %}
+                            {% else %}
+                                <span class="badge bg-info">En uso</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="4" class="text-center text-muted">Sin asignaciones registradas.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

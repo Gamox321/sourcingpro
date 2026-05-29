@@ -1,0 +1,72 @@
+{% extends 'base.html' %}
+
+{% block title %}Nuevo Proceso{% endblock %}
+
+{% block breadcrumbs %}
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="/"><i class="fas fa-home"></i></a></li>
+        <li class="breadcrumb-item"><a href="{% url 'processes:process_list' %}">Procesos</a></li>
+        <li class="breadcrumb-item active">Nuevo Proceso</li>
+    </ol>
+</nav>
+{% endblock %}
+
+{% block content %}
+<div class="card shadow mb-4">
+    <div class="card-header py-3">
+        <h6 class="m-0 font-weight-bold text-primary">Seleccionar Tipo de Proceso</h6>
+    </div>
+    <div class="card-body">
+        <div class="row seleccion-proceso">
+            <div class="col-lg-3 col-md-6 mb-4">
+                <a href="{% url 'processes:process_create_contratacion' %}" class="text-decoration-none">
+                    <div class="card border-left-primary shadow h-100 py-3">
+                        <div class="card-body text-center">
+                            <i class="fas fa-user-plus fa-3x text-primary mb-2"></i>
+                            <h5 class="text-gray-900">Contratación</h5>
+                            <p class="small text-muted">Incorporación de nuevo trabajador</p>
+                        </div>
+                    </div>
+                </a>
+            </div>
+
+            <div class="col-lg-3 col-md-6 mb-4">
+                <a href="{% url 'processes:process_create_cambio_ceco' %}" class="text-decoration-none">
+                    <div class="card border-left-info shadow h-100 py-3">
+                        <div class="card-body text-center">
+                            <i class="fas fa-exchange-alt fa-3x text-info mb-2"></i>
+                            <h5 class="text-gray-900">Cambio de CeCo</h5>
+                            <p class="small text-muted">Traslado entre centros de costo</p>
+                        </div>
+                    </div>
+                </a>
+            </div>
+
+            <div class="col-lg-3 col-md-6 mb-4">
+                <a href="{% url 'processes:process_create_termino' %}" class="text-decoration-none">
+                    <div class="card border-left-warning shadow h-100 py-3">
+                        <div class="card-body text-center">
+                            <i class="fas fa-sign-out-alt fa-3x text-warning mb-2"></i>
+                            <h5 class="text-gray-900">Término de Contrato</h5>
+                            <p class="small text-muted">Egreso planificado</p>
+                        </div>
+                    </div>
+                </a>
+            </div>
+
+            <div class="col-lg-3 col-md-6 mb-4">
+                <a href="{% url 'processes:process_create_despido' %}" class="text-decoration-none">
+                    <div class="card border-left-danger shadow h-100 py-3">
+                        <div class="card-body text-center">
+                            <i class="fas fa-user-minus fa-3x text-danger mb-2"></i>
+                            <h5 class="text-gray-900">Despido</h5>
+                            <p class="small text-muted">Desvinculación inmediata</p>
+                        </div>
+                    </div>
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

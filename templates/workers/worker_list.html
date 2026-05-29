@@ -1,0 +1,136 @@
+{% extends 'base.html' %}
+{% load widget_tweaks %}
+
+{% block title %}Trabajadores{% endblock %}
+
+{% block breadcrumbs %}
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="/"><i class="fas fa-home"></i></a></li>
+        <li class="breadcrumb-item active">Trabajadores</li>
+    </ol>
+</nav>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h1 class="h3 text-gray-800">Trabajadores</h1>
+    <a href="{% url 'workers:worker_create' %}" class="btn btn-primary">
+        <i class="fas fa-plus me-1"></i>Nuevo Trabajador
+    </a>
+</div>
+
+<form method="get" class="row g-2 mb-3">
+    <div class="col-md-3">
+        <input type="text" name="q" class="form-control" placeholder="Buscar por RUN o nombre..."
+               value="{{ query }}" data-search>
+    </div>
+    <div class="col-md-2">
+        <select name="estado" class="form-select">
+            <option value="">Todos los estados</option>
+            <option value="en_proceso" {% if filtro_estado == 'en_proceso' %}selected{% endif %}>En proceso</option>
+            <option value="activo" {% if filtro_estado == 'activo' %}selected{% endif %}>Activo</option>
+            <option value="en_transito" {% if filtro_estado == 'en_transito' %}selected{% endif %}>En tránsito</option>
+            <option value="por_egresar" {% if filtro_estado == 'por_egresar' %}selected{% endif %}>Por egresar</option>
+            <option value="despedido_en_proceso" {% if filtro_estado == 'despedido_en_proceso' %}selected{% endif %}>Despedido en proceso</option>
+            <option value="desvinculado" {% if filtro_estado == 'desvinculado' %}selected{% endif %}>Desvinculado</option>
+            <option value="eliminado" {% if filtro_estado == 'eliminado' %}selected{% endif %}>Eliminado</option>
+        </select>
+    </div>
+    <div class="col-md-2">
+        <select name="ceco" class="form-select">
+            <option value="">Todos los CeCos</option>
+            {% for cc in costcenters %}
+            <option value="{{ cc.id }}" {% if filtro_ceco == cc.id|slugify %}selected{% endif %}>{{ cc.nombre }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <div class="col-md-2">
+        <input type="text" name="cargo" class="form-control" placeholder="Cargo..." value="{{ filtro_cargo }}">
+    </div>
+    <div class="col-md-1">
+        <button type="submit" class="btn btn-primary w-100">
+            <i class="fas fa-search"></i>
+        </button>
+    </div>
+    <div class="col-md-2">
+        <div class="form-check mt-2">
+            <input type="checkbox" name="incluir_eliminados" value="1" class="form-check-input"
+                   id="incluir_eliminados" {% if incluir_eliminados %}checked{% endif %}>
+            <label class="form-check-label small" for="incluir_eliminados">Incluir eliminados</label>
+        </div>
+    </div>
+</form>
+
+<div class="card shadow mb-4">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>RUN</th>
+                        <th>Nombre</th>
+                        <th>Cargo</th>
+                        <th>CeCo Actual</th>
+                        <th>Estado</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for w in workers %}
+                    <tr class="{% if w.estado == 'eliminado' %}table-danger{% endif %}">
+                        <td>{{ w.run }}</td>
+                        <td>
+                            <a href="{% url 'workers:worker_detail' w.pk %}">{{ w.nombre }}</a>
+                        </td>
+                        <td>{{ w.cargo }}</td>
+                        <td>{{ w.centro_costo_actual.nombre|default:'—' }}</td>
+                        <td>
+                            <span class="badge {% if w.estado == 'activo' %}bg-success{% elif w.estado == 'en_proceso' %}bg-info{% elif w.estado == 'desvinculado' %}bg-secondary{% elif w.estado == 'eliminado' %}bg-dark{% else %}bg-warning{% endif %}">
+                                {{ w.get_estado_display }}
+                            </span>
+                        </td>
+                        <td>
+                            <a href="{% url 'workers:worker_detail' w.pk %}" class="btn btn-sm btn-info" title="Ficha">
+                                <i class="fas fa-id-card"></i>
+                            </a>
+                            {% if w.estado != 'eliminado' %}
+                            <a href="{% url 'workers:worker_edit' w.pk %}" class="btn btn-sm btn-warning" title="Editar">
+                                <i class="fas fa-edit"></i>
+                            </a>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6" class="text-center text-muted py-4">
+                            No se encontraron trabajadores.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        {% if page_obj.paginator.num_pages > 1 %}
+        <nav>
+            <ul class="pagination justify-content-center">
+                {% if page_obj.has_previous %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.previous_page_number }}&q={{ query }}&estado={{ filtro_estado }}&ceco={{ filtro_ceco }}&cargo={{ filtro_cargo }}&incluir_eliminados={{ incluir_eliminados }}">Anterior</a>
+                </li>
+                {% endif %}
+                <li class="page-item active">
+                    <span class="page-link">{{ page_obj.number }} de {{ page_obj.paginator.num_pages }}</span>
+                </li>
+                {% if page_obj.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.next_page_number }}&q={{ query }}&estado={{ filtro_estado }}&ceco={{ filtro_ceco }}&cargo={{ filtro_cargo }}&incluir_eliminados={{ incluir_eliminados }}">Siguiente</a>
+                </li>
+                {% endif %}
+            </ul>
+        </nav>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

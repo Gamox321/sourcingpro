@@ -1,0 +1,222 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Dashboard TI{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Alerta crítica -->
+    {% if alerta_critica %}
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        <div class="d-flex align-items-center">
+            <i class="fas fa-exclamation-triangle fa-2x me-3"></i>
+            <div>
+                <h5 class="alert-heading mb-1">
+                    <strong>Tarea Crítica: {{ alerta_critica.get_tipo_display }}</strong>
+                </h5>
+                <p class="mb-1">
+                    Trabajador: <strong>{{ alerta_critica.proceso.trabajador.nombre }}</strong>
+                    {% if alerta_critica.plazo_limite %}
+                    <br>Vence: <strong>{{ alerta_critica.plazo_limite|date:"d/m/Y H:i" }}</strong>
+                    {% endif %}
+                </p>
+                <a href="{% url 'kanban:card_detail' alerta_critica.pk %}" class="btn btn-danger btn-sm mt-2">
+                    <i class="fas fa-eye me-1"></i>Ver Detalle
+                </a>
+            </div>
+        </div>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+    {% endif %}
+
+    <!-- Stats -->
+    <div class="row mb-4">
+        <div class="col-xl-4 col-md-6 mb-3">
+            <div class="card border-left-danger shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-danger text-uppercase mb-1">
+                                Tareas Pendientes
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                {{ stats.tareas_pendientes }}
+                            </div>
+                            {% if stats.tareas_criticas > 0 %}
+                            <div class="text-xs text-danger mt-1">
+                                <i class="fas fa-exclamation-circle"></i> {{ stats.tareas_criticas }} críticas
+                            </div>
+                            {% endif %}
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-tasks fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-4 col-md-6 mb-3">
+            <div class="card border-left-primary shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                Equipos TI Asignados
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                {{ stats.equipos_ti_asignados }} / {{ stats.equipos_ti_total }}
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-laptop fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-4 col-md-6 mb-3">
+            <div class="card border-left-success shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                                Completadas Este Mes
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                {{ stats.tareas_completadas_mes }}
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-check-circle fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Dos columnas: Mis tareas + Inventario TI -->
+    <div class="row">
+        <!-- Mis tareas -->
+        <div class="col-lg-6 mb-4">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="fas fa-clipboard-list me-2"></i>Mis Tareas Asignadas
+                    </h6>
+                </div>
+                <div class="card-body">
+                    {% if mis_tareas %}
+                    <div class="list-group list-group-flush">
+                        {% for tarea in mis_tareas %}
+                        <div class="list-group-item">
+                            <div class="d-flex w-100 justify-content-between align-items-start">
+                                <div class="flex-grow-1">
+                                    <h6 class="mb-1">
+                                        {% if tarea.urgencia == 'critica' %}
+                                        <span class="badge bg-danger me-1">CRÍTICA</span>
+                                        {% endif %}
+                                        {{ tarea.get_tipo_display }}
+                                    </h6>
+                                    <p class="mb-1 small">
+                                        <i class="fas fa-user me-1"></i>{{ tarea.proceso.trabajador.nombre }}
+                                        <br>
+                                        <i class="fas fa-briefcase me-1"></i>{{ tarea.proceso.get_tipo_display }}
+                                    </p>
+                                    {% if tarea.plazo_limite %}
+                                    <small class="text-muted">
+                                        <i class="fas fa-clock me-1"></i>
+                                        Vence: {{ tarea.plazo_limite|date:"d/m/Y H:i" }}
+                                    </small>
+                                    {% endif %}
+                                </div>
+                                <a href="{% url 'kanban:card_detail' tarea.pk %}" class="btn btn-sm btn-outline-primary">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <p class="text-center text-muted mb-0">
+                        <i class="fas fa-check-circle fa-3x mb-3 d-block"></i>
+                        No tienes tareas pendientes
+                    </p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Inventario TI -->
+        <div class="col-lg-6 mb-4">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="fas fa-laptop me-2"></i>Inventario Equipos TI
+                    </h6>
+                </div>
+                <div class="card-body">
+                    {% if inventario_ti %}
+                    <div class="table-responsive">
+                        <table class="table table-sm table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Código</th>
+                                    <th>Nombre</th>
+                                    <th>Estado</th>
+                                    <th>Asignado a</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for asset in inventario_ti %}
+                                <tr>
+                                    <td><code>{{ asset.codigo }}</code></td>
+                                    <td>{{ asset.nombre }}</td>
+                                    <td>
+                                        {% if asset.estado == 'disponible' %}
+                                        <span class="badge bg-success">{{ asset.get_estado_display }}</span>
+                                        {% elif asset.estado == 'asignado' %}
+                                        <span class="badge bg-primary">{{ asset.get_estado_display }}</span>
+                                        {% elif asset.estado == 'en_revision' %}
+                                        <span class="badge bg-warning">{{ asset.get_estado_display }}</span>
+                                        {% else %}
+                                        <span class="badge bg-secondary">{{ asset.get_estado_display }}</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if asset.asignaciones.all %}
+                                            {% with ultima_asignacion=asset.asignaciones.all|first %}
+                                                {% if ultima_asignacion and not ultima_asignacion.fecha_devolucion %}
+                                                    {{ ultima_asignacion.trabajador.nombre }}
+                                                {% else %}
+                                                    <span class="text-muted">—</span>
+                                                {% endif %}
+                                            {% endwith %}
+                                        {% else %}
+                                            <span class="text-muted">—</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="text-center mt-3">
+                        <a href="{% url 'ti:inventario' %}" class="btn btn-sm btn-outline-primary">
+                            <i class="fas fa-list me-1"></i>Ver Inventario Completo
+                        </a>
+                    </div>
+                    {% else %}
+                    <p class="text-center text-muted mb-0">
+                        <i class="fas fa-box-open fa-3x mb-3 d-block"></i>
+                        No hay equipos TI registrados
+                    </p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,169 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Tablero Kanban{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">
+                <i class="fas fa-columns me-2"></i>Tablero Kanban
+            </h6>
+        </div>
+        <div class="card-body">
+            <!-- Selector de CeCo -->
+            <form method="get" class="mb-4">
+                <div class="row">
+                    <div class="col-md-4">
+                        <select name="ceco" class="form-select" onchange="this.form.submit()">
+                            <option value="">Selecciona un CeCo</option>
+                            {% for ceco in cecos %}
+                            <option value="{{ ceco.pk }}" {% if ceco_seleccionado and ceco.pk == ceco_seleccionado.pk %}selected{% endif %}>
+                                {{ ceco.nombre }} ({{ ceco.codigo }})
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+            </form>
+
+            {% if ceco_seleccionado %}
+            <!-- Kanban Board -->
+            <div class="row">
+                <!-- Pendientes -->
+                <div class="col-md-4">
+                    <div class="card border-left-warning shadow h-100">
+                        <div class="card-header bg-warning text-white">
+                            <h6 class="m-0 font-weight-bold">
+                                <i class="fas fa-clock me-2"></i>Pendientes
+                                <span class="badge bg-white text-warning float-end">{{ tareas_pendientes|length }}</span>
+                            </h6>
+                        </div>
+                        <div class="card-body">
+                            {% if tareas_pendientes %}
+                            <div class="list-group list-group-flush">
+                                {% for tarea in tareas_pendientes %}
+                                <div class="list-group-item">
+                                    <div class="d-flex w-100 justify-content-between">
+                                        <h6 class="mb-1">
+                                            {% if tarea.urgencia == 'critica' %}
+                                            <span class="badge bg-danger">CRÍTICA</span>
+                                            {% endif %}
+                                            {{ tarea.get_tipo_display }}
+                                        </h6>
+                                    </div>
+                                    <p class="mb-1 small">
+                                        <i class="fas fa-user me-1"></i>{{ tarea.proceso.trabajador.nombre }}
+                                    </p>
+                                    {% if tarea.plazo_limite %}
+                                    <small class="text-muted">
+                                        <i class="fas fa-clock me-1"></i>{{ tarea.plazo_limite|date:"d/m/Y H:i" }}
+                                    </small>
+                                    {% endif %}
+                                </div>
+                                {% endfor %}
+                            </div>
+                            {% else %}
+                            <p class="text-center text-muted mb-0">
+                                <i class="fas fa-check-circle fa-2x mb-2 d-block"></i>
+                                No hay tareas pendientes
+                            </p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- En Proceso -->
+                <div class="col-md-4">
+                    <div class="card border-left-primary shadow h-100">
+                        <div class="card-header bg-primary text-white">
+                            <h6 class="m-0 font-weight-bold">
+                                <i class="fas fa-spinner me-2"></i>En Proceso
+                                <span class="badge bg-white text-primary float-end">{{ tareas_en_proceso|length }}</span>
+                            </h6>
+                        </div>
+                        <div class="card-body">
+                            {% if tareas_en_proceso %}
+                            <div class="list-group list-group-flush">
+                                {% for tarea in tareas_en_proceso %}
+                                <div class="list-group-item">
+                                    <div class="d-flex w-100 justify-content-between">
+                                        <h6 class="mb-1">
+                                            {% if tarea.urgencia == 'critica' %}
+                                            <span class="badge bg-danger">CRÍTICA</span>
+                                            {% endif %}
+                                            {{ tarea.get_tipo_display }}
+                                        </h6>
+                                    </div>
+                                    <p class="mb-1 small">
+                                        <i class="fas fa-user me-1"></i>{{ tarea.proceso.trabajador.nombre }}
+                                    </p>
+                                    {% if tarea.plazo_limite %}
+                                    <small class="text-muted">
+                                        <i class="fas fa-clock me-1"></i>{{ tarea.plazo_limite|date:"d/m/Y H:i" }}
+                                    </small>
+                                    {% endif %}
+                                </div>
+                                {% endfor %}
+                            </div>
+                            {% else %}
+                            <p class="text-center text-muted mb-0">
+                                <i class="fas fa-inbox fa-2x mb-2 d-block"></i>
+                                No hay tareas en proceso
+                            </p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Completadas -->
+                <div class="col-md-4">
+                    <div class="card border-left-success shadow h-100">
+                        <div class="card-header bg-success text-white">
+                            <h6 class="m-0 font-weight-bold">
+                                <i class="fas fa-check me-2"></i>Completadas
+                                <span class="badge bg-white text-success float-end">{{ tareas_completadas|length }}</span>
+                            </h6>
+                        </div>
+                        <div class="card-body">
+                            {% if tareas_completadas %}
+                            <div class="list-group list-group-flush">
+                                {% for tarea in tareas_completadas %}
+                                <div class="list-group-item">
+                                    <div class="d-flex w-100 justify-content-between">
+                                        <h6 class="mb-1">
+                                            {{ tarea.get_tipo_display }}
+                                        </h6>
+                                    </div>
+                                    <p class="mb-1 small">
+                                        <i class="fas fa-user me-1"></i>{{ tarea.proceso.trabajador.nombre }}
+                                    </p>
+                                    {% if tarea.fecha_completado %}
+                                    <small class="text-success">
+                                        <i class="fas fa-check-circle me-1"></i>{{ tarea.fecha_completado|date:"d/m/Y H:i" }}
+                                    </small>
+                                    {% endif %}
+                                </div>
+                                {% endfor %}
+                            </div>
+                            {% else %}
+                            <p class="text-center text-muted mb-0">
+                                <i class="fas fa-inbox fa-2x mb-2 d-block"></i>
+                                No hay tareas completadas
+                            </p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% else %}
+            <div class="text-center text-muted py-5">
+                <i class="fas fa-building fa-3x mb-3"></i>
+                <p>Selecciona un Centro de Costo para ver su tablero</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

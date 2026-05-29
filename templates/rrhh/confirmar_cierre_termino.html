@@ -1,0 +1,119 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Confirmar Cierre de Término{% endblock %}
+
+{% block breadcrumbs %}
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{% url 'rrhh:dashboard' %}"><i class="fas fa-home"></i></a></li>
+        <li class="breadcrumb-item"><a href="{% url 'rrhh:dashboard' %}">RRHH</a></li>
+        <li class="breadcrumb-item"><a href="{% url 'rrhh:procesos' %}">Procesos</a></li>
+        <li class="breadcrumb-item active">Confirmar Cierre</li>
+    </ol>
+</nav>
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-8 mx-auto">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">
+                    Confirmar Cierre de Término de Contrato
+                </h6>
+            </div>
+            <div class="card-body">
+                <!-- Información del trabajador -->
+                <div class="mb-4">
+                    <h5 class="font-weight-bold">{{ proceso.trabajador.nombre }}</h5>
+                    <p class="text-muted mb-1">
+                        <i class="fas fa-id-card me-1"></i>{{ proceso.trabajador.run }}
+                    </p>
+                    <p class="text-muted mb-1">
+                        <i class="fas fa-briefcase me-1"></i>{{ proceso.trabajador.cargo }}
+                    </p>
+                    <p class="text-muted">
+                        <i class="fas fa-building me-1"></i>{{ proceso.trabajador.centro_costo_actual.nombre|default:"Sin CeCo" }}
+                    </p>
+                </div>
+
+                <!-- Estado del proceso -->
+                <div class="alert {% if todas_completas %}alert-success{% else %}alert-warning{% endif %} mb-4">
+                    <div class="d-flex align-items-center">
+                        <i class="fas {% if todas_completas %}fa-check-circle{% else %}fa-exclamation-triangle{% endif %} fa-2x me-3"></i>
+                        <div>
+                            <h6 class="alert-heading mb-1">
+                                {% if todas_completas %}
+                                ¡Todas las tareas completadas!
+                                {% else %}
+                                Tareas pendientes
+                                {% endif %}
+                            </h6>
+                            <p class="mb-0 small">
+                                {% if todas_completas %}
+                                Puede confirmar el cierre del proceso de término.
+                                {% else %}
+                                Debe completar todas las tareas antes de confirmar el cierre.
+                                {% endif %}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Lista de tareas -->
+                <h6 class="font-weight-bold mb-3">Estado de Tareas</h6>
+                <div class="list-group mb-4">
+                    {% for tarea in tareas %}
+                    <div class="list-group-item d-flex justify-content-between align-items-center">
+                        <div>
+                            <strong>{{ tarea.get_tipo_display }}</strong>
+                            <small class="text-muted d-block">
+                                Responsable: {{ tarea.usuario_responsable.nombre|default:"Sin asignar" }}
+                            </small>
+                        </div>
+                        <span class="badge {% if tarea.estado == 'completada' or tarea.estado == 'gestionado_externo' %}bg-success{% elif tarea.estado == 'vencida' %}bg-danger{% elif tarea.estado == 'en_proceso' %}bg-warning{% else %}bg-secondary{% endif %}">
+                            {{ tarea.get_estado_display }}
+                        </span>
+                    </div>
+                    {% endfor %}
+                </div>
+
+                <!-- Formulario de confirmación -->
+                {% if todas_completas %}
+                <form method="post" class="mt-4">
+                    {% csrf_token %}
+                    <input type="hidden" name="proceso_id" value="{{ proceso.pk }}">
+                    
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle me-2"></i>
+                        <strong>Al confirmar:</strong>
+                        <ul class="mb-0 mt-2">
+                            <li>El estado del trabajador cambiará a <strong>"Desvinculado"</strong></li>
+                            <li>Se notificará a TI para proceder con el bloqueo de accesos</li>
+                            <li>Se registrará la fecha de egreso efectiva</li>
+                            <li>El proceso se marcará como completado</li>
+                        </ul>
+                    </div>
+
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <a href="{% url 'rrhh:procesos' %}" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left me-1"></i> Cancelar
+                        </a>
+                        <button type="submit" class="btn btn-danger" data-confirm="¿Está seguro que desea confirmar el cierre del término de contrato de {{ proceso.trabajador.nombre }}? Esta acción no se puede deshacer.">
+                            <i class="fas fa-check-circle me-1"></i> Confirmar Cierre y Desvincular
+                        </button>
+                    </div>
+                </form>
+                {% else %}
+                <div class="text-center">
+                    <a href="{% url 'rrhh:procesos' %}" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left me-1"></i> Volver a Procesos
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

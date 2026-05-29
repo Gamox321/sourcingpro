@@ -1,0 +1,140 @@
+<div class="card shadow">
+    <div class="card-header py-3">
+        <h6 class="m-0 font-weight-bold text-primary">
+            <i class="fas fa-user me-2"></i>Ficha de Trabajador
+        </h6>
+    </div>
+    <div class="card-body">
+        <!-- Datos básicos -->
+        <div class="mb-4">
+            <h5>{{ worker.nombre }}</h5>
+            <p class="text-muted mb-1">
+                <i class="fas fa-id-card me-2"></i>RUN: {{ worker.run }}
+            </p>
+            <p class="text-muted mb-1">
+                <i class="fas fa-envelope me-2"></i>{{ worker.correo }}
+            </p>
+            <p class="text-muted mb-1">
+                <i class="fas fa-briefcase me-2"></i>{{ worker.cargo }}
+            </p>
+            <p class="text-muted mb-1">
+                <i class="fas fa-building me-2"></i>{{ worker.centro_costo_actual.nombre }}
+            </p>
+            {% if worker.fecha_ingreso_efectiva %}
+            <p class="text-muted mb-1">
+                <i class="fas fa-calendar me-2"></i>Ingreso: {{ worker.fecha_ingreso_efectiva|date:"d/m/Y" }}
+            </p>
+            {% endif %}
+            <p class="mb-0">
+                {% if worker.estado == 'activo' %}
+                <span class="badge bg-success">Activo</span>
+                {% elif worker.estado == 'en_proceso' %}
+                <span class="badge bg-info">En proceso</span>
+                {% elif worker.estado == 'en_transito' %}
+                <span class="badge bg-warning">En tránsito</span>
+                {% elif worker.estado == 'por_egresar' %}
+                <span class="badge bg-danger">Por egresar</span>
+                {% else %}
+                <span class="badge bg-secondary">{{ worker.get_estado_display }}</span>
+                {% endif %}
+            </p>
+        </div>
+
+        <hr>
+
+        <!-- Procesos activos -->
+        <div class="mb-4">
+            <h6 class="font-weight-bold text-primary">
+                <i class="fas fa-tasks me-2"></i>Procesos Activos
+            </h6>
+            {% if procesos_activos %}
+            <div class="list-group list-group-flush">
+                {% for proceso in procesos_activos %}
+                <div class="list-group-item px-0">
+                    <div class="d-flex w-100 justify-content-between">
+                        <h6 class="mb-1">{{ proceso.get_tipo_display }}</h6>
+                        <small class="text-muted">{{ proceso.fecha_inicio|date:"d/m/Y" }}</small>
+                    </div>
+                    {% if proceso.motivo %}
+                    <p class="mb-1 small">{{ proceso.motivo }}</p>
+                    {% endif %}
+                    {% if proceso.ceco_origen or proceso.ceco_destino %}
+                    <small class="text-muted">
+                        {% if proceso.ceco_origen %}{{ proceso.ceco_origen.nombre }}{% endif %}
+                        {% if proceso.ceco_origen and proceso.ceco_destino %} → {% endif %}
+                        {% if proceso.ceco_destino %}{{ proceso.ceco_destino.nombre }}{% endif %}
+                    </small>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <p class="text-muted small mb-0">No hay procesos activos</p>
+            {% endif %}
+        </div>
+
+        <hr>
+
+        <!-- Activos asignados -->
+        <div class="mb-4">
+            <h6 class="font-weight-bold text-primary">
+                <i class="fas fa-box me-2"></i>Activos Asignados
+            </h6>
+            {% if activos %}
+            <div class="list-group list-group-flush">
+                {% for asignacion in activos %}
+                <div class="list-group-item px-0">
+                    <div class="d-flex w-100 justify-content-between">
+                        <h6 class="mb-1">{{ asignacion.activo.nombre }}</h6>
+                        <span class="badge bg-info">{{ asignacion.activo.get_estado_display }}</span>
+                    </div>
+                    <p class="mb-1 small">
+                        <strong>Código:</strong> {{ asignacion.activo.codigo }}
+                    </p>
+                    <small class="text-muted">
+                        Asignado: {{ asignacion.fecha_asignacion|date:"d/m/Y" }}
+                    </small>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <p class="text-muted small mb-0">No hay activos asignados</p>
+            {% endif %}
+        </div>
+
+        <hr>
+
+        <!-- Historial de procesos -->
+        <div>
+            <h6 class="font-weight-bold text-primary">
+                <i class="fas fa-history me-2"></i>Historial de Procesos
+            </h6>
+            {% if historial %}
+            <div class="list-group list-group-flush">
+                {% for proceso in historial %}
+                <div class="list-group-item px-0">
+                    <div class="d-flex w-100 justify-content-between">
+                        <h6 class="mb-1">{{ proceso.get_tipo_display }}</h6>
+                        {% if proceso.estado == 'completado' %}
+                        <span class="badge bg-success">Completado</span>
+                        {% elif proceso.estado == 'en_curso' %}
+                        <span class="badge bg-primary">En curso</span>
+                        {% else %}
+                        <span class="badge bg-secondary">{{ proceso.get_estado_display }}</span>
+                        {% endif %}
+                    </div>
+                    <small class="text-muted">
+                        {{ proceso.fecha_inicio|date:"d/m/Y H:i" }}
+                        {% if proceso.usuario_inicio %}
+                        · {{ proceso.usuario_inicio.nombre }}
+                        {% endif %}
+                    </small>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <p class="text-muted small mb-0">No hay historial disponible</p>
+            {% endif %}
+        </div>
+    </div>
+</div>

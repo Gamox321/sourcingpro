@@ -1,0 +1,178 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Logística Dashboard{% endblock %}
+
+{% block breadcrumbs %}
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{% url 'logistica:dashboard' %}"><i class="fas fa-home"></i></a></li>
+        <li class="breadcrumb-item active">Logística</li>
+    </ol>
+</nav>
+{% endblock %}
+
+{% block content %}
+<!-- Stats Row -->
+<div class="row mb-4">
+    <div class="col-xl-3 col-md-6 mb-3">
+        <div class="card border-left-primary shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                            Tareas Pendientes
+                        </div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">{{ stats.tareas_pendientes }}</div>
+                        <div class="text-xs text-muted">Equipamiento y devoluciones</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-tasks fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6 mb-3">
+        <div class="card border-left-success shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                            Activos Disponibles
+                        </div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">{{ stats.activos_disponibles }}</div>
+                        <div class="text-xs text-muted">De {{ stats.activos_totales }} totales</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-box fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6 mb-3">
+        <div class="card border-left-info shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                            Activos Asignados
+                        </div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">{{ stats.activos_asignados }}</div>
+                        <div class="text-xs text-muted">En uso por trabajadores</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-dolly fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6 mb-3">
+        <div class="card border-left-warning shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                            Pendiente Devolución
+                        </div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">{{ stats.activos_pendiente_devolucion }}</div>
+                        <div class="text-xs text-muted">Esperando retorno</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-undo fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Tareas Pendientes -->
+<div class="row">
+    <div class="col-lg-12">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">
+                    <i class="fas fa-clipboard-list me-2"></i>Mis Tareas Activas
+                </h6>
+            </div>
+            <div class="card-body">
+                {% if mis_tareas %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Tipo</th>
+                                <th>Trabajador</th>
+                                <th>Proceso</th>
+                                <th>Estado</th>
+                                <th>Urgencia</th>
+                                <th>Plazo Límite</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for tarea in mis_tareas %}
+                            <tr>
+                                <td>
+                                    <strong>{{ tarea.get_tipo_display }}</strong>
+                                </td>
+                                <td>{{ tarea.proceso.trabajador.nombre }}</td>
+                                <td>
+                                    {% if tarea.proceso.tipo == 'contratacion' %}
+                                    <span class="badge bg-primary">Contratación</span>
+                                    {% elif tarea.proceso.tipo == 'termino' %}
+                                    <span class="badge bg-warning">Término</span>
+                                    {% elif tarea.proceso.tipo == 'despido' %}
+                                    <span class="badge bg-danger">Despido</span>
+                                    {% elif tarea.proceso.tipo == 'cambio_ceco' %}
+                                    <span class="badge bg-info">Cambio CeCo</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <span class="badge {% if tarea.estado == 'pendiente' %}bg-secondary{% elif tarea.estado == 'en_proceso' %}bg-info{% elif tarea.estado == 'vencida' %}bg-danger{% else %}bg-success{% endif %}">
+                                        {{ tarea.get_estado_display }}
+                                    </span>
+                                </td>
+                                <td>
+                                    {% if tarea.urgencia == 'critica' %}
+                                    <span class="badge bg-danger">Crítica</span>
+                                    {% else %}
+                                    <span class="badge bg-secondary">Normal</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if tarea.plazo_limite %}
+                                    <span class="{% if tarea.plazo_limite|timesince:None == '0 minutes' %}text-danger fw-bold{% endif %}">
+                                        {{ tarea.plazo_limite|date:"d/m/Y" }}
+                                    </span>
+                                    {% else %}
+                                    —
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <a href="{% url 'kanban:card_detail' tarea.pk %}" class="btn btn-sm btn-outline-primary">
+                                        <i class="fas fa-eye"></i> Ver
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="text-center text-muted py-4">
+                    <i class="fas fa-check-circle fa-3x mb-3 d-block"></i>
+                    <p>No tienes tareas pendientes</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

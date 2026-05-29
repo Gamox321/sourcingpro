@@ -1,0 +1,125 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Mi Nómina{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <!-- Sidebar de CeCos -->
+        <div class="col-md-2">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Mis CeCos</h6>
+                </div>
+                <div class="card-body p-0">
+                    <div class="list-group list-group-flush">
+                        {% for ceco in cecos %}
+                        <a href="?ceco={{ ceco.pk }}" 
+                           class="list-group-item list-group-item-action {% if ceco_seleccionado and ceco.pk == ceco_seleccionado.pk %}active{% endif %}">
+                            <div class="d-flex w-100 justify-content-between">
+                                <h6 class="mb-1">{{ ceco.nombre }}</h6>
+                            </div>
+                            <small>{{ ceco.codigo }}</small>
+                        </a>
+                        {% empty %}
+                        <div class="list-group-item text-center text-muted">
+                            No tienes CeCos asignados
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Lista de trabajadores -->
+        <div class="col-md-4">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        {% if ceco_seleccionado %}
+                        Nómina: {{ ceco_seleccionado.nombre }}
+                        {% else %}
+                        Selecciona un CeCo
+                        {% endif %}
+                    </h6>
+                </div>
+                <div class="card-body">
+                    {% if ceco_seleccionado %}
+                    <!-- Filtros -->
+                    <form method="get" class="mb-3">
+                        <input type="hidden" name="ceco" value="{{ ceco_seleccionado.pk }}">
+                        <div class="input-group mb-2">
+                            <input type="text" name="q" class="form-control" placeholder="Buscar trabajador..." value="{{ query }}">
+                            <button class="btn btn-primary" type="submit">
+                                <i class="fas fa-search"></i>
+                            </button>
+                        </div>
+                        <select name="estado" class="form-select" onchange="this.form.submit()">
+                            <option value="">Todos los estados</option>
+                            <option value="activo" {% if filtro_estado == 'activo' %}selected{% endif %}>Activo</option>
+                            <option value="en_proceso" {% if filtro_estado == 'en_proceso' %}selected{% endif %}>En proceso</option>
+                            <option value="en_transito" {% if filtro_estado == 'en_transito' %}selected{% endif %}>En tránsito</option>
+                            <option value="por_egresar" {% if filtro_estado == 'por_egresar' %}selected{% endif %}>Por egresar</option>
+                        </select>
+                    </form>
+
+                    <div class="mb-2 text-muted small">
+                        Total: {{ total_workers }} trabajadores
+                    </div>
+
+                    <!-- Lista de trabajadores -->
+                    <div class="list-group" style="max-height: 600px; overflow-y: auto;">
+                        {% for worker in workers %}
+                        <a href="{% url 'jefatura:trabajador_detail' worker.pk %}?ceco={{ ceco_seleccionado.pk }}"
+                           class="list-group-item list-group-item-action"
+                           hx-get="{% url 'jefatura:trabajador_detail' worker.pk %}"
+                           hx-target="#ficha-trabajador"
+                           hx-swap="innerHTML">
+                            <div class="d-flex w-100 justify-content-between">
+                                <h6 class="mb-1">{{ worker.nombre }}</h6>
+                                {% if worker.estado == 'activo' %}
+                                <span class="badge bg-success">Activo</span>
+                                {% elif worker.estado == 'en_proceso' %}
+                                <span class="badge bg-info">En proceso</span>
+                                {% elif worker.estado == 'en_transito' %}
+                                <span class="badge bg-warning">En tránsito</span>
+                                {% elif worker.estado == 'por_egresar' %}
+                                <span class="badge bg-danger">Por egresar</span>
+                                {% else %}
+                                <span class="badge bg-secondary">{{ worker.get_estado_display }}</span>
+                                {% endif %}
+                            </div>
+                            <p class="mb-1 small">{{ worker.cargo }}</p>
+                            <small class="text-muted">RUN: {{ worker.run }}</small>
+                        </a>
+                        {% empty %}
+                        <div class="list-group-item text-center text-muted">
+                            No hay trabajadores en este CeCo
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <div class="text-center text-muted py-5">
+                        <i class="fas fa-building fa-3x mb-3"></i>
+                        <p>Selecciona un Centro de Costo para ver su nómina</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Ficha del trabajador -->
+        <div class="col-md-6">
+            <div id="ficha-trabajador">
+                <div class="card shadow">
+                    <div class="card-body text-center text-muted py-5">
+                        <i class="fas fa-user fa-3x mb-3"></i>
+                        <p>Selecciona un trabajador para ver su ficha detallada</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,204 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Reportes{% endblock %}
+
+{% block breadcrumbs %}
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{% url 'rrhh:dashboard' %}"><i class="fas fa-home"></i></a></li>
+        <li class="breadcrumb-item active">Reportes</li>
+    </ol>
+</nav>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h1 class="h3 text-gray-800">Reportes de Trabajadores</h1>
+</div>
+
+<div class="row mb-4">
+    <div class="col-xl-3 col-md-6 mb-3">
+        <div class="card border-left-primary shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row g-0 align-items-center">
+                    <div class="col me-2">
+                        <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">Total Trabajadores</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">{{ resumen_workers.total }}</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-users fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6 mb-3">
+        <div class="card border-left-success shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row g-0 align-items-center">
+                    <div class="col me-2">
+                        <div class="text-xs font-weight-bold text-success text-uppercase mb-1">Activos</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">{{ resumen_workers.activos }}</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-user-check fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6 mb-3">
+        <div class="card border-left-info shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row g-0 align-items-center">
+                    <div class="col me-2">
+                        <div class="text-xs font-weight-bold text-info text-uppercase mb-1">En Proceso</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">{{ resumen_workers.en_proceso }}</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-user-clock fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6 mb-3">
+        <div class="card border-left-warning shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row g-0 align-items-center">
+                    <div class="col me-2">
+                        <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">Desvinculados</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">{{ resumen_workers.desvinculados }}</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-user-times fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-lg-6 mb-4">
+        <div class="card shadow h-100">
+            <div class="card-header bg-light py-3">
+                <h6 class="m-0 font-weight-bold text-primary">Distribución por Centro de Costo</h6>
+            </div>
+            <div class="card-body">
+                {% if distribucion_ceco %}
+                <div class="table-responsive">
+                    <table class="table table-sm">
+                        <thead>
+                            <tr>
+                                <th>Centro de Costo</th>
+                                <th class="text-end">Cantidad</th>
+                                <th style="width: 40%;">Distribución</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in distribucion_ceco %}
+                            <tr>
+                                <td>{{ item.centro_costo_actual__nombre }}</td>
+                                <td class="text-end">{{ item.cantidad }}</td>
+                                <td>
+                                    <div class="progress" style="height: 20px;">
+                                        <div class="progress-bar bg-primary" role="progressbar" 
+                                             style="width: {% widthratio item.cantidad resumen_workers.activos 100 %}%" 
+                                             aria-valuenow="{{ item.cantidad }}" aria-valuemin="0" aria-valuemax="{{ resumen_workers.activos }}">
+                                            {% widthratio item.cantidad resumen_workers.activos 100 %}%
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <p class="text-muted text-center">No hay datos disponibles</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-6 mb-4">
+        <div class="card shadow h-100">
+            <div class="card-header bg-light py-3">
+                <h6 class="m-0 font-weight-bold text-primary">Procesos por Tipo</h6>
+            </div>
+            <div class="card-body">
+                {% if procesos_por_tipo %}
+                <div class="table-responsive">
+                    <table class="table table-sm">
+                        <thead>
+                            <tr>
+                                <th>Tipo de Proceso</th>
+                                <th class="text-end">En Curso</th>
+                                <th style="width: 40%;">Distribución</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in procesos_por_tipo %}
+                            <tr>
+                                <td>
+                                    {% if item.tipo == 'contratacion' %}Contratación
+                                    {% elif item.tipo == 'cambio_ceco' %}Cambio CeCo
+                                    {% elif item.tipo == 'termino' %}Término
+                                    {% elif item.tipo == 'despido' %}Despido
+                                    {% else %}{{ item.tipo }}{% endif %}
+                                </td>
+                                <td class="text-end">{{ item.cantidad }}</td>
+                                <td>
+                                    <div class="progress" style="height: 20px;">
+                                        <div class="progress-bar {% if item.tipo == 'contratacion' %}bg-success{% elif item.tipo == 'despido' %}bg-danger{% elif item.tipo == 'termino' %}bg-warning{% else %}bg-info{% endif %}" 
+                                             role="progressbar" 
+                                             style="width: {% widthratio item.cantidad resumen_procesos.en_curso 100 %}%" 
+                                             aria-valuenow="{{ item.cantidad }}" aria-valuemin="0" aria-valuemax="{{ resumen_procesos.en_curso }}">
+                                            {% widthratio item.cantidad resumen_procesos.en_curso 100 %}%
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <p class="text-muted text-center">No hay procesos en curso</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12">
+        <div class="card shadow mb-4">
+            <div class="card-header bg-light py-3">
+                <h6 class="m-0 font-weight-bold text-primary">Resumen de Procesos</h6>
+            </div>
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col-md-4 mb-3">
+                        <div class="h5 font-weight-bold text-primary">{{ resumen_procesos.total }}</div>
+                        <div class="text-xs text-uppercase text-gray-600">Total de Procesos</div>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <div class="h5 font-weight-bold text-success">{{ resumen_procesos.completados }}</div>
+                        <div class="text-xs text-uppercase text-gray-600">Completados</div>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <div class="h5 font-weight-bold text-info">{{ resumen_procesos.en_curso }}</div>
+                        <div class="text-xs text-uppercase text-gray-600">En Curso</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

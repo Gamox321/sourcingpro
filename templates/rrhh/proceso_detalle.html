@@ -1,0 +1,297 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Detalle de Proceso #{{ proceso.pk }}{% endblock %}
+
+{% block breadcrumbs %}
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{% url 'rrhh:dashboard' %}"><i class="fas fa-home"></i></a></li>
+        <li class="breadcrumb-item"><a href="{% url 'rrhh:procesos' %}">Procesos</a></li>
+        <li class="breadcrumb-item active">Proceso #{{ proceso.pk }}</li>
+    </ol>
+</nav>
+{% endblock %}
+
+{% block content %}
+<!-- Encabezado del Proceso -->
+<div class="card shadow mb-4">
+    <div class="card-header py-3 d-flex justify-content-between align-items-center">
+        <h6 class="m-0 font-weight-bold text-primary">
+            Proceso de {{ proceso.get_tipo_display }} #{{ proceso.pk }}
+        </h6>
+        <div>
+            <span class="badge {% if proceso.estado == 'en_curso' %}bg-info{% elif proceso.estado == 'completado' %}bg-success{% elif proceso.estado == 'cancelado' %}bg-secondary{% else %}bg-warning{% endif %} me-2">
+                {{ proceso.get_estado_display }}
+            </span>
+            {% if proceso.tipo == 'despido' %}
+            <span class="badge bg-danger">Requiere Confirmación RRHH</span>
+            {% endif %}
+        </div>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-6">
+                <h6 class="font-weight-bold">Trabajador</h6>
+                <p class="mb-1"><strong>{{ proceso.trabajador.nombre }}</strong></p>
+                <p class="mb-1 text-muted">{{ proceso.trabajador.run }}</p>
+                <p class="mb-1 text-muted">{{ proceso.trabajador.cargo }}</p>
+                <p class="mb-0 text-muted">{{ proceso.trabajador.centro_costo_actual.nombre|default:"Sin CeCo" }}</p>
+            </div>
+            <div class="col-md-6">
+                <h6 class="font-weight-bold">Información del Proceso</h6>
+                <p class="mb-1"><strong>Inicio:</strong> {{ proceso.fecha_inicio|date:"d/m/Y H:i" }}</p>
+                {% if proceso.fecha_cierre %}
+                <p class="mb-1"><strong>Cierre:</strong> {{ proceso.fecha_cierre|date:"d/m/Y H:i" }}</p>
+                {% endif %}
+                <p class="mb-1"><strong>Iniciado por:</strong> {{ proceso.usuario_inicio.nombre }}</p>
+                {% if proceso.ceco_origen %}
+                <p class="mb-1"><strong>CeCo Origen:</strong> {{ proceso.ceco_origen.nombre }}</p>
+                {% endif %}
+                {% if proceso.ceco_destino %}
+                <p class="mb-1"><strong>CeCo Destino:</strong> {{ proceso.ceco_destino.nombre }}</p>
+                {% endif %}
+                {% if proceso.motivo %}
+                <p class="mb-0"><strong>Motivo:</strong> {{ proceso.motivo|truncatechars:60 }}</p>
+                {% endif %}
+            </div>
+        </div>
+        {% if proceso.causal_legal %}
+        <div class="alert alert-danger mt-3 mb-0">
+            <strong>Causal Legal:</strong> {{ proceso.causal_legal }}
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Tareas -->
+<div class="card shadow mb-4">
+    <div class="card-header py-3">
+        <h6 class="m-0 font-weight-bold text-primary">
+            <i class="fas fa-tasks me-2"></i>Tareas
+        </h6>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Tipo</th>
+                        <th>Responsable</th>
+                        <th>Estado</th>
+                        <th>Urgencia</th>
+                        <th>Plazo Límite</th>
+                        <th>Completado</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for tarea in tareas %}
+                    <tr>
+                        <td>
+                            <strong>{{ tarea.get_tipo_display }}</strong>
+                            {% if tarea.omitida %}
+                            <span class="badge bg-secondary ms-1">Omitida</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ tarea.usuario_responsable.nombre|default:"Sin asignar" }}</td>
+                        <td>
+                            <span class="badge {% if tarea.estado == 'pendiente' %}bg-secondary{% elif tarea.estado == 'en_proceso' %}bg-info{% elif tarea.estado == 'completada' or tarea.estado == 'gestionado_externo' %}bg-success{% elif tarea.estado == 'vencida' %}bg-danger{% elif tarea.estado == 'escalada' %}bg-warning{% else %}bg-dark{% endif %}">
+                                {{ tarea.get_estado_display }}
+                            </span>
+                        </td>
+                        <td>
+                            {% if tarea.urgencia == 'critica' %}
+                            <span class="badge bg-danger">Crítica</span>
+                            {% else %}
+                            <span class="badge bg-secondary">Normal</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if tarea.plazo_limite %}
+                            <span class="{% if tarea.plazo_limite < now and tarea.estado != 'completada' and tarea.estado != 'vencida' %}text-danger fw-bold{% endif %}">
+                                {{ tarea.plazo_limite|date:"d/m/Y H:i" }}
+                            </span>
+                            {% else %}
+                            —
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if tarea.fecha_completado %}
+                            {{ tarea.fecha_completado|date:"d/m/Y H:i" }}
+                            {% else %}
+                            —
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Activos Asignados -->
+{% if activos_asignados %}
+<div class="card shadow mb-4">
+    <div class="card-header py-3">
+        <h6 class="m-0 font-weight-bold text-primary">
+            <i class="fas fa-box me-2"></i>Activos Asignados en este Proceso
+        </h6>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-sm">
+                <thead>
+                    <tr>
+                        <th>Código</th>
+                        <th>Nombre</th>
+                        <th>Tipo</th>
+                        <th>Estado Devolución</th>
+                        <th>Fecha Asignación</th>
+                        <th>Evidencia</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for asignacion in activos_asignados %}
+                    <tr>
+                        <td><code>{{ asignacion.activo.codigo }}</code></td>
+                        <td>{{ asignacion.activo.nombre }}</td>
+                        <td>{{ asignacion.activo.tipo.nombre }}</td>
+                        <td>
+                            {% if asignacion.fecha_devolucion %}
+                            <span class="badge bg-success">{{ asignacion.get_estado_devolucion_display }}</span>
+                            <small class="text-muted d-block">{{ asignacion.fecha_devolucion|date:"d/m/Y" }}</small>
+                            {% else %}
+                            <span class="badge bg-warning">Pendiente</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ asignacion.fecha_asignacion|date:"d/m/Y" }}</td>
+                        <td>
+                            {% if asignacion.foto_evidencia %}
+                            <a href="{{ asignacion.foto_evidencia.url }}" target="_blank" class="btn btn-sm btn-outline-primary">
+                                <i class="fas fa-image"></i> Ver
+                            </a>
+                            {% elif asignacion.foto_evidencia_url %}
+                            <a href="{{ asignacion.foto_evidencia_url }}" target="_blank" class="btn btn-sm btn-outline-primary">
+                                <i class="fas fa-external-link-alt"></i> URL
+                            </a>
+                            {% else %}
+                            <span class="text-muted">—</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Historial de CeCo (solo para cambio de CeCo) -->
+{% if historial_ceco %}
+<div class="card shadow mb-4">
+    <div class="card-header py-3">
+        <h6 class="m-0 font-weight-bold text-primary">
+            <i class="fas fa-building me-2"></i>Historial de Centros de Costo
+        </h6>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-sm">
+                <thead>
+                    <tr>
+                        <th>Centro de Costo</th>
+                        <th>Fecha Inicio</th>
+                        <th>Fecha Fin</th>
+                        <th>Proceso</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for h in historial_ceco %}
+                    <tr>
+                        <td>{{ h.centro_costo.nombre }}</td>
+                        <td>{{ h.fecha_inicio|date:"d/m/Y" }}</td>
+                        <td>{{ h.fecha_fin|date:"d/m/Y"|default:"Vigente" }}</td>
+                        <td>
+                            {% if h.proceso %}
+                            <a href="{% url 'rrhh:proceso_detalle' h.proceso.pk %}">#{{ h.proceso.pk }}</a>
+                            {% else %}
+                            —
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Bitácora de Auditoría -->
+<div class="card shadow mb-4">
+    <div class="card-header py-3">
+        <h6 class="m-0 font-weight-bold text-primary">
+            <i class="fas fa-history me-2"></i>Bitácora de Auditoría (Historial)
+        </h6>
+    </div>
+    <div class="card-body">
+        {% if historial %}
+        <div class="timeline">
+            {% for entry in historial %}
+            <div class="mb-3 pb-3 border-bottom {% if forloop.last %}border-0{% endif %}">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div class="flex-grow-1">
+                        <div class="d-flex align-items-center mb-1">
+                            <span class="badge {% if entry.accion == 'creacion' %}bg-primary{% elif entry.accion == 'modificacion' %}bg-info{% elif entry.accion == 'cambio_estado' %}bg-warning{% elif entry.accion == 'cierre' %}bg-success{% elif entry.accion == 'escalamiento' %}bg-danger{% else %}bg-secondary{% endif %} me-2">
+                                {{ entry.get_accion_display }}
+                            </span>
+                            <strong class="small">{{ entry.descripcion|truncatechars:80 }}</strong>
+                        </div>
+                        <p class="small text-muted mb-1">
+                            <i class="fas fa-user me-1"></i>{{ entry.usuario.nombre|default:"Sistema" }}
+                            <span class="mx-2">|</span>
+                            <i class="fas fa-clock me-1"></i>{{ entry.fecha_accion|date:"d/m/Y H:i:s" }}
+                        </p>
+                        {% if entry.valor_anterior or entry.valor_nuevo %}
+                        <div class="small">
+                            {% if entry.valor_anterior %}
+                            <div class="text-muted">
+                                <strong>Anterior:</strong> <code>{{ entry.valor_anterior|truncatechars:100 }}</code>
+                            </div>
+                            {% endif %}
+                            {% if entry.valor_nuevo %}
+                            <div class="text-primary">
+                                <strong>Nuevo:</strong> <code>{{ entry.valor_nuevo|truncatechars:100 }}</code>
+                            </div>
+                            {% endif %}
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <p class="text-center text-muted py-3">No hay registros de auditoría para este proceso.</p>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Acciones -->
+<div class="card shadow mb-4">
+    <div class="card-body">
+        <div class="d-flex justify-content-between">
+            <a href="{% url 'rrhh:procesos' %}" class="btn btn-secondary">
+                <i class="fas fa-arrow-left me-1"></i> Volver a Procesos
+            </a>
+            {% if proceso.tipo == 'termino' and proceso.estado == 'en_curso' %}
+            <a href="{% url 'rrhh:confirmar_cierre_termino' proceso.pk %}" class="btn btn-danger">
+                <i class="fas fa-check-circle me-1"></i> Confirmar Cierre
+            </a>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

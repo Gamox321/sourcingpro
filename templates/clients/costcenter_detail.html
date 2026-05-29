@@ -1,0 +1,135 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ costcenter.nombre }}{% endblock %}
+
+{% block breadcrumbs %}
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="/"><i class="fas fa-home"></i></a></li>
+        <li class="breadcrumb-item"><a href="{% url 'clients:costcenter_list' %}">Centros de Costo</a></li>
+        <li class="breadcrumb-item active">{{ costcenter.nombre }}</li>
+    </ol>
+</nav>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h1 class="h3 text-gray-800">{{ costcenter.nombre }}</h1>
+    <div>
+        <a href="{% url 'clients:costcenter_list' %}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left me-1"></i>Volver
+        </a>
+        {% if 'administrador' in user_roles %}
+        <a href="{% url 'clients:costcenter_edit' costcenter.pk %}" class="btn btn-warning">
+            <i class="fas fa-edit me-1"></i>Editar
+        </a>
+        {% endif %}
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-xl-4 col-md-6 mb-4">
+        <div class="card border-left-primary shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row g-0 align-items-center">
+                    <div class="col me-2">
+                        <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">Estado</div>
+                        <div>
+                            {% if costcenter.estado == 'activo' %}
+                                <span class="badge bg-success">Activo</span>
+                            {% else %}
+                                <span class="badge bg-secondary">Inactivo</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-4 col-md-6 mb-4">
+        <div class="card border-left-info shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row g-0 align-items-center">
+                    <div class="col me-2">
+                        <div class="text-xs font-weight-bold text-info text-uppercase mb-1">Trabajadores</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">{{ trabajadores.count }}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-4 col-md-6 mb-4">
+        <div class="card border-left-warning shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row g-0 align-items-center">
+                    <div class="col me-2">
+                        <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">Cliente</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">{{ costcenter.cliente.nombre }}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card shadow mb-4">
+    <div class="card-header py-3">
+        <h6 class="m-0 font-weight-bold text-primary">Información del Centro de Costo</h6>
+    </div>
+    <div class="card-body">
+        <dl class="row">
+            <dt class="col-sm-3">Código</dt>
+            <dd class="col-sm-9">{{ costcenter.codigo }}</dd>
+
+            <dt class="col-sm-3">Cliente</dt>
+            <dd class="col-sm-9">{{ costcenter.cliente.nombre }}</dd>
+
+            <dt class="col-sm-3">Jefatura responsable</dt>
+            <dd class="col-sm-9">{{ costcenter.jefatura.nombre|default:'Sin asignar' }}</dd>
+
+            <dt class="col-sm-3">Estado</dt>
+            <dd class="col-sm-9">{{ costcenter.get_estado_display }}</dd>
+        </dl>
+    </div>
+</div>
+
+<div class="card shadow mb-4">
+    <div class="card-header py-3">
+        <h6 class="m-0 font-weight-bold text-primary">Nómina de Trabajadores</h6>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-sm">
+                <thead>
+                    <tr>
+                        <th>RUN</th>
+                        <th>Nombre</th>
+                        <th>Cargo</th>
+                        <th>Estado</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for w in trabajadores %}
+                    <tr>
+                        <td>{{ w.run }}</td>
+                        <td><a href="{% url 'workers:worker_detail' w.pk %}">{{ w.nombre }}</a></td>
+                        <td>{{ w.cargo }}</td>
+                        <td>
+                            <span class="badge {% if w.estado == 'activo' %}bg-success{% else %}bg-warning{% endif %}">
+                                {{ w.get_estado_display }}
+                            </span>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="4" class="text-center text-muted">Sin trabajadores asignados.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

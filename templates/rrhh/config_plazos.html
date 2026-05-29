@@ -1,0 +1,96 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Configuración de Plazos{% endblock %}
+
+{% block breadcrumbs %}
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{% url 'rrhh:dashboard' %}"><i class="fas fa-home"></i></a></li>
+        <li class="breadcrumb-item"><a href="{% url 'rrhh:dashboard' %}">RRHH</a></li>
+        <li class="breadcrumb-item active">Configuración de Plazos</li>
+    </ol>
+</nav>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h1 class="h3 text-gray-800">Configuración de Plazos de Tareas</h1>
+</div>
+
+<div class="card shadow mb-4">
+    <div class="card-header py-3">
+        <h6 class="m-0 font-weight-bold text-primary">
+            <i class="fas fa-clock me-2"></i>Plazos por Tipo de Tarea
+        </h6>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-bordered table-hover">
+                <thead class="table-light">
+                    <tr>
+                        <th>Tipo de Tarea</th>
+                        <th style="width: 150px;">Plazo (días)</th>
+                        <th style="width: 180px;">Plazo Escalamiento (días)</th>
+                        <th style="width: 100px;">Crítica</th>
+                        <th style="width: 100px;">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for config in configs %}
+                    <form method="post" action="{% url 'rrhh:config_plazos' %}">
+                        {% csrf_token %}
+                        <input type="hidden" name="config_id" value="{{ config.pk }}">
+                        <tr>
+                            <td>
+                                <strong>{{ config.get_tipo_tarea_display }}</strong>
+                                {% if config.es_critica %}
+                                <span class="badge bg-danger ms-2">Crítica</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <input type="number" name="plazo_dias" class="form-control form-control-sm" 
+                                       value="{{ config.plazo_dias }}" min="1" max="30" required>
+                            </td>
+                            <td>
+                                <input type="number" name="plazo_escalamiento_dias" class="form-control form-control-sm" 
+                                       value="{{ config.plazo_escalamiento_dias }}" min="0" max="{{ config.plazo_dias|add:-1 }}" required>
+                                <small class="text-muted">Debe ser &lt; plazo total</small>
+                            </td>
+                            <td>
+                                <div class="form-check">
+                                    <input type="checkbox" class="form-check-input" name="es_critica" id="critica_{{ config.pk }}"
+                                           {% if config.es_critica %}checked{% endif %}>
+                                    <label class="form-check-label" for="critica_{{ config.pk }}"></label>
+                                </div>
+                            </td>
+                            <td>
+                                <button type="submit" class="btn btn-sm btn-primary">
+                                    <i class="fas fa-save"></i> Guardar
+                                </button>
+                            </td>
+                        </tr>
+                    </form>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" class="text-center text-muted py-4">
+                            No hay configuraciones registradas
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <div class="alert alert-info mt-3">
+            <i class="fas fa-info-circle me-2"></i>
+            <strong>Información:</strong>
+            <ul class="mb-0 mt-2">
+                <li><strong>Plazo (días):</strong> Tiempo máximo para completar la tarea antes de vencer.</li>
+                <li><strong>Plazo de Escalamiento:</strong> Días después del vencimiento para notificar al jefe de área.</li>
+                <li><strong>Crítica:</strong> Tareas que requieren atención inmediata (ej: bloqueo de accesos en despido).</li>
+            </ul>
+        </div>
+    </div>
+</div>
+{% endblock %}

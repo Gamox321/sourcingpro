@@ -1,0 +1,22 @@
+{% if cargas_area %}
+<div class="row mb-3">
+    {% for area, data in cargas_area.items %}
+    <div class="col-md-3 mb-2">
+        <div class="card border-left-{% if area == 'ti' %}info{% elif area == 'prevencion' %}success{% elif area == 'logistica' %}warning{% else %}primary{% endif %} shadow h-100 py-2">
+            <div class="card-body py-2">
+                <div class="row align-items-center">
+                    <div class="col">
+                        <div class="text-xs font-weight-bold text-uppercase mb-1">{{ data.label }}</div>
+                    </div>
+                    <div class="col-auto">
+                        <span class="h5 mb-0 font-weight-bold text-gray-800 {% if data.count > 0 %}text-{% if area == 'ti' %}info{% elif area == 'prevencion' %}success{% elif area == 'logistica' %}warning{% else %}primary{% endif %}{% endif %}">
+                            {{ data.count }}
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endif %}

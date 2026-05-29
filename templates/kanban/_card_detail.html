@@ -1,0 +1,132 @@
+{% if task %}
+<div class="modal-header">
+    <h5 class="modal-title">{{ task.get_tipo_display }}</h5>
+    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+</div>
+<div class="modal-body">
+    <div class="row mb-3">
+        <div class="col-sm-6">
+            <strong>Proceso:</strong>
+            {% if task.proceso.tipo == 'contratacion' %}
+                <span class="badge bg-primary">Contratación</span>
+            {% elif task.proceso.tipo == 'cambio_ceco' %}
+                <span class="badge bg-info">Cambio CeCo</span>
+            {% elif task.proceso.tipo == 'termino' %}
+                <span class="badge bg-warning text-dark">Término</span>
+            {% elif task.proceso.tipo == 'despido' %}
+                <span class="badge bg-danger">Despido</span>
+            {% endif %}
+            #{{ task.proceso.pk }}
+        </div>
+        <div class="col-sm-6">
+            <strong>Estado:</strong>
+            {% if task.estado == 'pendiente' %}
+                <span class="badge bg-secondary">Pendiente</span>
+            {% elif task.estado == 'en_proceso' %}
+                <span class="badge bg-primary">En proceso</span>
+            {% elif task.estado == 'completada' %}
+                <span class="badge bg-success">Completada</span>
+            {% elif task.estado == 'vencida' %}
+                <span class="badge bg-danger">Vencida</span>
+            {% elif task.estado == 'escalada' %}
+                <span class="badge bg-warning text-dark">Escalada</span>
+            {% elif task.estado == 'gestionado_externo' %}
+                <span class="badge bg-info">Gestionado externo</span>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="row mb-3">
+        <div class="col-sm-6">
+            <strong>Trabajador:</strong>
+            <a href="{% url 'workers:worker_detail' task.proceso.trabajador.pk %}" target="_blank">
+                {{ task.proceso.trabajador.nombre }}
+            </a>
+        </div>
+        <div class="col-sm-6">
+            <strong>Cargo:</strong> {{ task.proceso.trabajador.cargo }}
+        </div>
+    </div>
+
+    <div class="row mb-3">
+        <div class="col-sm-6">
+            <strong>Responsable:</strong> {{ task.usuario_responsable.nombre|default:'Sin asignar' }}
+        </div>
+        <div class="col-sm-6">
+            <strong>Urgencia:</strong>
+            {% if task.urgencia == 'critica' %}
+                <span class="badge bg-danger">Crítica</span>
+            {% else %}
+                <span class="badge bg-info">Normal</span>
+            {% endif %}
+        </div>
+    </div>
+
+    {% if task.plazo_limite %}
+    <div class="row mb-3">
+        <div class="col-sm-6">
+            <strong>Plazo límite:</strong> {{ task.plazo_limite|date:'d/m/Y H:i' }}
+        </div>
+        {% if task.fecha_completado %}
+        <div class="col-sm-6">
+            <strong>Completado:</strong> {{ task.fecha_completado|date:'d/m/Y H:i' }}
+        </div>
+        {% endif %}
+    </div>
+    {% endif %}
+
+    {% if task.descripcion %}
+    <div class="mb-3">
+        <strong>Descripción:</strong>
+        <p class="mb-0">{{ task.descripcion }}</p>
+    </div>
+    {% endif %}
+
+    {% if task.proceso.motivo %}
+    <div class="mb-3">
+        <strong>Motivo del proceso:</strong>
+        <p class="mb-0">{{ task.proceso.motivo }}</p>
+    </div>
+    {% endif %}
+
+    {% if historial %}
+    <hr>
+    <h6>Historial de cambios</h6>
+    <ul class="list-unstyled small">
+        {% for h in historial %}
+        <li class="mb-1">
+            <span class="text-muted">{{ h.fecha_accion|date:'d/m/Y H:i' }}</span>
+            — <strong>{{ h.usuario.nombre }}</strong>
+            — {{ h.get_accion_display }}
+        </li>
+        {% endfor %}
+    </ul>
+    {% endif %}
+</div>
+<div class="modal-footer">
+    <a href="{% url 'processes:process_detail' task.proceso.pk %}" class="btn btn-info" target="_blank">
+        <i class="fas fa-eye me-1"></i>Ver Proceso
+    </a>
+    <a href="{% url 'workers:worker_detail' task.proceso.trabajador.pk %}" class="btn btn-outline-info" target="_blank">
+        <i class="fas fa-id-card me-1"></i>Ficha Trabajador
+    </a>
+
+    {% if 'administrador' in user_roles or 'rrhh' in user_roles or 'jefatura' in user_roles or es_responsable %}
+    <div class="dropdown d-inline">
+        <button class="btn btn-warning dropdown-toggle" data-bs-toggle="dropdown">
+            <i class="fas fa-exchange-alt me-1"></i>Cambiar Estado
+        </button>
+        <ul class="dropdown-menu">
+            <li><a class="dropdown-item" href="#" data-task-id="{{ task.pk }}" data-cambiar-estado="pendiente">Pendiente</a></li>
+            <li><a class="dropdown-item" href="#" data-task-id="{{ task.pk }}" data-cambiar-estado="en_proceso">En proceso</a></li>
+            <li><a class="dropdown-item" href="#" data-task-id="{{ task.pk }}" data-cambiar-estado="completada">Completada</a></li>
+            {% if task.tipo == 'finiquito_coordinacion' %}
+            <li><a class="dropdown-item" href="#" data-task-id="{{ task.pk }}" data-cambiar-estado="gestionado_externo">Gestionado externo</a></li>
+            {% endif %}
+        </ul>
+    </div>
+    {% endif %}
+
+    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+</div>
+{% endif %}

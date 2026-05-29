@@ -1,0 +1,293 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Prevención de Riesgos{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Estadísticas -->
+    <div class="row mb-4">
+        <div class="col-xl-3 col-md-6 mb-3">
+            <div class="card border-left-success shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                                Tareas Activas
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ stats.tareas_activas }}</div>
+                            <div class="text-xs text-muted">{{ stats.tareas_activas|divisibleby:2 }} contratación · {{ stats.tareas_activas|add:-1 }} término</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-tasks fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-3">
+            <div class="card border-left-primary shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                EPP Asignados
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ stats.epp_asignados }}</div>
+                            <div class="text-xs text-muted">Activos en terreno</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-hard-hat fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-3">
+            <div class="card border-left-info shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                                EPP Disponibles
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ stats.epp_disponibles }}</div>
+                            <div class="text-xs text-success">Para asignación</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-box-open fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-3">
+            <div class="card border-left-warning shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                                Exám. Pendientes
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ stats.examenes_pendientes }}</div>
+                            <div class="text-xs text-warning">Próx. a vencer</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-stethoscope fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Dos columnas: Mis tareas + Inventario EPP -->
+    <div class="row">
+        <!-- Mis tareas -->
+        <div class="col-lg-7 mb-4">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3 d-flex justify-content-between align-items-center">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="fas fa-clipboard-list me-2"></i>Mis tareas activas
+                    </h6>
+                    <span class="text-muted" style="font-size: 11px;">{{ mis_tareas|length }} tareas</span>
+                </div>
+                <div class="card-body p-0">
+                    {% if mis_tareas %}
+                    <div class="list-group list-group-flush">
+                        {% for tarea in mis_tareas %}
+                        <div class="list-group-item px-3 py-3">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <h6 class="mb-0" style="font-size: 13px; font-weight: 600;">
+                                    {% if 'examen' in tarea.get_tipo_display|lower %}
+                                    Exámenes pre-ocupacionales y EPP
+                                    {% elif 'epp' in tarea.get_tipo_display|lower %}
+                                    Inducción y EPP — Nuevo ingreso
+                                    {% else %}
+                                    {{ tarea.get_tipo_display }}
+                                    {% endif %}
+                                </h6>
+                                {% if tarea.proceso.tipo == 'contratacion' %}
+                                <span class="badge" style="font-size: 10px; font-weight: 700; padding: 2px 7px; border-radius: 5px; background: #E6F1FB; color: #185FA5;">CONTRATACIÓN</span>
+                                {% elif tarea.proceso.tipo == 'termino' %}
+                                <span class="badge" style="font-size: 10px; font-weight: 700; padding: 2px 7px; border-radius: 5px; background: #EAF3DE; color: #27500A;">TÉRMINO</span>
+                                {% elif tarea.proceso.tipo == 'despido' %}
+                                <span class="badge" style="font-size: 10px; font-weight: 700; padding: 2px 7px; border-radius: 5px; background: #FCEBEB; color: #A32D2D;">DESPIDO</span>
+                                {% else %}
+                                <span class="badge" style="font-size: 10px; font-weight: 700; padding: 2px 7px; border-radius: 5px; background: #FAEEDA; color: #854F0B;">CAMBIO CECo</span>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="text-muted" style="font-size: 11px; margin-bottom: 5px;">
+                                <i class="fas fa-user me-1"></i>{{ tarea.proceso.trabajador.nombre }}
+                            </div>
+                            
+                            <div class="text-muted" style="font-size: 11px; margin-bottom: 5px;">
+                                {% if tarea.proceso.ceco_destino %}
+                                CeCo destino: {{ tarea.proceso.ceco_destino.nombre }}
+                                {% elif tarea.proceso.ceco_origen %}
+                                CeCo: {{ tarea.proceso.ceco_origen.nombre }}
+                                {% endif %}
+                                {% if tarea.proceso.trabajador.cargo %}· Cargo: {{ tarea.proceso.trabajador.cargo }}{% endif %}
+                            </div>
+                            
+                            {% if tarea.plazo_limite %}
+                            <div class="text-muted" style="font-size: 11px; margin-bottom: 8px;">
+                                {% if tarea.plazo_limite|timesince:None == '0 minutes' %}
+                                <span style="color: #A32D2D; font-weight: 600;">⚠ Vence: HOY</span>
+                                {% elif tarea.plazo_limite|timesince:None|slice:':1'|add:0 < 3 %}
+                                <span style="color: #854F0B; font-weight: 600;">Vence: {{ tarea.plazo_limite|date:"d M" }}</span>
+                                {% else %}
+                                <span style="color: #3B6D11; font-weight: 600;">Vence: {{ tarea.plazo_limite|date:"d M" }}</span>
+                                {% endif %}
+                            </div>
+                            {% endif %}
+                            
+                            <div class="checklist" style="margin-top: 8px;">
+                                <div class="check-item" style="display: flex; align-items: center; gap: 7px; font-size: 11px; color: #5F5E5A; margin-bottom: 3px;">
+                                    <div class="check-box done" style="width: 14px; height: 14px; border-radius: 3px; background: #639922; border-color: #639922; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 9px;">✓</div>
+                                    Examen médico ocupacional
+                                </div>
+                                <div class="check-item" style="display: flex; align-items: center; gap: 7px; font-size: 11px; color: #5F5E5A; margin-bottom: 3px;">
+                                    <div class="check-box done" style="width: 14px; height: 14px; border-radius: 3px; background: #639922; border-color: #639922; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 9px;">✓</div>
+                                    {% if 'epp' in tarea.get_tipo_display|lower %}Audiometría{% else %}Curso inducción{% endif %}
+                                </div>
+                                <div class="check-item" style="display: flex; align-items: center; gap: 7px; font-size: 11px; color: #5F5E5A; margin-bottom: 3px;">
+                                    <div class="check-box" style="width: 14px; height: 14px; border-radius: 3px; border: 1.5px solid #D3D1C7; display: flex; align-items: center; justify-content: center; font-size: 9px;"></div>
+                                    {% if 'epp' in tarea.get_tipo_display|lower %}Entrega EPP específico{% else %}Entrega EPP: casco, guantes, zapatos{% endif %}
+                                </div>
+                            </div>
+                            
+                            <button class="btn-completar" style="margin-top: 8px; padding: 5px 12px; border-radius: 6px; border: 1px solid #C0DD97; background: #fff; font-size: 11px; font-weight: 600; color: #27500A; cursor: pointer;">
+                                {% if 'epp' in tarea.get_tipo_display|lower %}✓ Registrar entrega EPP{% else %}Registrar avance{% endif %}
+                            </button>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <div class="text-center text-muted py-5">
+                        <i class="fas fa-check-circle fa-3x mb-3 d-block"></i>
+                        <p>No tienes tareas pendientes</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Inventario EPP y Certificaciones -->
+        <div class="col-lg-5 mb-4">
+            <!-- Inventario EPP -->
+            <div class="card shadow mb-4">
+                <div class="card-header py-3 d-flex justify-content-between align-items-center">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="fas fa-hard-hat me-2"></i>Inventario EPP (mi vista)
+                    </h6>
+                    <span class="text-muted" style="font-size: 11px;">{{ inventario_epp|length }} registros</span>
+                </div>
+                <div class="card-body p-0">
+                    {% if inventario_epp %}
+                    <div class="epp-table">
+                        <div class="epp-header" style="display: grid; grid-template-columns: 0.8fr 1.4fr 0.9fr 0.9fr; gap: 8px; padding: 8px 16px; background: #F9F8F5; border-bottom: 1px solid #E8E7E2;">
+                            <div class="epp-h" style="font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: #888780;">Código</div>
+                            <div class="epp-h" style="font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: #888780;">Ítem EPP</div>
+                            <div class="epp-h" style="font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: #888780;">Asignado</div>
+                            <div class="epp-h" style="font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: #888780;">Estado</div>
+                        </div>
+                        {% for asset in inventario_epp %}
+                        <div class="epp-row" style="display: grid; grid-template-columns: 0.8fr 1.4fr 0.9fr 0.9fr; gap: 8px; padding: 10px 16px; border-bottom: 1px solid #F1EFE8; align-items: center;">
+                            <div class="epp-code" style="font-size: 11px; font-family: monospace; color: #3B6D11; font-weight: 600;">{{ asset.codigo }}</div>
+                            <div class="epp-name" style="font-size: 12px; color: #1a1a18;">{{ asset.nombre }}</div>
+                            <div class="epp-asig" style="font-size: 11px; color: #5F5E5A;">
+                                {% if asset.asignaciones.all %}
+                                    {% with ultima_asignacion=asset.asignaciones.all|first %}
+                                        {% if ultima_asignacion and not ultima_asignacion.fecha_devolucion %}
+                                            {{ ultima_asignacion.trabajador.nombre|truncatechars:20 }}
+                                        {% else %}
+                                            —
+                                        {% endif %}
+                                    {% endwith %}
+                                {% else %}
+                                    —
+                                {% endif %}
+                            </div>
+                            <div>
+                                {% if asset.estado == 'asignado' %}
+                                <span class="status-pill" style="display: inline-flex; padding: 2px 8px; border-radius: 10px; font-size: 10px; font-weight: 700; background: #EAF3DE; color: #3B6D11;">Asignado</span>
+                                {% elif asset.estado == 'disponible' %}
+                                <span class="status-pill" style="display: inline-flex; padding: 2px 8px; border-radius: 10px; font-size: 10px; font-weight: 700; background: #E6F1FB; color: #185FA5;">Disponible</span>
+                                {% elif asset.estado == 'pendiente_devolucion' %}
+                                <span class="status-pill" style="display: inline-flex; padding: 2px 8px; border-radius: 10px; font-size: 10px; font-weight: 700; background: #FAEEDA; color: #854F0B;">Pend. dev.</span>
+                                {% else %}
+                                <span class="status-pill" style="display: inline-flex; padding: 2px 8px; border-radius: 10px; font-size: 10px; font-weight: 700; background: #F1EFE8; color: #888780;">{{ asset.get_estado_display }}</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    <div class="text-center mt-3">
+                        <a href="{% url 'prevencion:inventario' %}" class="btn btn-sm btn-outline-primary" style="font-size: 11px;">
+                            <i class="fas fa-list me-1"></i>Ver Inventario Completo
+                        </a>
+                    </div>
+                    {% else %}
+                    <div class="text-center text-muted py-4">
+                        <i class="fas fa-box-open fa-2x mb-2 d-block"></i>
+                        <p style="font-size: 12px; margin: 0;">No hay EPP registrados</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Certificaciones por vencer -->
+            <div class="card shadow">
+                <div class="card-header py-3 d-flex justify-content-between align-items-center">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="fas fa-certificate me-2"></i>Certificaciones por vencer
+                    </h6>
+                    <span class="text-muted" style="font-size: 11px; color: #854F0B; font-weight: 600;">2 próximas</span>
+                </div>
+                <div class="card-body p-3">
+                    <div class="cert-grid" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px;">
+                        <div class="cert-card" style="background: #fff; border-radius: 10px; border: 1px solid #E8E7E2; padding: 12px 14px;">
+                            <div class="cert-name" style="font-size: 12px; font-weight: 700; margin-bottom: 4px; color: #854F0B;">Examen médico</div>
+                            <div class="cert-worker" style="font-size: 11px; color: #888780; margin-bottom: 6px;">Luis Herrera Bravo</div>
+                            <div class="cert-bar-wrap" style="background: #E8E7E2; border-radius: 4px; height: 6px; margin-bottom: 4px; overflow: hidden;">
+                                <div class="cert-bar" style="width: 85%; background: #EF9F27; height: 100%; border-radius: 4px;"></div>
+                            </div>
+                            <div class="cert-meta" style="display: flex; justify-content: space-between; font-size: 10px; color: #888780;">
+                                <span>Vence: 10 may</span>
+                                <span style="color: #854F0B; font-weight: 600;">16 días</span>
+                            </div>
+                        </div>
+                        <div class="cert-card" style="background: #fff; border-radius: 10px; border: 1px solid #E8E7E2; padding: 12px 14px;">
+                            <div class="cert-name" style="font-size: 12px; font-weight: 700; margin-bottom: 4px; color: #A32D2D;">Curso altura física</div>
+                            <div class="cert-worker" style="font-size: 11px; color: #888780; margin-bottom: 6px;">Carlos Saavedra</div>
+                            <div class="cert-bar-wrap" style="background: #E8E7E2; border-radius: 4px; height: 6px; margin-bottom: 4px; overflow: hidden;">
+                                <div class="cert-bar" style="width: 95%; background: #E24B4A; height: 100%; border-radius: 4px;"></div>
+                            </div>
+                            <div class="cert-meta" style="display: flex; justify-content: space-between; font-size: 10px; color: #888780;">
+                                <span>Vence: 3 may</span>
+                                <span style="color: #A32D2D; font-weight: 600;">9 días</span>
+                            </div>
+                        </div>
+                        <div class="cert-card" style="background: #fff; border-radius: 10px; border: 1px solid #E8E7E2; padding: 12px 14px;">
+                            <div class="cert-name" style="font-size: 12px; font-weight: 700; margin-bottom: 4px; color: #3B6D11;">Inducción mina</div>
+                            <div class="cert-worker" style="font-size: 11px; color: #888780; margin-bottom: 6px;">F. Muñoz Torres</div>
+                            <div class="cert-bar-wrap" style="background: #E8E7E2; border-radius: 4px; height: 6px; margin-bottom: 4px; overflow: hidden;">
+                                <div class="cert-bar" style="width: 40%; background: #639922; height: 100%; border-radius: 4px;"></div>
+                            </div>
+                            <div class="cert-meta" style="display: flex; justify-content: space-between; font-size: 10px; color: #888780;">
+                                <span>Vence: 15 jun</span>
+                                <span style="color: #3B6D11; font-weight: 600;">52 días</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

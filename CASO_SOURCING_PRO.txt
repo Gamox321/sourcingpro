@@ -1,0 +1,318 @@
+
+SourcingPro
+Sistema de Gestión del Ciclo de Vida del Trabajador
+
+
+Documento de Requerimientos Funcionales
+Procesos Principales del Sistema
+
+Equipo de Desarrollo
+Genaro Marín  ·  Héctor Salas  ·  Alain Sour  ·  Gustavo Márquez
+
+Analista Programador Computacional - Duoc UC
+Sede Padre Alonso de Ovalle
+?
+Introducción
+El presente documento consolida los requerimientos funcionales definidos para los cuatro procesos principales del sistema SourcingPro, desarrollado para Sourcing SPA, empresa de servicios a la industria minera en Chile.
+
+El sistema busca centralizar y automatizar la gestión del ciclo de vida del trabajador, eliminando la coordinación manual entre las áreas de Recursos Humanos, TI, Finanzas y Prevención de Riesgos. Cada proceso fue diseñado en base a las decisiones de negocio acordadas con el Product Owner.
+
+Alcance del documento
+Este documento cubre los requerimientos funcionales de los siguientes módulos:
+
+o	Módulo de Contratación (RF-01 al RF-09)
+o	Módulo de Cambio de Centro de Costo (RF-10 al RF-18)
+o	Módulo de Término de Contrato (RF-19 al RF-27)
+o	Módulo de Despido (RF-28 al RF-36)
+
+Resumen de requerimientos
+
+Módulo	Requerimientos	RF desde - hasta
+Contratación	9 requerimientos	RF-01  -  RF-09
+Cambio de Centro de Costo	9 requerimientos	RF-10  -  RF-18
+Término de Contrato	9 requerimientos	RF-19  -  RF-27
+Despido	9 requerimientos	RF-28  -  RF-36
+
+Total: 36 requerimientos funcionales definidos.
+
+Convenciones de este documento
+o	Cada requerimiento se identifica con un código único (RF-XX).
+o	Los roles mencionados corresponden a los perfiles de acceso del sistema: RRHH, TI, Finanzas, Prevención de Riesgos y Jefatura.
+o	El término 'sistema externo' hace referencia a la plataforma ya operativa en Sourcing SPA para la generación de finiquitos y cálculo de descuentos.
+o	El escalamiento de tareas vencidas sigue en todos los módulos el mismo mecanismo base definido en RF-07.
+?
+Módulo 1 - Contratación
+Procesos cubiertos: incorporación de nuevos trabajadores al sistema
+
+Este módulo gestiona el flujo completo de incorporación de un nuevo trabajador a Sourcing SPA. Involucra la coordinación automática entre las áreas de TI, Prevención de Riesgos y Logística/RRHH, ejecutando sus tareas en paralelo y cerrando el proceso solo cuando todas se encuentran completadas.
+
+RF-01 - Iniciar proceso de contratación
+El sistema debe permitir a usuarios con rol RRHH o Jefatura iniciar un proceso de contratación para un nuevo trabajador. Al iniciarlo, el sistema debe solicitar los datos básicos del trabajador (RUN, nombre completo, correo, cargo, centro de costo asignado y fecha de ingreso estimada) y registrar automáticamente el estado del proceso como "En curso".
+
+RF-02 - Generación automática de tareas en paralelo
+Una vez iniciado el proceso, el sistema debe generar de forma automática y simultánea las siguientes tareas hacia las áreas correspondientes:
+o	TI: Creación de cuenta y accesos según el cargo del trabajador.
+o	Prevención de Riesgos: Solicitud de exámenes pre-ocupacionales, cursos de inducción e implementos de seguridad (EPP).
+o	Logística/RRHH: Solicitud de equipamiento según el cargo (computador, herramientas, vehículo, etc.).
+
+RF-03 - Asignación de responsable por tarea
+Cada tarea generada debe quedar asignada automáticamente al usuario responsable del área correspondiente. El sistema debe permitir al jefe de área reasignar la tarea a otro miembro de su equipo si es necesario.
+
+RF-04 - Seguimiento del estado de tareas
+Cada tarea debe poder tener uno de los siguientes estados: Pendiente, En proceso y Completada. El responsable del área debe poder actualizar el estado de su tarea desde el tablero kanban. RRHH y la Jefatura que inició el proceso deben poder visualizar el estado de todas las tareas en tiempo real.
+
+RF-05 - Registro de entrega de implementos y equipamiento
+Al completar las tareas de Logística y Prevención, el sistema debe permitir registrar los activos e implementos entregados al trabajador, vinculándolos automáticamente a su ficha en el módulo de inventario. Cada ítem entregado debe quedar registrado con su código, tipo, estado y fecha de entrega.
+
+RF-06 - Cierre del proceso de contratación
+El proceso de contratación se considera completado únicamente cuando las tres tareas paralelas (TI, Prevención y Logística) están en estado "Completada". En ese momento el sistema debe cambiar automáticamente el estado del trabajador a "Activo" y registrar la fecha de ingreso efectiva.
+
+RF-07 - Escalamiento por tarea vencida
+Cada tarea debe tener un plazo máximo de cumplimiento configurable. Si una tarea no es completada dentro del plazo, el sistema debe notificar automáticamente por correo al jefe del área responsable, marcando la tarea como "Vencida" en el tablero. El jefe del área será el único con permisos para extender el plazo o reasignar la tarea.
+
+RF-08 - Historial del proceso
+El sistema debe registrar una bitácora completa del proceso de contratación, incluyendo quién lo inició, qué tareas se generaron, quién las completó, en qué fecha y si alguna fue escalada. Este historial debe quedar vinculado permanentemente a la ficha del trabajador y no debe poder eliminarse.
+
+RF-09 - Notificaciones automáticas
+El sistema debe enviar notificaciones por correo electrónico en los siguientes eventos:
+o	Inicio del proceso (a las áreas involucradas).
+o	Cambio de estado de una tarea (al responsable y al iniciador del proceso).
+o	Tarea vencida (al jefe del área).
+o	Cierre exitoso del proceso (a RRHH y a la jefatura que lo inició).
+
+Flujo del proceso de contratación
+
+RRHH / Jefatura inicia contratación
+    ?
+    ?
+Sistema registra trabajador (estado: En curso)
+    ?
+    ?
+????????????????????????????????????????????
+?  Tareas en PARALELO                      ?
+?  ??? TI: Creación de cuenta              ?
+?  ??? Prevención: Exámenes + EPP          ?
+?  ??? Logística: Equipamiento             ?
+????????????????????????????????????????????
+    ?
+    ¿Tarea vencida?
+    ??? Sí ? Escala a jefe de área
+    ??? No ? Continúa
+    ?
+    ¿Todas completadas?
+    ??? No ? Proceso sigue en curso
+    ??? Sí ? Trabajador pasa a "Activo"
+              Historial cerrado y vinculado
+?
+Módulo 2 - Cambio de Centro de Costo
+Procesos cubiertos: traslado de trabajadores entre centros de costo y clientes
+
+Este módulo gestiona el traslado de un trabajador activo desde un centro de costo a otro. El proceso exige la devolución completa de activos antes de iniciar la reincorporación en el nuevo centro, y reutiliza un subproceso simplificado del flujo de contratación para la asignación en destino.
+
+RF-10 - Iniciar proceso de cambio de centro de costo
+El sistema debe permitir a usuarios con rol RRHH o Jefatura iniciar un proceso de cambio de centro de costo para un trabajador con estado "Activo". Al iniciarlo, se debe registrar el CeCo de origen, el CeCo de destino, la fecha estimada de traslado y el motivo del cambio. El sistema debe cambiar inmediatamente el estado del trabajador a "En tránsito", bloqueando cualquier otro proceso sobre ese trabajador hasta que el cambio se complete o cancele.
+
+RF-11 - Verificación automática de activos pendientes
+Al iniciar el proceso, el sistema debe consultar automáticamente el módulo de inventario y listar todos los activos asignados al trabajador vinculados al CeCo de origen. Si el trabajador no tiene activos asignados, el proceso avanza directamente a la fase de reincorporación (RF-15). Si tiene activos, se genera una tarea de devolución obligatoria antes de continuar.
+
+RF-12 - Gestión de devolución de activos
+El sistema debe generar una tarea de devolución asignada a Logística/RRHH, listando cada activo que el trabajador debe devolver. Por cada activo devuelto, el responsable debe registrar su estado según una de las siguientes opciones:
+o	Bueno: Activo en condiciones óptimas, listo para reasignación.
+o	Dañado: Activo con daños visibles, requiere revisión técnica.
+o	Con pérdida: Activo no recuperado o destruido, debe registrarse para coordinación con Finanzas.
+
+RF-13 - Bloqueo del proceso ante devolución incompleta
+El sistema no debe permitir avanzar a la fase de reincorporación mientras existan activos pendientes de devolución. Si la tarea de devolución no se completa dentro del plazo configurado, debe escalar automáticamente al jefe del área responsable, siguiendo el mismo mecanismo definido en RF-07.
+
+RF-14 - Validación y cierre de la devolución
+Una vez registrada la devolución de todos los activos, el sistema debe marcar la tarea como "Completada", actualizar el estado de cada activo en el inventario (disponible en bodega, en revisión o dado de baja según corresponda) y notificar a RRHH y a la jefatura que inició el proceso que la devolución fue validada exitosamente.
+
+RF-15 - Reinicio simplificado del flujo de contratación
+Una vez validada la devolución, el sistema debe iniciar automáticamente un nuevo proceso de contratación para el CeCo de destino. Este subproceso evalúa para cada tarea si corresponde ejecutarse o puede omitirse:
+o	TI: Siempre se ejecuta. Los accesos deben actualizarse al nuevo CeCo y cliente.
+o	Prevención: Se omite si exámenes y cursos están vigentes. Solo se ejecuta si hay EPP específico del nuevo CeCo.
+o	Logística: Siempre se ejecuta para asignar el equipamiento correspondiente al nuevo CeCo.
+
+RF-16 - Cierre del proceso de cambio de centro de costo
+El proceso se considera completado cuando todas las tareas activas del subproceso de reincorporación están en estado "Completada". En ese momento el sistema debe cambiar el estado del trabajador de "En tránsito" a "Activo", registrar el nuevo CeCo como el centro de costo vigente, y actualizar el historial de centros de costo del trabajador con las fechas de inicio y término en cada uno.
+
+RF-17 - Historial del proceso de cambio
+El sistema debe registrar una bitácora completa del proceso, incluyendo: quién lo inició, CeCo de origen y destino, activos devueltos con su estado evaluado, tareas del subproceso ejecutadas y omitidas con su justificación, y fechas de cada evento. Este historial debe quedar vinculado a la ficha del trabajador de forma permanente.
+
+RF-18 - Notificaciones automáticas del proceso
+El sistema debe enviar notificaciones por correo en los siguientes eventos:
+o	Inicio del proceso (a las áreas involucradas y al trabajador).
+o	Validación exitosa de la devolución (a RRHH y jefatura).
+o	Inicio del subproceso de reincorporación (a las áreas con tareas activas).
+o	Cierre exitoso del cambio (a RRHH, jefatura y al nuevo CeCo de destino).
+
+Flujo del proceso de cambio de centro de costo
+
+RRHH / Jefatura inicia cambio de CeCo
+    ?
+    ?
+Trabajador pasa a estado "En tránsito"
+    ?
+    ¿Tiene activos asignados?
+    ??? No  ? Saltar a reincorporación (RF-15)
+    ??? Sí  ? Tarea de devolución a Logística/RRHH
+                  ?
+           Por cada activo: Bueno / Dañado / Con pérdida
+                  ?
+           ¿Devolución completa?
+           ??? No ? Escala a jefe de área
+           ??? Sí ? Activos actualizados en inventario
+                  ?
+                  ?
+Subproceso de reincorporación (simplificado)
+    ??? TI: Actualización de accesos (siempre)
+    ??? Prevención: Solo si vigencias vencidas o nuevo EPP
+    ??? Logística: Equipamiento nuevo CeCo (siempre)
+    ?
+    ¿Todas las tareas activas completadas?
+    ??? Sí ? Trabajador pasa a "Activo" en nuevo CeCo
+              Historial de CeCo actualizado
+?
+Módulo 3 - Término de Contrato
+Procesos cubiertos: vencimiento de contratos y egreso planificado de trabajadores
+
+Este módulo gestiona el egreso de un trabajador cuyo contrato llega a su fecha de término. A diferencia del despido, el proceso es planificado, el trabajador se mantiene activo hasta el cierre manual por RRHH, y el bloqueo de accesos ocurre solo tras esa confirmación explícita.
+
+RF-19 - Detección automática de contratos próximos a vencer
+El sistema debe ejecutar diariamente una revisión de las fechas de término de contrato de todos los trabajadores con estado "Activo". Cuando un contrato se encuentre dentro del plazo de alerta configurado por RRHH para ese contrato específico, el sistema debe generar una alerta visible en el dashboard y enviar una notificación por correo a RRHH y a la jefatura correspondiente. El plazo de alerta debe poder configurarse de forma individual por contrato desde la ficha del trabajador.
+
+RF-20 - Iniciar proceso de término de contrato
+El sistema debe permitir a usuarios con rol RRHH o Jefatura iniciar manualmente un proceso de término de contrato para un trabajador con estado "Activo" o "Por egresar". Al iniciarlo, se debe registrar la fecha de término efectiva y el motivo del término. El sistema debe cambiar inmediatamente el estado del trabajador a "Por egresar", bloqueando el inicio de cualquier otro proceso sobre ese trabajador hasta que el término se complete.
+
+RF-21 - Generación automática de tareas en paralelo
+Una vez iniciado el proceso, el sistema debe generar de forma automática y simultánea las siguientes tareas:
+o	Logística/RRHH: Gestión de devolución de activos asignados al trabajador.
+o	TI: Preparación del bloqueo de cuenta y accesos para la fecha de término.
+o	Finanzas: Recordatorio de coordinación para la gestión del finiquito en el sistema externo.
+
+RF-22 - Gestión simplificada de devolución de activos
+El sistema debe listar todos los activos asignados al trabajador y permitir al responsable de Logística/RRHH confirmar la devolución de cada uno individualmente, marcándolo como "Devuelto" o "Pendiente". El sistema debe permitir adjuntar fotografías como evidencia del estado de cada activo al momento de la devolución. Esta información debe actualizarse automáticamente en el módulo de inventario.
+
+RF-23 - Recordatorio de coordinación de finiquito
+La tarea asignada a Finanzas no implica la generación del finiquito dentro del sistema, ya que este proceso está cubierto por un sistema externo ya operativo en la empresa. El sistema funciona exclusivamente como recordatorio y coordinador, permitiendo a Finanzas marcar la tarea como "Gestionado en sistema externo" una vez que el proceso haya sido iniciado allí. RRHH debe poder visualizar este estado desde el dashboard.
+
+RF-24 - Escalamiento por tarea vencida
+Si cualquiera de las tareas generadas no es completada dentro del plazo configurado, el sistema debe escalar automáticamente al jefe del área responsable siguiendo el mismo mecanismo definido en RF-07, notificando por correo y marcando la tarea como "Vencida" en el tablero.
+
+RF-25 - Cierre manual del proceso y bloqueo de accesos
+El término de contrato no se cierra automáticamente. Una vez que todas las tareas estén en estado "Completada" o "Gestionado", el sistema debe habilitar a RRHH para confirmar manualmente el cierre del proceso. Solo en ese momento el sistema debe ejecutar de forma simultánea y automática: cambiar el estado del trabajador a "Desvinculado", notificar a TI para proceder con el bloqueo efectivo de la cuenta y accesos, y registrar la fecha de egreso efectiva en la ficha del trabajador.
+
+RF-26 - Historial del proceso de término
+El sistema debe registrar una bitácora completa del proceso, incluyendo: quién lo inició, fecha de término registrada, activos devueltos con su evidencia fotográfica, estado de cada tarea, si alguna fue escalada, quién confirmó el cierre y en qué fecha. Este historial debe quedar vinculado permanentemente a la ficha del trabajador y no debe poder modificarse ni eliminarse.
+
+RF-27 - Notificaciones automáticas del proceso
+El sistema debe enviar notificaciones por correo en los siguientes eventos:
+o	Activación de alerta por contrato próximo a vencer (a RRHH y jefatura).
+o	Inicio del proceso (a todas las áreas involucradas).
+o	Tarea vencida (al jefe del área correspondiente).
+o	Confirmación manual de cierre por RRHH (a TI, Finanzas y jefatura).
+o	Bloqueo efectivo de accesos confirmado por TI (a RRHH).
+
+Flujo del proceso de término de contrato
+
+Sistema detecta contrato próximo a vencer
+    ?
+    ?
+Alerta automática ? RRHH y Jefatura
+    ?
+RRHH / Jefatura inicia proceso de término
+    ?
+    ?
+Trabajador pasa a estado "Por egresar"
+    ?
+    ?
+????????????????????????????????????????????
+?  Tareas en PARALELO                      ?
+?  ??? Logística: Devolución de activos    ?
+?  ?   (confirmar devuelto + fotos)        ?
+?  ??? TI: Preparar bloqueo de accesos     ?
+?  ??? Finanzas: Coordinar en sist. ext.   ?
+????????????????????????????????????????????
+    ?
+    ¿Tarea vencida?  ?  Escala a jefe de área
+    ?
+    ¿Todas completadas/gestionadas?
+    ??? Sí ? RRHH habilita cierre manual
+                 ?
+         RRHH confirma cierre
+                 ?
+         Trabajador ? "Desvinculado"
+         TI bloquea cuenta y accesos
+         Fecha de egreso registrada
+?
+Módulo 4 - Despido
+Procesos cubiertos: desvinculación inmediata de trabajadores por causal
+
+Este módulo gestiona la desvinculación urgente de un trabajador. A diferencia del término de contrato, el bloqueo de accesos es inmediato al iniciar el proceso, y la tarea a TI se marca como crítica. El cierre es mixto: automático al completar todas las tareas, pero requiere confirmación final de RRHH para cambiar el estado del trabajador.
+
+RF-28 - Iniciar proceso de despido
+El sistema debe permitir a usuarios con rol RRHH o Jefatura iniciar un proceso de despido para un trabajador con estado "Activo" o "Por egresar". Al iniciarlo, se debe registrar la fecha efectiva del despido, el motivo como campo de texto libre y la causal legal también como campo de texto libre. El sistema debe cambiar inmediatamente el estado del trabajador a "Despedido en proceso".
+
+RF-29 - Bloqueo inmediato de accesos
+A diferencia del término de contrato, el bloqueo de accesos en un despido debe ejecutarse de forma automática e inmediata en el momento en que se confirma el inicio del proceso. El sistema debe generar una tarea urgente a TI notificando el bloqueo requerido, marcándola como "Crítica" en el tablero para diferenciarla visualmente de las tareas ordinarias. TI debe confirmar en el sistema una vez que el bloqueo haya sido ejecutado efectivamente.
+
+RF-30 - Generación automática de tareas en paralelo
+Una vez iniciado el proceso y generada la tarea crítica de bloqueo, el sistema debe generar de forma automática y simultánea las siguientes tareas adicionales:
+o	Logística/RRHH: Recuperación de activos asignados al trabajador.
+o	Finanzas: Recordatorio de coordinación para la gestión del finiquito y descuentos en el sistema externo.
+
+RF-31 - Gestión de recuperación de activos
+El sistema debe listar todos los activos asignados al trabajador y permitir al responsable de Logística/RRHH confirmar la recuperación de cada uno individualmente, marcándolo como "Recuperado" o "Pendiente". Al igual que en el término de contrato, debe permitirse adjuntar fotografías como evidencia del estado de cada activo al momento de la recuperación. Esta información debe actualizarse automáticamente en el módulo de inventario, liberando el activo para su reasignación si corresponde.
+
+RF-32 - Recordatorio de coordinación de finiquito y descuentos
+La tarea asignada a Finanzas no implica la generación del finiquito ni el cálculo de descuentos dentro del sistema, ya que ambos procesos están cubiertos por el sistema externo. El sistema funciona exclusivamente como recordatorio y coordinador, permitiendo a Finanzas marcar la tarea como "Gestionado en sistema externo". RRHH debe poder visualizar este estado desde el dashboard.
+
+RF-33 - Escalamiento por tarea vencida
+Si cualquiera de las tareas generadas no es completada dentro del plazo configurado, el sistema debe escalar automáticamente al jefe del área responsable siguiendo el mismo mecanismo definido en RF-07. Las tareas marcadas como "Crítica" deben tener un plazo de escalamiento menor al de las tareas ordinarias, configurable por RRHH.
+
+RF-34 - Cierre mixto del proceso
+El proceso de despido se cierra de forma mixta. Cuando todas las tareas activas estén en estado "Completada" o "Gestionado en sistema externo", el sistema debe cerrar el proceso automáticamente y habilitar a RRHH para emitir la confirmación final. Solo tras esa confirmación manual el sistema debe cambiar el estado del trabajador a "Desvinculado", unificando el estado final con el del término de contrato para efectos de historial y reportería.
+
+RF-35 - Historial del proceso de despido
+El sistema debe registrar una bitácora completa del proceso, incluyendo: quién lo inició, fecha y hora exacta del inicio, causal registrada, hora exacta en que se generó la tarea de bloqueo a TI y hora en que TI confirmó su ejecución, activos recuperados con su evidencia fotográfica, estado de cada tarea, si alguna fue escalada, y quién emitió la confirmación final de cierre. Este historial debe quedar vinculado permanentemente a la ficha del trabajador y no debe poder modificarse ni eliminarse.
+
+RF-36 - Notificaciones automáticas del proceso
+El sistema debe enviar notificaciones por correo en los siguientes eventos:
+o	Inicio del proceso con notificación urgente a TI para bloqueo inmediato.
+o	Confirmación de bloqueo por TI (a RRHH y jefatura).
+o	Tarea vencida (al jefe del área correspondiente).
+o	Cierre automático del proceso habilitando confirmación de RRHH.
+o	Confirmación final de RRHH marcando al trabajador como "Desvinculado" (a TI, Finanzas y jefatura).
+
+Flujo del proceso de despido
+
+RRHH / Jefatura inicia despido
+(registra fecha, motivo y causal legal)
+    ?
+    ?
+Trabajador ? "Despedido en proceso"
+    ?
+    ?
+Tarea CRÍTICA ? TI: Bloqueo inmediato de accesos
+    ?
+    ?
+???????????????????????????????????????????
+?  Tareas en PARALELO                     ?
+?  ??? Logística: Recuperación activos    ?
+?  ?   (confirmar recuperado + fotos)     ?
+?  ??? Finanzas: Coordinar en sist. ext.  ?
+???????????????????????????????????????????
+    ?
+    ¿Tarea vencida?
+    ??? Sí ? Escala a jefe de área
+    ?        (plazo reducido si es Crítica)
+    ??? No ? Continúa
+    ?
+    ¿Todas completadas/gestionadas?
+    ??? Sí ? Sistema cierra automáticamente
+                 ?
+         RRHH emite confirmación final
+                 ?
+         Trabajador ? "Desvinculado"
+         Historial cerrado y vinculado
+

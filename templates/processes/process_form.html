@@ -1,0 +1,50 @@
+{% extends 'base.html' %}
+{% load widget_tweaks %}
+
+{% block title %}{{ titulo }}{% endblock %}
+
+{% block breadcrumbs %}
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="/"><i class="fas fa-home"></i></a></li>
+        <li class="breadcrumb-item"><a href="{% url 'processes:process_list' %}">Procesos</a></li>
+        <li class="breadcrumb-item active">{{ titulo }}</li>
+    </ol>
+</nav>
+{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-xl-6 col-lg-8">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">{{ titulo }}</h6>
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+
+                    {% for field in form %}
+                    <div class="mb-3">
+                        <label class="form-label">{{ field.label }}</label>
+                        {% if field.errors %}
+                        {% render_field field class="form-control is-invalid" %}
+                        {% else %}
+                        {% render_field field class="form-control" %}
+                        {% endif %}
+                        {% if field.errors %}
+                        <div class="text-danger small">{{ field.errors }}</div>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-play me-1"></i>Iniciar Proceso
+                    </button>
+                    <a href="{% url 'processes:process_type_select' %}" class="btn btn-secondary">Cancelar</a>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,145 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Tablero General TI{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">
+                <i class="fas fa-columns me-2"></i>Tablero General - Tareas TI
+            </h6>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <!-- Columna Pendientes -->
+                <div class="col-md-4">
+                    <div class="card border-left-warning shadow h-100">
+                        <div class="card-header bg-warning text-white">
+                            <h6 class="m-0 font-weight-bold">
+                                <i class="fas fa-clock me-2"></i>Pendientes
+                                <span class="badge bg-white text-warning float-end">{{ pendientes|length }}</span>
+                            </h6>
+                        </div>
+                        <div class="card-body">
+                            {% if pendientes %}
+                            <div class="list-group list-group-flush">
+                                {% for tarea in pendientes %}
+                                <a href="{% url 'kanban:card_detail' tarea.pk %}" class="list-group-item list-group-item-action">
+                                    <div class="d-flex w-100 justify-content-between">
+                                        <h6 class="mb-1">
+                                            {% if tarea.urgencia == 'critica' %}
+                                            <span class="badge bg-danger">CRÍTICA</span>
+                                            {% endif %}
+                                            {{ tarea.get_tipo_display }}
+                                        </h6>
+                                    </div>
+                                    <p class="mb-1 small">
+                                        <i class="fas fa-user me-1"></i>{{ tarea.proceso.trabajador.nombre }}
+                                    </p>
+                                    {% if tarea.plazo_limite %}
+                                    <small class="text-muted">
+                                        <i class="fas fa-clock me-1"></i>{{ tarea.plazo_limite|date:"d/m/Y H:i" }}
+                                    </small>
+                                    {% endif %}
+                                </a>
+                                {% endfor %}
+                            </div>
+                            {% else %}
+                            <p class="text-center text-muted mb-0">
+                                <i class="fas fa-check-circle fa-2x mb-2 d-block"></i>
+                                No hay tareas pendientes
+                            </p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Columna En Proceso -->
+                <div class="col-md-4">
+                    <div class="card border-left-primary shadow h-100">
+                        <div class="card-header bg-primary text-white">
+                            <h6 class="m-0 font-weight-bold">
+                                <i class="fas fa-spinner me-2"></i>En Proceso
+                                <span class="badge bg-white text-primary float-end">{{ en_proceso|length }}</span>
+                            </h6>
+                        </div>
+                        <div class="card-body">
+                            {% if en_proceso %}
+                            <div class="list-group list-group-flush">
+                                {% for tarea in en_proceso %}
+                                <a href="{% url 'kanban:card_detail' tarea.pk %}" class="list-group-item list-group-item-action">
+                                    <div class="d-flex w-100 justify-content-between">
+                                        <h6 class="mb-1">
+                                            {% if tarea.urgencia == 'critica' %}
+                                            <span class="badge bg-danger">CRÍTICA</span>
+                                            {% endif %}
+                                            {{ tarea.get_tipo_display }}
+                                        </h6>
+                                    </div>
+                                    <p class="mb-1 small">
+                                        <i class="fas fa-user me-1"></i>{{ tarea.proceso.trabajador.nombre }}
+                                    </p>
+                                    {% if tarea.plazo_limite %}
+                                    <small class="text-muted">
+                                        <i class="fas fa-clock me-1"></i>{{ tarea.plazo_limite|date:"d/m/Y H:i" }}
+                                    </small>
+                                    {% endif %}
+                                </a>
+                                {% endfor %}
+                            </div>
+                            {% else %}
+                            <p class="text-center text-muted mb-0">
+                                <i class="fas fa-inbox fa-2x mb-2 d-block"></i>
+                                No hay tareas en proceso
+                            </p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Columna Completadas -->
+                <div class="col-md-4">
+                    <div class="card border-left-success shadow h-100">
+                        <div class="card-header bg-success text-white">
+                            <h6 class="m-0 font-weight-bold">
+                                <i class="fas fa-check me-2"></i>Completadas
+                                <span class="badge bg-white text-success float-end">{{ completadas|length }}</span>
+                            </h6>
+                        </div>
+                        <div class="card-body">
+                            {% if completadas %}
+                            <div class="list-group list-group-flush">
+                                {% for tarea in completadas %}
+                                <a href="{% url 'kanban:card_detail' tarea.pk %}" class="list-group-item list-group-item-action">
+                                    <div class="d-flex w-100 justify-content-between">
+                                        <h6 class="mb-1">
+                                            {{ tarea.get_tipo_display }}
+                                        </h6>
+                                    </div>
+                                    <p class="mb-1 small">
+                                        <i class="fas fa-user me-1"></i>{{ tarea.proceso.trabajador.nombre }}
+                                    </p>
+                                    {% if tarea.fecha_completado %}
+                                    <small class="text-success">
+                                        <i class="fas fa-check-circle me-1"></i>{{ tarea.fecha_completado|date:"d/m/Y H:i" }}
+                                    </small>
+                                    {% endif %}
+                                </a>
+                                {% endfor %}
+                            </div>
+                            {% else %}
+                            <p class="text-center text-muted mb-0">
+                                <i class="fas fa-inbox fa-2x mb-2 d-block"></i>
+                                No hay tareas completadas
+                            </p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,63 @@
+{% extends 'base.html' %}
+{% load widget_tweaks %}
+{% block title %}{{ titulo }}{% endblock %}
+{% block breadcrumbs %}
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="/"><i class="fas fa-home"></i></a></li>
+        <li class="breadcrumb-item"><a href="{% url 'accounts:user_list' %}">Usuarios</a></li>
+        <li class="breadcrumb-item active">{{ titulo }}</li>
+    </ol>
+</nav>
+{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-xl-6 col-lg-8">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">{{ titulo }}</h6>
+            </div>
+            <div class="card-body">
+                <form method="post" data-dirty>
+                    {% csrf_token %}
+                    {% for field in form %}
+                    <div class="mb-3">
+                        <label class="form-label">{{ field.label }}</label>
+                        {% if field.errors %}
+                        {% render_field field class="form-control is-invalid" %}
+                        {% else %}
+                        {% render_field field class="form-control" %}
+                        {% endif %}
+                        {% if field.errors %}
+                        <div class="text-danger small">{{ field.errors }}</div>
+                        {% endif %}
+                        {% if field.help_text %}
+                        <div class="form-text">{{ field.help_text }}</div>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                    <div class="mb-3">
+                        <label class="form-label">Roles</label>
+                        <div class="row">
+                            {% for r in roles_disponibles %}
+                            <div class="col-md-6">
+                                <div class="form-check">
+                                    <input type="checkbox" name="roles" value="{{ r.id }}" class="form-check-input"
+                                           id="rol_{{ r.id }}"
+                                           {% if r.id in roles_actuales %}checked{% endif %}>
+                                    <label class="form-check-label" for="rol_{{ r.id }}">{{ r.get_nombre_display }}</label>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save me-1"></i>Guardar
+                    </button>
+                    <a href="{% url 'accounts:user_list' %}" class="btn btn-secondary">Cancelar</a>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

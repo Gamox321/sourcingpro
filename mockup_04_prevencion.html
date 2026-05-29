@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SourcingPro — Vista Prevención de Riesgos</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', system-ui, sans-serif; background: #F5F4F0; color: #1a1a18; font-size: 14px; }
+  .app { display: flex; height: 100vh; overflow: hidden; }
+  .sidebar { width: 220px; background: #1B2E1A; display: flex; flex-direction: column; flex-shrink: 0; }
+  .logo { padding: 20px 18px 16px; border-bottom: 1px solid rgba(255,255,255,0.08); }
+  .logo-name { font-size: 17px; font-weight: 700; color: #fff; }
+  .logo-role { font-size: 10px; color: rgba(255,255,255,0.4); text-transform: uppercase; letter-spacing: 1px; margin-top: 2px; }
+  .nav { padding: 12px 0; flex: 1; }
+  .nav-section { font-size: 10px; text-transform: uppercase; letter-spacing: 1.2px; color: rgba(255,255,255,0.3); padding: 14px 18px 6px; }
+  .nav-item { display: flex; align-items: center; gap: 10px; padding: 9px 18px; font-size: 13px; color: rgba(255,255,255,0.65); cursor: pointer; border-left: 3px solid transparent; }
+  .nav-item.active { background: rgba(99,153,34,0.2); color: #C0DD97; border-left-color: #639922; }
+  .nav-badge { margin-left: auto; background: #E24B4A; color: #fff; font-size: 10px; font-weight: 700; border-radius: 10px; padding: 1px 6px; }
+  .user-area { padding: 14px 18px; border-top: 1px solid rgba(255,255,255,0.08); display: flex; align-items: center; gap: 10px; }
+  .user-avatar { width: 32px; height: 32px; border-radius: 50%; background: #3B6D11; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; color: #fff; flex-shrink: 0; }
+  .user-name { font-size: 12px; color: rgba(255,255,255,0.85); font-weight: 500; }
+  .user-role { font-size: 10px; color: rgba(255,255,255,0.4); }
+  .main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+  .topbar { background: #fff; border-bottom: 1px solid #E8E7E2; padding: 0 24px; height: 54px; display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; }
+  .topbar-title { font-size: 15px; font-weight: 600; }
+  .topbar-right { display: flex; align-items: center; gap: 12px; }
+  .notif-btn { position: relative; background: none; border: 1px solid #E8E7E2; border-radius: 8px; width: 34px; height: 34px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 16px; }
+  .notif-dot { position: absolute; top: 5px; right: 6px; width: 7px; height: 7px; background: #E24B4A; border-radius: 50%; border: 1.5px solid #fff; }
+  .content { flex: 1; overflow-y: auto; padding: 20px 24px; }
+
+  /* STATS */
+  .stats-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 20px; }
+  .stat { background: #fff; border-radius: 10px; border: 1px solid #E8E7E2; padding: 12px 14px; }
+  .stat-label { font-size: 10px; color: #888780; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
+  .stat-value { font-size: 22px; font-weight: 700; }
+  .stat-sub { font-size: 10px; margin-top: 3px; }
+
+  /* TAREAS */
+  .two-col { display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 16px; margin-bottom: 20px; }
+  .panel { background: #fff; border-radius: 10px; border: 1px solid #E8E7E2; }
+  .panel-header { padding: 12px 16px; border-bottom: 1px solid #E8E7E2; display: flex; align-items: center; justify-content: space-between; }
+  .panel-title { font-size: 13px; font-weight: 600; }
+
+  .tarea { padding: 12px 16px; border-bottom: 1px solid #F1EFE8; }
+  .tarea:last-child { border-bottom: none; }
+  .t-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 5px; }
+  .t-title { font-size: 13px; font-weight: 600; }
+  .t-tag { font-size: 10px; font-weight: 700; padding: 2px 7px; border-radius: 5px; }
+  .tag-examenes { background: #E6F1FB; color: #185FA5; }
+  .tag-epp { background: #EAF3DE; color: #27500A; }
+  .tag-curso { background: #EEEDFE; color: #3C3489; }
+  .t-worker { font-size: 11px; color: #5F5E5A; margin-bottom: 5px; }
+  .t-sub { font-size: 11px; color: #888780; margin-bottom: 5px; }
+  .t-meta { display: flex; align-items: center; gap: 10px; font-size: 11px; }
+  .vence-ok { color: #3B6D11; font-weight: 600; }
+  .vence-warn { color: #854F0B; font-weight: 600; }
+  .vence-red { color: #A32D2D; font-weight: 600; }
+  .checklist { margin-top: 8px; }
+  .check-item { display: flex; align-items: center; gap: 7px; font-size: 11px; color: #5F5E5A; margin-bottom: 3px; }
+  .check-box { width: 14px; height: 14px; border-radius: 3px; border: 1.5px solid #D3D1C7; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 9px; }
+  .check-box.done { background: #639922; border-color: #639922; color: #fff; }
+  .btn-completar { margin-top: 8px; padding: 5px 12px; border-radius: 6px; border: 1px solid #C0DD97; background: #fff; font-size: 11px; font-weight: 600; color: #27500A; cursor: pointer; }
+
+  /* INVENTARIO EPP */
+  .epp-table { width: 100%; }
+  .epp-header { display: grid; grid-template-columns: 0.8fr 1.4fr 0.9fr 0.9fr; gap: 8px; padding: 8px 16px; background: #F9F8F5; border-bottom: 1px solid #E8E7E2; }
+  .epp-h { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: #888780; }
+  .epp-row { display: grid; grid-template-columns: 0.8fr 1.4fr 0.9fr 0.9fr; gap: 8px; padding: 10px 16px; border-bottom: 1px solid #F1EFE8; align-items: center; }
+  .epp-row:last-child { border-bottom: none; }
+  .epp-code { font-size: 11px; font-family: monospace; color: #3B6D11; font-weight: 600; }
+  .epp-name { font-size: 12px; color: #1a1a18; }
+  .epp-asig { font-size: 11px; color: #5F5E5A; }
+  .status-pill { display: inline-flex; padding: 2px 8px; border-radius: 10px; font-size: 10px; font-weight: 700; }
+  .s-asig { background: #EAF3DE; color: #3B6D11; }
+  .s-disp { background: #E6F1FB; color: #185FA5; }
+  .s-rev { background: #FAEEDA; color: #854F0B; }
+  .s-baja { background: #F1EFE8; color: #888780; }
+
+  /* ESTADO CERTIF */
+  .cert-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+  .cert-card { background: #fff; border-radius: 10px; border: 1px solid #E8E7E2; padding: 12px 14px; }
+  .cert-name { font-size: 12px; font-weight: 700; margin-bottom: 4px; }
+  .cert-worker { font-size: 11px; color: #888780; margin-bottom: 6px; }
+  .cert-bar-wrap { background: #E8E7E2; border-radius: 4px; height: 6px; margin-bottom: 4px; overflow: hidden; }
+  .cert-bar { height: 100%; border-radius: 4px; }
+  .cert-meta { display: flex; justify-content: space-between; font-size: 10px; color: #888780; }
+</style>
+</head>
+<body>
+<div class="app">
+  <aside class="sidebar">
+    <div class="logo">
+      <div class="logo-name">SourcingPro</div>
+      <div class="logo-role">Prevención de Riesgos</div>
+    </div>
+    <nav class="nav">
+      <div class="nav-section">Mi trabajo</div>
+      <div class="nav-item active">✓ Mis tareas <span class="nav-badge">3</span></div>
+      <div class="nav-item">🦺 Inventario EPP</div>
+      <div class="nav-item">📋 Certificaciones</div>
+      <div class="nav-section">Consulta</div>
+      <div class="nav-item">⬛ Tablero general</div>
+      <div class="nav-item">🔔 Notificaciones</div>
+    </nav>
+    <div class="user-area">
+      <div class="user-avatar">SP</div>
+      <div>
+        <div class="user-name">Sofía Prado</div>
+        <div class="user-role">Prev. Riesgos</div>
+      </div>
+    </div>
+  </aside>
+
+  <main class="main">
+    <div class="topbar">
+      <div class="topbar-title">Prevención de Riesgos — Mis tareas y EPP</div>
+      <div class="topbar-right">
+        <button class="notif-btn">🔔</button>
+      </div>
+    </div>
+
+    <div class="content">
+      <div class="stats-row">
+        <div class="stat">
+          <div class="stat-label">Tareas activas</div>
+          <div class="stat-value" style="color:#3B6D11;">3</div>
+          <div class="stat-sub" style="color:#888780;">2 contratación · 1 término</div>
+        </div>
+        <div class="stat">
+          <div class="stat-label">EPP asignados</div>
+          <div class="stat-value">87</div>
+          <div class="stat-sub" style="color:#888780;">Activos en terreno</div>
+        </div>
+        <div class="stat">
+          <div class="stat-label">EPP disponibles</div>
+          <div class="stat-value" style="color:#3B6D11;">23</div>
+          <div class="stat-sub" style="color:#3B6D11;">Para asignación</div>
+        </div>
+        <div class="stat">
+          <div class="stat-label">Exám. pendientes</div>
+          <div class="stat-value" style="color:#854F0B;">2</div>
+          <div class="stat-sub" style="color:#854F0B;">Próx. a vencer</div>
+        </div>
+      </div>
+
+      <div class="two-col">
+        <!-- Tareas -->
+        <div class="panel">
+          <div class="panel-header">
+            <div class="panel-title">Mis tareas activas</div>
+            <div style="font-size:11px;color:#888780;">3 tareas</div>
+          </div>
+
+          <div class="tarea">
+            <div class="t-top">
+              <div class="t-title">Exámenes pre-ocupacionales y EPP</div>
+              <span class="t-tag tag-examenes">CONTRATACIÓN</span>
+            </div>
+            <div class="t-worker">👤 Marcela Fuentes Torres</div>
+            <div class="t-sub">CeCo destino: Codelco Chuquicamata · Cargo: Operador de Planta</div>
+            <div class="t-meta"><span class="vence-ok">Vence: 28 abr</span></div>
+            <div class="checklist">
+              <div class="check-item"><div class="check-box done">✓</div>Examen médico ocupacional</div>
+              <div class="check-item"><div class="check-box done">✓</div>Audiometría</div>
+              <div class="check-item"><div class="check-box">  </div>Curso inducción mina (28 abr)</div>
+              <div class="check-item"><div class="check-box">  </div>Entrega EPP: casco, guantes, zapatos punta acero</div>
+            </div>
+            <button class="btn-completar">Registrar avance</button>
+          </div>
+
+          <div class="tarea">
+            <div class="t-top">
+              <div class="t-title">Inducción y EPP — Nuevo ingreso</div>
+              <span class="t-tag tag-curso">CONTRATACIÓN</span>
+            </div>
+            <div class="t-worker">👤 Patricio Díaz González</div>
+            <div class="t-sub">CeCo destino: BHP Escondida · Cargo: Técnico de Terreno</div>
+            <div class="t-meta"><span class="vence-ok">Vence: 2 may</span></div>
+            <div class="checklist">
+              <div class="check-item"><div class="check-box done">✓</div>Examen médico ocupacional</div>
+              <div class="check-item"><div class="check-box done">✓</div>Examen de altura física</div>
+              <div class="check-item"><div class="check-box done">✓</div>Curso inducción mina BHP</div>
+              <div class="check-item"><div class="check-box">  </div>Entrega EPP específico BHP Escondida</div>
+            </div>
+            <button class="btn-completar">✓ Registrar entrega EPP</button>
+          </div>
+
+          <div class="tarea">
+            <div class="t-top">
+              <div class="t-title">Devolución EPP — Término contrato</div>
+              <span class="t-tag tag-epp">TÉRMINO</span>
+            </div>
+            <div class="t-worker">👤 Ana María López Ruiz</div>
+            <div class="t-sub">CeCo: Codelco Chuquicamata · 5 ítems asignados</div>
+            <div class="t-meta"><span class="vence-warn">Vence: 25 abr (mañana)</span></div>
+            <div class="checklist">
+              <div class="check-item"><div class="check-box done">✓</div>Casco de seguridad (EPP-0041) — Buen estado</div>
+              <div class="check-item"><div class="check-box done">✓</div>Zapatos punta acero (EPP-0089) — Buen estado</div>
+              <div class="check-item"><div class="check-box">  </div>Arnés seguridad (EPP-0112) — Pendiente</div>
+              <div class="check-item"><div class="check-box">  </div>Guantes de cuero (EPP-0156) — Pendiente</div>
+              <div class="check-item"><div class="check-box">  </div>Lentes protectores (EPP-0201) — Pendiente</div>
+            </div>
+            <button class="btn-completar">Registrar devolución</button>
+          </div>
+        </div>
+
+        <!-- Inventario EPP -->
+        <div>
+          <div class="panel" style="margin-bottom:16px;">
+            <div class="panel-header">
+              <div class="panel-title">Inventario EPP (mi vista)</div>
+              <div style="font-size:11px;color:#888780;">110 registros</div>
+            </div>
+            <div class="epp-table">
+              <div class="epp-header">
+                <div class="epp-h">Código</div>
+                <div class="epp-h">Ítem EPP</div>
+                <div class="epp-h">Asignado</div>
+                <div class="epp-h">Estado</div>
+              </div>
+              <div class="epp-row">
+                <div class="epp-code">EPP-0041</div>
+                <div class="epp-name">Casco de seguridad 3M H-700</div>
+                <div class="epp-asig">A. López Ruiz</div>
+                <div><span class="status-pill s-rev">Pend. dev.</span></div>
+              </div>
+              <div class="epp-row">
+                <div class="epp-code">EPP-0055</div>
+                <div class="epp-name">Casco de seguridad 3M H-700</div>
+                <div class="epp-asig">—</div>
+                <div><span class="status-pill s-disp">Disponible</span></div>
+              </div>
+              <div class="epp-row">
+                <div class="epp-code">EPP-0089</div>
+                <div class="epp-name">Zapatos punta acero CAT P90087</div>
+                <div class="epp-asig">A. López Ruiz</div>
+                <div><span class="status-pill s-rev">Pend. dev.</span></div>
+              </div>
+              <div class="epp-row">
+                <div class="epp-code">EPP-0112</div>
+                <div class="epp-name">Arnés de seguridad MSA Workman</div>
+                <div class="epp-asig">A. López Ruiz</div>
+                <div><span class="status-pill s-rev">Pend. dev.</span></div>
+              </div>
+              <div class="epp-row">
+                <div class="epp-code">EPP-0130</div>
+                <div class="epp-name">Chaleco reflectante clase 3</div>
+                <div class="epp-asig">—</div>
+                <div><span class="status-pill s-disp">Disponible</span></div>
+              </div>
+              <div class="epp-row">
+                <div class="epp-code">EPP-0201</div>
+                <div class="epp-name">Lentes protectores Uvex</div>
+                <div class="epp-asig">A. López Ruiz</div>
+                <div><span class="status-pill s-rev">Pend. dev.</span></div>
+              </div>
+              <div class="epp-row">
+                <div class="epp-code">EPP-0218</div>
+                <div class="epp-name">Protector auditivo 3M 1100</div>
+                <div class="epp-asig">M. Fuentes Torres</div>
+                <div><span class="status-pill s-asig">Asignado</span></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Vencimiento certificaciones -->
+          <div class="panel">
+            <div class="panel-header">
+              <div class="panel-title">Certificaciones por vencer</div>
+              <div style="font-size:11px;color:#854F0B;font-weight:600;">2 próximas</div>
+            </div>
+            <div style="padding:12px 16px;">
+              <div class="cert-grid">
+                <div class="cert-card">
+                  <div class="cert-name" style="color:#854F0B;">Examen médico</div>
+                  <div class="cert-worker">Luis Herrera Bravo</div>
+                  <div class="cert-bar-wrap"><div class="cert-bar" style="width:85%;background:#EF9F27;"></div></div>
+                  <div class="cert-meta"><span>Vence: 10 may</span><span style="color:#854F0B;font-weight:600;">16 días</span></div>
+                </div>
+                <div class="cert-card">
+                  <div class="cert-name" style="color:#A32D2D;">Curso altura física</div>
+                  <div class="cert-worker">Carlos Saavedra</div>
+                  <div class="cert-bar-wrap"><div class="cert-bar" style="width:95%;background:#E24B4A;"></div></div>
+                  <div class="cert-meta"><span>Vence: 3 may</span><span style="color:#A32D2D;font-weight:600;">9 días</span></div>
+                </div>
+                <div class="cert-card">
+                  <div class="cert-name" style="color:#3B6D11;">Inducción mina</div>
+                  <div class="cert-worker">F. Muñoz Torres</div>
+                  <div class="cert-bar-wrap"><div class="cert-bar" style="width:40%;background:#639922;"></div></div>
+                  <div class="cert-meta"><span>Vence: 15 jun</span><span style="color:#3B6D11;font-weight:600;">52 días</span></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+</body>
+</html>

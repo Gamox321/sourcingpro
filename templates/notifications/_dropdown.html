@@ -1,0 +1,19 @@
+{% load static %}
+{% for n in notifications %}
+<form method="post" action="{% url 'notifications:mark_read' n.pk %}" class="dropdown-item d-flex align-items-center p-0">
+    {% csrf_token %}
+    <button type="submit" class="dropdown-item d-flex align-items-center">
+        <div class="me-3">
+            <div class="icon-circle bg-primary">
+                <i class="fas fa-bell text-white"></i>
+            </div>
+        </div>
+        <div>
+            <div class="small text-gray-500">{{ n.fecha_envio|date:'d/m/Y H:i' }}</div>
+            <span class="fw-bold">{{ n.contenido|truncatechars:60 }}</span>
+        </div>
+    </button>
+</form>
+{% empty %}
+<a class="dropdown-item text-center small text-gray-500" href="#">Sin notificaciones</a>
+{% endfor %}

@@ -1,0 +1,4 @@
+Django==5.2
+psycopg2-binary==2.9.12
+python-decouple==3.8
+django-widget-tweaks==1.5.1

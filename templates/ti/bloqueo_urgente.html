@@ -1,0 +1,133 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Bloqueo Urgente - TI{% endblock %}
+
+{% block breadcrumbs %}
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{% url 'ti:dashboard' %}"><i class="fas fa-home"></i></a></li>
+        <li class="breadcrumb-item"><a href="{% url 'ti:dashboard' %}">TI</a></li>
+        <li class="breadcrumb-item active">Bloqueo Urgente</li>
+    </ol>
+</nav>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h1 class="h3 text-gray-800">
+        <i class="fas fa-lock me-2"></i>Bloqueo Urgente de Accesos
+        {% if total_urgentes > 0 %}
+        <span class="badge bg-danger">{{ total_urgentes }} pendientes</span>
+        {% endif %}
+    </h1>
+</div>
+
+<div class="alert alert-danger mb-4">
+    <i class="fas fa-exclamation-triangle me-2"></i>
+    <strong>ATENCIÓN:</strong> Estos son bloqueos de accesos para procesos de <strong>DESPIDO</strong>.
+    Requieren ejecución inmediata y confirmación en el sistema.
+</div>
+
+{% if bloqueos_urgentes %}
+<div class="row">
+    {% for tarea in bloqueos_urgentes %}
+    <div class="col-lg-6 mb-4">
+        <div class="card shadow border-left-danger">
+            <div class="card-header bg-danger text-white">
+                <h6 class="m-0">
+                    <i class="fas fa-user-times me-2"></i>{{ tarea.proceso.trabajador.nombre }}
+                    <span class="badge bg-warning float-end">CRÍTICO</span>
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <p class="mb-1"><strong>RUN:</strong> {{ tarea.proceso.trabajador.run }}</p>
+                    <p class="mb-1"><strong>Cargo:</strong> {{ tarea.proceso.trabajador.cargo }}</p>
+                    <p class="mb-1"><strong>CeCo:</strong> {{ tarea.proceso.ceco_origen.nombre|default:"—" }}</p>
+                    <p class="mb-1"><strong>Fecha Despido:</strong> {{ tarea.proceso.fecha_inicio|date:"d/m/Y H:i" }}</p>
+                    {% if tarea.proceso.causal_legal %}
+                    <p class="mb-0"><strong>Causal:</strong> {{ tarea.proceso.causal_legal|truncatechars:50 }}</p>
+                    {% endif %}
+                </div>
+
+                <hr>
+
+                <div class="mb-3">
+                    <h6 class="small font-weight-bold">Accesos a Bloquear</h6>
+                    <ul class="small mb-0">
+                        <li>Correo corporativo</li>
+                        <li>Sistema SourcingPro</li>
+                        <li>Accesos físicos (si aplica)</li>
+                        <li>Otros sistemas según cargo</li>
+                    </ul>
+                </div>
+
+                <div class="mb-3">
+                    <h6 class="small font-weight-bold">Estado</h6>
+                    <span class="badge {% if tarea.estado == 'pendiente' %}bg-secondary{% else %}bg-info{% endif %}">
+                        {{ tarea.get_estado_display }}
+                    </span>
+                    {% if tarea.plazo_limite %}
+                    <span class="badge bg-danger ms-1">
+                        Vence: {{ tarea.plazo_limite|date:"d/m/Y H:i" }}
+                    </span>
+                    {% endif %}
+                </div>
+
+                <!-- Formulario de confirmación -->
+                <form method="post" action="{% url 'ti:confirmar_bloqueo' tarea.pk %}" class="mt-4">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label class="form-label small font-weight-bold">
+                            Confirmación de Bloqueo Ejecutado
+                        </label>
+                        <textarea name="confirmacion" class="form-control form-control-sm" rows="3" 
+                                  placeholder="Describa los accesos bloqueados, fecha/hora de ejecución, y cualquier observación..." required></textarea>
+                        <small class="text-muted">
+                            Ej: "Correo bloqueado 15:30, usuario AD deshabilitado, credenciales revocadas."
+                        </small>
+                    </div>
+
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-danger btn-sm">
+                            <i class="fas fa-lock me-1"></i> Confirmar Bloqueo Ejecutado
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+{% else %}
+<div class="alert alert-success">
+    <i class="fas fa-check-circle me-2"></i>
+    <strong>¡Sin bloqueos urgentes!</strong> No hay bloqueos de accesos pendientes de despido.
+</div>
+{% endif %}
+
+<!-- Historial de bloqueos completados hoy -->
+<div class="card shadow mt-4">
+    <div class="card-header bg-success text-white">
+        <h6 class="m-0">
+            <i class="fas fa-check-circle me-2"></i>Bloqueos Completados (Hoy)
+        </h6>
+    </div>
+    <div class="card-body">
+        {% with bloqueos_completados=bloqueos_urgentes|length %}
+        {% if bloqueos_completados > 0 %}
+        <p class="text-muted small mb-0">
+            Hay {{ total_urgentes }} bloqueo(s) urgente(s) pendiente(s).
+            Los bloqueos completados aparecen en el tablero general.
+        </p>
+        {% else %}
+        <p class="text-muted small mb-0">
+            No hay bloqueos completados hoy.
+        </p>
+        {% endif %}
+        {% endwith %}
+    </div>
+</div>
+{% endblock %}
