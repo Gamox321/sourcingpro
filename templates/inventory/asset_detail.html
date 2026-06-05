@@ -101,7 +101,7 @@
                 <h6 class="m-0 font-weight-bold text-primary">Asignar a Trabajador</h6>
             </div>
             <div class="card-body">
-                <form method="post" action="{% url 'inventory:asset_assign' asset.pk %}">
+                <form method="post" action="{% url 'inventory:asset_assign' asset.pk %}" data-confirm-form="¿Asignar este activo? Esta acción no se puede deshacer.">
                     {% csrf_token %}
                     <div class="mb-3">
                         <label class="form-label">Seleccionar trabajador</label>
@@ -128,7 +128,7 @@
                 <h6 class="m-0 font-weight-bold text-warning">Registrar Devolución</h6>
             </div>
             <div class="card-body">
-                <form method="post" action="{% url 'inventory:asset_return' asset.pk %}">
+                <form method="post" action="{% url 'inventory:asset_return' asset.pk %}" enctype="multipart/form-data">
                     {% csrf_token %}
                     <div class="mb-3">
                         <label class="form-label">Asignación activa</label>
@@ -143,12 +143,17 @@
                     </div>
                     <div class="mb-3">
                         <label class="form-label">Estado de devolución</label>
-                        <select name="estado_devolucion" class="form-select" required>
+                        <select name="estado_devolucion" class="form-select" id="estado-devolucion" required>
                             <option value="">— Seleccionar —</option>
                             <option value="bueno">Bueno</option>
                             <option value="danado">Dañado</option>
                             <option value="con_perdida">Con pérdida</option>
                         </select>
+                    </div>
+                    <div class="mb-3" id="foto-evidencia-container" style="display: none;">
+                        <label class="form-label">Foto evidencia del daño <span class="text-danger">*</span></label>
+                        <input type="file" name="foto_evidencia" class="form-control" accept="image/*" id="foto-evidencia">
+                        <div class="form-text">Obligatorio cuando el estado es "Dañado" o "Con pérdida"</div>
                     </div>
                     <button type="submit" class="btn btn-warning">
                         <i class="fas fa-undo-alt me-1"></i>Registrar Devolución
@@ -217,6 +222,13 @@
                             {% endif %}
                         </td>
                     </tr>
+                    {% if as.foto_evidencia %}
+                    <tr>
+                        <td colspan="4">
+                            <img src="{{ as.foto_evidencia.url }}" alt="Evidencia" class="img-thumbnail" style="max-height: 150px;">
+                        </td>
+                    </tr>
+                    {% endif %}
                     {% empty %}
                     <tr>
                         <td colspan="4" class="text-center text-muted">Sin asignaciones registradas.</td>
@@ -227,4 +239,17 @@
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.getElementById('estado-devolucion').addEventListener('change', function() {
+    var container = document.getElementById('foto-evidencia-container');
+    if (this.value === 'danado' || this.value === 'con_perdida') {
+        container.style.display = 'block';
+    } else {
+        container.style.display = 'none';
+    }
+});
+</script>
 {% endblock %}

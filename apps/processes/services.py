@@ -71,7 +71,7 @@ def _make_aware(dt):
 
 
 def _create_task(proceso, tipo, descripcion=None, urgencia='normal',
-                 plazo_limite=None, omitida=False, motivo_omision=None):
+                 plazo_limite=None, omitida=False, motivo_omision=None, orden=0):
     from .models import TaskDeadlineConfig
     from apps.audit.models import AuditLog
     
@@ -98,6 +98,7 @@ def _create_task(proceso, tipo, descripcion=None, urgencia='normal',
         plazo_limite=_make_aware(plazo_limite),
         omitida=omitida,
         motivo_omision=motivo_omision,
+        orden=orden,
         usuario_responsable=responsable,
     )
     
@@ -119,7 +120,7 @@ def crear_proceso_contratacion(usuario, datos_worker):
     from apps.clients.models import CostCenter
     from apps.audit.models import AuditLog
     
-    ceco = CostCenter.objects.get(pk=datos_worker['centro_costo'])
+    ceco = datos_worker['centro_costo']
 
     worker = Worker.objects.create(
         run=datos_worker['run'],
@@ -158,13 +159,13 @@ def crear_proceso_contratacion(usuario, datos_worker):
     )
 
     _create_task(proceso, Task.TipoChoices.CREAR_CUENTA_TI,
-                 'Crear cuenta corporativa y accesos según cargo.')
+                 'Crear cuenta corporativa y accesos según cargo.', orden=1)
     _create_task(proceso, Task.TipoChoices.EXAMENES_PREOCUPACIONALES,
-                 'Gestionar exámenes pre-ocupacionales.')
+                 'Gestionar exámenes pre-ocupacionales.', orden=2)
     _create_task(proceso, Task.TipoChoices.EPP_INDUCCION,
-                 'Entregar EPP y realizar inducción.')
+                 'Entregar EPP y realizar inducción.', orden=3)
     _create_task(proceso, Task.TipoChoices.EQUIPAMIENTO,
-                 'Entregar equipamiento según cargo.',)
+                 'Entregar equipamiento según cargo.', orden=4)
 
     _notificar_iniciador(
         proceso, 'proceso_inicio',
@@ -229,7 +230,7 @@ def _generar_reincorporacion_cambio_ceco(proceso, worker, ceco_destino, fecha):
     tiene_epp_destino = False
     if epp_type:
         tiene_epp_destino = Asset.objects.filter(
-            tipo=epp_type, estado='disponible'
+            tipo=epp_type, estado=Asset.EstadoChoices.DISPONIBLE
         ).exists()
 
     if tiene_epp_destino:
@@ -317,13 +318,16 @@ def crear_proceso_termino(usuario, worker_id, fecha_termino, motivo):
 
     _create_task(proceso, Task.TipoChoices.DEVOLUCION_ACTIVOS,
                  'Gestionar devolución de activos asignados.',
-                 plazo_limite=fecha_termino)
+                 plazo_limite=fecha_termino, orden=1)
     _create_task(proceso, Task.TipoChoices.PREPARAR_BLOQUEO_ACCESOS,
                  'Preparar bloqueo de cuenta y accesos para fecha de término.',
-                 plazo_limite=fecha_termino)
+                 plazo_limite=fecha_termino, orden=2)
     _create_task(proceso, Task.TipoChoices.FINIQUITO_COORDINACION,
                  'Coordinar finiquito en sistema externo.',
-                 plazo_limite=fecha_termino)
+                 plazo_limite=fecha_termino, orden=3)
+    _create_task(proceso, Task.TipoChoices.BLOQUEO_ACCESOS,
+                 'Bloquear accesos del trabajador tras finiquito.',
+                 plazo_limite=fecha_termino, orden=4)
 
     _notificar_iniciador(
         proceso, 'proceso_inicio',
@@ -353,21 +357,92 @@ def crear_proceso_despido(usuario, worker_id, fecha, motivo, causal_legal):
     worker.estado = Worker.EstadoChoices.DESPEDIDO_EN_PROCESO
     worker.save(update_fields=['estado'])
 
-    _create_task(proceso, Task.TipoChoices.BLOQUEO_ACCESOS,
-                 'BLOQUEO INMEDIATO de accesos y cuentas.',
-                 urgencia=Task.UrgenciaChoices.CRITICA)
+    # Bloquear acceso del usuario con mismo correo
+    try:
+        user_linked = User.objects.get(email=worker.correo)
+        user_linked.is_active = False
+        user_linked.save(update_fields=['is_active'])
+    except User.DoesNotExist:
+        pass
+
     _create_task(proceso, Task.TipoChoices.RECUPERACION_ACTIVOS,
                  'Recuperar todos los activos asignados al trabajador.',
-                 plazo_limite=fecha)
+                 urgencia=Task.UrgenciaChoices.CRITICA,
+                 plazo_limite=fecha, orden=1)
+    _create_task(proceso, Task.TipoChoices.BLOQUEO_ACCESOS,
+                 'Bloquear todos los accesos y cuentas del trabajador.',
+                 urgencia=Task.UrgenciaChoices.CRITICA,
+                 plazo_limite=fecha, orden=2)
     _create_task(proceso, Task.TipoChoices.FINIQUITO_COORDINACION,
                  'Coordinar finiquito y descuentos en sistema externo.',
-                 plazo_limite=fecha)
+                 plazo_limite=fecha, orden=3)
 
     asignaciones = AssetAssignment.objects.filter(
         trabajador=worker, fecha_devolucion__isnull=True
     ).select_related('activo')
     for aa in asignaciones:
         aa.activo.cambiar_estado(Asset.EstadoChoices.PENDIENTE_DEVOLUCION)
+
+    # Notificaciones por email a roles involucrados
+    from apps.notifications.services import notificar
+
+    # Email a TI (BLOQUEO_ACCESOS task)
+    ti_user = _find_user_for_role('ti')
+    if ti_user:
+        notificar(
+            usuario=ti_user,
+            tipo_evento='proceso_despido_inicio',
+            titulo=f'Despido iniciado — Bloqueo inmediato requerido',
+            descripcion=f'Se ha iniciado proceso de despido para {worker.nombre}. '
+                        f'Debe bloquear todos los accesos y cuentas de forma inmediata.',
+            enlace='',
+            proceso=proceso,
+        )
+
+    # Email a Finanzas (FINIQUITO_COORDINACION task)
+    finanzas_user = _find_user_for_role('finanzas')
+    if finanzas_user:
+        notificar(
+            usuario=finanzas_user,
+            tipo_evento='proceso_despido_inicio',
+            titulo=f'Despido iniciado — Coordinar finiquito',
+            descripcion=f'Se ha iniciado proceso de despido para {worker.nombre}. '
+                        f'Debe coordinar el finiquito y descuentos en sistema externo.',
+            enlace='',
+            proceso=proceso,
+        )
+
+    # Email a RRHH
+    rrhh_user = _find_user_for_role('rrhh')
+    if rrhh_user:
+        notificar(
+            usuario=rrhh_user,
+            tipo_evento='proceso_despido_inicio',
+            titulo=f'Despido iniciado — {worker.nombre}',
+            descripcion=f'Se ha iniciado proceso de despido. Causal: {causal_legal}. '
+                        f'Trabajador: {worker.nombre}. Revise el proceso en el sistema.',
+            enlace='',
+            proceso=proceso,
+        )
+
+    # Alertar a Logistica para recuperar activos
+    try:
+        logistica_users = User.objects.filter(
+            roles__nombre=Role.RoleChoices.LOGISTICA,
+            is_active=True
+        ).distinct()
+        for logistica_user in logistica_users:
+            notificar(
+                usuario=logistica_user,
+                tipo_evento='recuperacion_activos_alerta',
+                titulo=f'Recuperación de activos — {worker.nombre}',
+                descripcion=f'Proceso de despido iniciado para {worker.nombre}. '
+                            f'Favor contactar para recuperar equipos (PC, tablet, etc.).',
+                enlace='',
+                proceso=proceso,
+            )
+    except Exception:
+        pass
 
     _notificar_iniciador(
         proceso, 'proceso_inicio',

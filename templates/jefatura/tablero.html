@@ -3,8 +3,21 @@
 
 {% block title %}Tablero Kanban{% endblock %}
 
+{% block breadcrumbs %}
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{% url 'jefatura:nomina' %}"><i class="fas fa-home"></i></a></li>
+        <li class="breadcrumb-item"><a href="{% url 'jefatura:nomina' %}">Jefatura</a></li>
+        <li class="breadcrumb-item active">Tablero</li>
+    </ol>
+</nav>
+{% endblock %}
+
 {% block content %}
 <div class="container-fluid">
+    {% if not cecos %}
+        {% include 'components/_sin_cecos.html' %}
+    {% else %}
     <div class="card shadow mb-4">
         <div class="card-header py-3">
             <h6 class="m-0 font-weight-bold text-primary">
@@ -12,9 +25,9 @@
             </h6>
         </div>
         <div class="card-body">
-            <!-- Selector de CeCo -->
+            <!-- Selector de CeCo y filtros -->
             <form method="get" class="mb-4">
-                <div class="row">
+                <div class="row g-2">
                     <div class="col-md-4">
                         <select name="ceco" class="form-select" onchange="this.form.submit()">
                             <option value="">Selecciona un CeCo</option>
@@ -25,6 +38,22 @@
                             {% endfor %}
                         </select>
                     </div>
+                    <div class="col-md-3">
+                        <select name="tipo_proceso" class="form-select" onchange="this.form.submit()">
+                            <option value="">Todos los tipos</option>
+                            <option value="contratacion" {% if filtro_tipo_proceso == 'contratacion' %}selected{% endif %}>Contratacion</option>
+                            <option value="cambio_ceco" {% if filtro_tipo_proceso == 'cambio_ceco' %}selected{% endif %}>Cambio CeCo</option>
+                            <option value="termino" {% if filtro_tipo_proceso == 'termino' %}selected{% endif %}>Termino</option>
+                            <option value="despido" {% if filtro_tipo_proceso == 'despido' %}selected{% endif %}>Despido</option>
+                        </select>
+                    </div>
+                    {% if filtro_tipo_proceso or ceco_seleccionado %}
+                    <div class="col-md-2">
+                        <a href="{% url 'jefatura:tablero' %}" class="btn btn-outline-secondary btn-sm mt-1">
+                            <i class="fas fa-times me-1"></i>Limpiar filtros
+                        </a>
+                    </div>
+                    {% endif %}
                 </div>
             </form>
 
@@ -165,5 +194,6 @@
             {% endif %}
         </div>
     </div>
+    {% endif %}
 </div>
 {% endblock %}

@@ -96,3 +96,48 @@ sourcingpro/
 6. Temporary password forced change on first login
 7. SB Admin 2 template for admin layout
 8. Console email backend in dev, SMTP in production (.env)
+
+## URL Namespace Conventions
+
+### App Namespaces
+| Namespace | App | Base Path | Typical URLs |
+|---|---|---|---|
+| `accounts` | accounts | `/` | login, logout, profile, usuarios |
+| `clients` | clients | `/` | clientes, centros-costo |
+| `workers` | workers | `/` | trabajadores |
+| `inventory` | inventory | `/` | inventario |
+| `processes` | processes | `/` | procesos, proceso_detail, task_complete |
+| `notifications` | notifications | `/` | notificaciones, mark_read, dropdown |
+| `kanban` | kanban | `/kanban/` | board, card_detail, column_partial |
+| `rrhh` | kanban (views_rrhh) | `/rrhh/` | dashboard, trabajadores, procesos, reportes |
+| `ti` | kanban (views_ti) | `/ti/` | dashboard, inventario, tablero, bloqueo_urgente |
+| `jefatura` | kanban (views_jefatura) | `/jefatura/` | nomina, tablero, procesos, ceco, notificaciones |
+| `prevencion` | kanban (views_prevencion) | `/prevencion/` | dashboard, inventario, certificaciones, tablero |
+| `finanzas` | kanban (views_finanzas) | `/finanzas/` | dashboard, finiquitos, tablero |
+| `logistica` | kanban (views_logistica) | `/logistica/` | dashboard, devoluciones, recuperaciones, inventario |
+
+### URL Naming Rules
+- Role dashboard: use the **role namespace**, not `kanban:` (e.g. `rrhh:dashboard`, NOT `kanban:rrhh.dashboard`)
+- Generic kanban: use `kanban:` namespace (e.g. `kanban:board`, `kanban:card_detail`)
+- All URL names use **snake_case** (e.g. `process_type_select`, `bloqueo_urgente`)
+- Breadcrumb pattern: `Inicio → Area → Page` (never link breadcrumb "Area" to a non-role namespace)
+
+### Role Priority
+```
+rrhh > ti > jefatura > prevencion > finanzas > logistica
+```
+Defined in `apps/accounts/utils.py` via `get_primary_role()`. This determines:
+- SmartRedirectView (home page redirect)
+- Sidebar navigation (what the user sees)
+- `primary_role` context variable (available in all templates)
+
+Admin users see the **admin sidebar** regardless of sub-roles. Pure role users see their **role-specific sidebar**.
+Access to admin-only pages (Usuarios, Django admin) is gated by `{% if 'administrador' in user_roles %}`.
+
+## Template Conventions
+- **Breadcrumbs:** Every page must have `{% block breadcrumbs %}` with `Home → Area → Page` hierarchy
+- **Empty states:** Use `{% empty %}` blocks or `_sin_cecos.html` / `_sin_tareas.html` components (icons + messages, no empty pages)
+- **Kanban cards:** Always use `{% include 'kanban/_column.html' %}` — DO NOT inline card rendering
+- **Stat cards:** Use `.card.border-left-{color}.shadow.h-100.py-2` pattern; wrap in `<a>` if clickable
+- **Confirm dialogs:** Use `data-confirm` / `data-confirm-form` attributes triggering `#confirmModal`
+- **Query style:** Always use `Model.EstadoChoices.ENUM_VALUE` for filter/exclude/get, never raw strings like `estado='en_curso'`

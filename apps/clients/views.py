@@ -8,6 +8,50 @@ from apps.accounts.decorators import RoleRequiredMixin
 from .models import CostCenter, Client
 
 
+class ClientListView(RoleRequiredMixin, ListView):
+    model = Client
+    template_name = 'clients/client_list.html'
+    context_object_name = 'clients'
+    roles_requeridos = ['administrador', 'rrhh']
+    paginate_by = 20
+
+    def get_queryset(self):
+        qs = Client.objects.all()
+        q = self.request.GET.get('q', '').strip()
+        if q:
+            qs = qs.filter(db_models.Q(nombre__icontains=q) | db_models.Q(descripcion__icontains=q))
+        return qs
+
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        ctx['query'] = self.request.GET.get('q', '')
+        return ctx
+
+
+class ClientCreateView(RoleRequiredMixin, CreateView):
+    model = Client
+    template_name = 'clients/client_form.html'
+    fields = ['nombre', 'descripcion']
+    roles_requeridos = ['administrador', 'rrhh']
+    success_url = reverse_lazy('clients:client_list')
+
+    def form_valid(self, form):
+        messages.success(self.request, 'Cliente creado exitosamente.')
+        return super().form_valid(form)
+
+
+class ClientUpdateView(RoleRequiredMixin, UpdateView):
+    model = Client
+    template_name = 'clients/client_form.html'
+    fields = ['nombre', 'descripcion']
+    roles_requeridos = ['administrador', 'rrhh']
+    success_url = reverse_lazy('clients:client_list')
+
+    def form_valid(self, form):
+        messages.success(self.request, 'Cliente actualizado exitosamente.')
+        return super().form_valid(form)
+
+
 class CostCenterListView(RoleRequiredMixin, ListView):
     model = CostCenter
     template_name = 'clients/costcenter_list.html'
@@ -60,7 +104,7 @@ class CostCenterCreateView(RoleRequiredMixin, CreateView):
     model = CostCenter
     template_name = 'clients/costcenter_form.html'
     fields = ['nombre', 'codigo', 'cliente', 'jefatura']
-    roles_requeridos = ['administrador']
+    roles_requeridos = ['administrador', 'rrhh']
     success_url = reverse_lazy('clients:costcenter_list')
 
     def form_valid(self, form):
@@ -72,7 +116,7 @@ class CostCenterUpdateView(RoleRequiredMixin, UpdateView):
     model = CostCenter
     template_name = 'clients/costcenter_form.html'
     fields = ['nombre', 'codigo', 'cliente', 'jefatura', 'estado']
-    roles_requeridos = ['administrador']
+    roles_requeridos = ['administrador', 'rrhh']
     success_url = reverse_lazy('clients:costcenter_list')
 
     def form_valid(self, form):
@@ -81,7 +125,7 @@ class CostCenterUpdateView(RoleRequiredMixin, UpdateView):
 
 
 class CostCenterDeactivateView(RoleRequiredMixin, View):
-    roles_requeridos = ['administrador']
+    roles_requeridos = ['administrador', 'rrhh']
 
     def post(self, request, pk):
         costcenter = CostCenter.objects.get(pk=pk)

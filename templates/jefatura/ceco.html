@@ -3,8 +3,21 @@
 
 {% block title %}Mi Centro de Costo{% endblock %}
 
+{% block breadcrumbs %}
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{% url 'jefatura:nomina' %}"><i class="fas fa-home"></i></a></li>
+        <li class="breadcrumb-item"><a href="{% url 'jefatura:nomina' %}">Jefatura</a></li>
+        <li class="breadcrumb-item active">Mi CeCo</li>
+    </ol>
+</nav>
+{% endblock %}
+
 {% block content %}
 <div class="container-fluid">
+    {% if not cecos %}
+        {% include 'components/_sin_cecos.html' %}
+    {% else %}
     <div class="card shadow mb-4">
         <div class="card-header py-3">
             <h6 class="m-0 font-weight-bold text-primary">
@@ -12,7 +25,6 @@
             </h6>
         </div>
         <div class="card-body">
-            <!-- Selector de CeCo -->
             <form method="get" class="mb-4">
                 <div class="row">
                     <div class="col-md-4">
@@ -29,16 +41,11 @@
             </form>
 
             {% if ceco %}
-            <!-- Información del CeCo -->
             <div class="row mb-4">
                 <div class="col-md-12">
                     <h4>{{ ceco.nombre }}</h4>
-                    <p class="text-muted mb-1">
-                        <strong>Código:</strong> {{ ceco.codigo }}
-                    </p>
-                    <p class="text-muted mb-1">
-                        <strong>Cliente:</strong> {{ ceco.cliente.nombre }}
-                    </p>
+                    <p class="text-muted mb-1"><strong>Codigo:</strong> {{ ceco.codigo }}</p>
+                    <p class="text-muted mb-1"><strong>Cliente:</strong> {{ ceco.cliente.nombre }}</p>
                     <p class="text-muted mb-0">
                         <strong>Estado:</strong> 
                         {% if ceco.estado == 'activo' %}
@@ -52,99 +59,84 @@
 
             <hr>
 
-            <!-- Estadísticas -->
             <div class="row">
                 <div class="col-xl-3 col-md-6 mb-4">
+                    <a href="{% url 'jefatura:nomina' %}?ceco={{ ceco.pk }}" class="text-decoration-none">
                     <div class="card border-left-primary shadow h-100 py-2">
                         <div class="card-body">
                             <div class="row no-gutters align-items-center">
                                 <div class="col mr-2">
-                                    <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
-                                        Total Trabajadores
-                                    </div>
+                                    <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">Total Trabajadores</div>
                                     <div class="h5 mb-0 font-weight-bold text-gray-800">{{ total_workers }}</div>
                                 </div>
-                                <div class="col-auto">
-                                    <i class="fas fa-users fa-2x text-gray-300"></i>
-                                </div>
+                                <div class="col-auto"><i class="fas fa-users fa-2x text-gray-300"></i></div>
                             </div>
                         </div>
                     </div>
+                    </a>
                 </div>
-
                 <div class="col-xl-3 col-md-6 mb-4">
+                    <a href="{% url 'jefatura:nomina' %}?ceco={{ ceco.pk }}&estado=activo" class="text-decoration-none">
                     <div class="card border-left-success shadow h-100 py-2">
                         <div class="card-body">
                             <div class="row no-gutters align-items-center">
                                 <div class="col mr-2">
-                                    <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
-                                        Activos
-                                    </div>
+                                    <div class="text-xs font-weight-bold text-success text-uppercase mb-1">Activos</div>
                                     <div class="h5 mb-0 font-weight-bold text-gray-800">{{ workers_activos }}</div>
                                 </div>
-                                <div class="col-auto">
-                                    <i class="fas fa-user-check fa-2x text-gray-300"></i>
-                                </div>
+                                <div class="col-auto"><i class="fas fa-user-check fa-2x text-gray-300"></i></div>
                             </div>
                         </div>
                     </div>
+                    </a>
                 </div>
-
                 <div class="col-xl-3 col-md-6 mb-4">
+                    <a href="{% url 'jefatura:nomina' %}?ceco={{ ceco.pk }}&estado=en_transito" class="text-decoration-none">
                     <div class="card border-left-warning shadow h-100 py-2">
                         <div class="card-body">
                             <div class="row no-gutters align-items-center">
                                 <div class="col mr-2">
-                                    <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
-                                        En Tránsito
-                                    </div>
+                                    <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">En Transito</div>
                                     <div class="h5 mb-0 font-weight-bold text-gray-800">{{ workers_en_transito }}</div>
                                 </div>
-                                <div class="col-auto">
-                                    <i class="fas fa-exchange-alt fa-2x text-gray-300"></i>
-                                </div>
+                                <div class="col-auto"><i class="fas fa-exchange-alt fa-2x text-gray-300"></i></div>
                             </div>
                         </div>
                     </div>
+                    </a>
                 </div>
-
                 <div class="col-xl-3 col-md-6 mb-4">
+                    <a href="{% url 'jefatura:nomina' %}?ceco={{ ceco.pk }}&estado=por_egresar" class="text-decoration-none">
                     <div class="card border-left-danger shadow h-100 py-2">
                         <div class="card-body">
                             <div class="row no-gutters align-items-center">
                                 <div class="col mr-2">
-                                    <div class="text-xs font-weight-bold text-danger text-uppercase mb-1">
-                                        Por Egresar
-                                    </div>
+                                    <div class="text-xs font-weight-bold text-danger text-uppercase mb-1">Por Egresar</div>
                                     <div class="h5 mb-0 font-weight-bold text-gray-800">{{ workers_por_egresar }}</div>
                                 </div>
-                                <div class="col-auto">
-                                    <i class="fas fa-user-times fa-2x text-gray-300"></i>
-                                </div>
+                                <div class="col-auto"><i class="fas fa-user-times fa-2x text-gray-300"></i></div>
                             </div>
                         </div>
                     </div>
+                    </a>
                 </div>
             </div>
 
-            <!-- Procesos activos -->
             <div class="row">
                 <div class="col-md-12">
+                    <a href="{% url 'jefatura:procesos' %}?ceco={{ ceco.pk }}" class="text-decoration-none">
                     <div class="card border-left-info shadow h-100 py-2">
                         <div class="card-body">
                             <div class="row no-gutters align-items-center">
                                 <div class="col mr-2">
-                                    <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
-                                        Procesos Activos
-                                    </div>
+                                    <div class="text-xs font-weight-bold text-info text-uppercase mb-1">Procesos Activos</div>
                                     <div class="h5 mb-0 font-weight-bold text-gray-800">{{ procesos_activos }}</div>
                                 </div>
-                                <div class="col-auto">
-                                    <i class="fas fa-tasks fa-2x text-gray-300"></i>
-                                </div>
+                                <div class="col-auto"><i class="fas fa-tasks fa-2x text-gray-300"></i></div>
                             </div>
                         </div>
                     </div>
+                    </a>
                 </div>
             </div>
             {% else %}
@@ -155,5 +147,6 @@
             {% endif %}
         </div>
     </div>
+    {% endif %}
 </div>
 {% endblock %}

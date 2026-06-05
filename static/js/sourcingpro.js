@@ -1,6 +1,25 @@
 /* ------------------------------------------------------------------ */
 /*  Notifications                                                      */
 /* ------------------------------------------------------------------ */
+function toast(message, type) {
+    type = type || 'info';
+    var icons = {
+        'success': 'fa-check-circle text-success',
+        'error': 'fa-exclamation-circle text-danger',
+        'warning': 'fa-exclamation-triangle text-warning',
+        'info': 'fa-info-circle text-primary'
+    };
+    var iconClass = icons[type] || icons['info'];
+    var el = document.createElement('div');
+    el.style.cssText = 'position:fixed;bottom:20px;right:20px;z-index:9999;background:#fff;border-radius:8px;padding:12px 16px;box-shadow:0 4px 12px rgba(0,0,0,0.15);display:flex;align-items:center;gap:10px;min-width:200px;max-width:350px;animation:slideInToast 0.3s ease';
+    el.innerHTML = '<i class="fas ' + iconClass + '"></i><span style="flex:1;font-size:14px">' + message + '</span>';
+    document.body.appendChild(el);
+    setTimeout(function () {
+        el.style.animation = 'slideOutToast 0.3s ease';
+        setTimeout(function () { el.remove(); }, 300);
+    }, 3500);
+}
+
 function actualizarNotificaciones() {
     var countEl = document.getElementById('notif-count');
     if (!countEl) return;
@@ -13,13 +32,18 @@ function actualizarNotificaciones() {
             if (data.count > 0) {
                 countEl.classList.add(data.count >= 10 ? 'bg-danger' : data.count >= 5 ? 'bg-warning' : 'bg-primary');
             }
+        })
+        .catch(function () {
+            var offlineEl = document.getElementById('notif-offline');
+            if (offlineEl) offlineEl.style.display = 'inline';
         });
     fetch('/notificaciones/dropdown/')
         .then(function (r) { return r.text(); })
         .then(function (html) {
             var el = document.getElementById('notif-dropdown');
             if (el) el.innerHTML = html;
-        });
+        })
+        .catch(function () {});
 }
 
 /* ------------------------------------------------------------------ */
@@ -224,3 +248,10 @@ document.addEventListener('DOMContentLoaded', function () {
     iniciarAtajosTeclado();
     iniciarClipboard();
 });
+
+/* Toast animations */
+var styleEl = document.createElement('style');
+styleEl.textContent = ''
+    + '@keyframes slideInToast { from { transform: translateX(120%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }'
+    + '@keyframes slideOutToast { from { transform: translateX(0); opacity: 1; } to { transform: translateX(120%); opacity: 0; } }';
+document.head.appendChild(styleEl);

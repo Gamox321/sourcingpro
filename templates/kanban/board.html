@@ -22,6 +22,7 @@
 
 <div class="row mb-3">
     <div class="col-lg-4 col-md-6 mb-3">
+        <a href="{% url 'processes:process_list' %}?estado=en_curso" class="text-decoration-none">
         <div class="card border-left-primary shadow h-100 py-2">
             <div class="card-body">
                 <div class="row g-0 align-items-center">
@@ -35,6 +36,7 @@
                 </div>
             </div>
         </div>
+        </a>
     </div>
     <div class="col-lg-4 col-md-6 mb-3">
         <div class="card border-left-info shadow h-100 py-2">
@@ -52,6 +54,7 @@
         </div>
     </div>
     <div class="col-lg-4 col-md-6 mb-3">
+        <a href="{% url 'ti:bloqueo_urgente' %}" class="text-decoration-none">
         <div class="card border-left-danger shadow h-100 py-2">
             <div class="card-body">
                 <div class="row g-0 align-items-center">
@@ -65,8 +68,10 @@
                 </div>
             </div>
         </div>
+        </a>
     </div>
     <div class="col-lg-4 col-md-6 mb-3">
+        <a href="{% url 'workers:worker_list' %}" class="text-decoration-none">
         <div class="card border-left-success shadow h-100 py-2">
             <div class="card-body">
                 <div class="row g-0 align-items-center">
@@ -80,6 +85,7 @@
                 </div>
             </div>
         </div>
+        </a>
     </div>
     <div class="col-lg-4 col-md-6 mb-3">
         <div class="card border-left-warning shadow h-100 py-2">
@@ -97,6 +103,7 @@
         </div>
     </div>
     <div class="col-lg-4 col-md-6 mb-3">
+        <a href="{% url 'notifications:list' %}" class="text-decoration-none">
         <div class="card border-left-secondary shadow h-100 py-2">
             <div class="card-body">
                 <div class="row g-0 align-items-center">
@@ -110,6 +117,7 @@
                 </div>
             </div>
         </div>
+        </a>
     </div>
 </div>
 

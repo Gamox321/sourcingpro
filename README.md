@@ -205,7 +205,6 @@ Las notificaciones están **centralizadas** y son accesibles para todos los role
 | `devolucion_validada` | Iniciador | Todos los activos devueltos (cambio CeCo) |
 | `devolucion_incompleta` | Iniciador | Activos pendientes de devolución |
 | `contrato_por_vencer` | RRHH | Alerta de término de contrato |
-
 ---
 
 ## 📸 Evidencia Fotográfica

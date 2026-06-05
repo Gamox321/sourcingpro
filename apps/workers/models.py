@@ -11,6 +11,16 @@ class Worker(models.Model):
         DESVINCULADO = 'desvinculado', 'Desvinculado'
         ELIMINADO = 'eliminado', 'Eliminado'
 
+    TRANSICIONES_VALIDAS = {
+        'en_proceso': ['activo', 'eliminado'],
+        'activo': ['por_egresar', 'despedido_en_proceso', 'en_transito'],
+        'en_transito': ['activo'],
+        'por_egresar': ['activo', 'desvinculado'],
+        'despedido_en_proceso': ['desvinculado'],
+        'desvinculado': [],
+        'eliminado': [],
+    }
+
     run = models.CharField(max_length=12, unique=True, verbose_name='RUN')
     nombre = models.CharField(max_length=100, verbose_name='Nombre completo')
     correo = models.EmailField(max_length=150, unique=True, verbose_name='Correo electrónico')
@@ -40,6 +50,12 @@ class Worker(models.Model):
 
     def __str__(self):
         return f'{self.nombre} ({self.run})'
+
+    def puede_transicionar_a(self, nuevo_estado):
+        return nuevo_estado in self.TRANSICIONES_VALIDAS.get(self.estado, [])
+
+    def transiciones_permitidas(self):
+        return self.TRANSICIONES_VALIDAS.get(self.estado, [])
 
 
 class CostCenterHistory(models.Model):

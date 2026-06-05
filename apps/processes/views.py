@@ -1,7 +1,6 @@
 from django.contrib import messages
 from django.db import models as db_models
 from django.shortcuts import redirect, get_object_or_404
-from django.urls import reverse_lazy
 from django.views.generic import ListView, DetailView, TemplateView, View
 
 from apps.accounts.decorators import RoleRequiredMixin
@@ -15,6 +14,14 @@ from . import services
 ROLES_PROCESOS = ['administrador', 'rrhh']
 
 
+def _get_user_cecos(user):
+    if user.roles.filter(nombre__in=['administrador', 'rrhh']).exists():
+        return None
+    if user.roles.filter(nombre='jefatura').exists():
+        return user.cecos_a_cargo.filter(estado='activo')
+    return None
+
+
 class ProcessTypeSelectView(RoleRequiredMixin, TemplateView):
     template_name = 'processes/process_type_select.html'
     roles_requeridos = ROLES_PROCESOS
@@ -26,20 +33,27 @@ class ProcessCreateContratacionView(RoleRequiredMixin, TemplateView):
 
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
-        ctx['form'] = ContratacionForm()
+        ctx['form'] = ContratacionForm(user_cecos=_get_user_cecos(self.request.user))
         ctx['tipo'] = 'contratacion'
-        ctx['titulo'] = 'Nueva Contratación'
+        ctx['titulo'] = 'Nueva Contratacion'
+        ctx['descripcion'] = 'Registra un nuevo trabajador e inicia el proceso de contratacion con todas las areas involucradas.'
+        ctx['tareas_info'] = [
+            ('Creacion cuenta TI', 'TI'),
+            ('Examenes preocupacionales', 'Prevencion'),
+            ('Induccion y EPP', 'Prevencion'),
+            ('Equipamiento', 'Logistica'),
+        ]
         return ctx
 
     def post(self, request):
-        form = ContratacionForm(request.POST)
+        form = ContratacionForm(request.POST, user_cecos=_get_user_cecos(request.user))
         if form.is_valid():
             try:
                 proceso = services.crear_proceso_contratacion(
                     usuario=request.user,
                     datos_worker=form.cleaned_data,
                 )
-                messages.success(request, 'Proceso de contratación iniciado exitosamente.')
+                messages.success(request, 'Proceso de contratacion iniciado exitosamente.')
                 return redirect('processes:process_detail', pk=proceso.pk)
             except Exception as e:
                 messages.error(request, f'Error al crear el proceso: {e}')
@@ -54,13 +68,20 @@ class ProcessCreateCambioCeCoView(RoleRequiredMixin, TemplateView):
 
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
-        ctx['form'] = CambioCeCoForm()
+        ctx['form'] = CambioCeCoForm(user_cecos=_get_user_cecos(self.request.user))
         ctx['tipo'] = 'cambio_ceco'
         ctx['titulo'] = 'Nuevo Cambio de Centro de Costo'
+        ctx['descripcion'] = 'Transfere un trabajador activo de un centro de costo a otro, gestionando devolucion de activos y reasignacion.'
+        ctx['tareas_info'] = [
+            ('Devolucion de activos', 'Logistica'),
+            ('Creacion cuenta TI', 'TI'),
+            ('Induccion y EPP', 'Prevencion'),
+            ('Equipamiento', 'Logistica'),
+        ]
         return ctx
 
     def post(self, request):
-        form = CambioCeCoForm(request.POST)
+        form = CambioCeCoForm(request.POST, user_cecos=_get_user_cecos(request.user))
         if form.is_valid():
             try:
                 proceso = services.crear_proceso_cambio_ceco(
@@ -85,13 +106,20 @@ class ProcessCreateTerminoView(RoleRequiredMixin, TemplateView):
 
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
-        ctx['form'] = TerminoForm()
+        ctx['form'] = TerminoForm(user_cecos=_get_user_cecos(self.request.user))
         ctx['tipo'] = 'termino'
-        ctx['titulo'] = 'Nuevo Término de Contrato'
+        ctx['titulo'] = 'Nuevo Termino de Contrato'
+        ctx['descripcion'] = 'Gestiona la salida programada de un trabajador: devolucion de activos, finiquito y bloqueo de accesos.'
+        ctx['tareas_info'] = [
+            ('Devolucion de activos', 'Logistica'),
+            ('Preparar bloqueo accesos', 'TI'),
+            ('Coordinacion finiquito', 'Finanzas'),
+            ('Bloqueo de accesos', 'TI'),
+        ]
         return ctx
 
     def post(self, request):
-        form = TerminoForm(request.POST)
+        form = TerminoForm(request.POST, user_cecos=_get_user_cecos(request.user))
         if form.is_valid():
             try:
                 proceso = services.crear_proceso_termino(
@@ -100,7 +128,7 @@ class ProcessCreateTerminoView(RoleRequiredMixin, TemplateView):
                     fecha_termino=form.cleaned_data['fecha_termino'],
                     motivo=form.cleaned_data['motivo'],
                 )
-                messages.success(request, 'Proceso de término iniciado.')
+                messages.success(request, 'Proceso de termino iniciado.')
                 return redirect('processes:process_detail', pk=proceso.pk)
             except Exception as e:
                 messages.error(request, f'Error: {e}')
@@ -115,13 +143,19 @@ class ProcessCreateDespidoView(RoleRequiredMixin, TemplateView):
 
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
-        ctx['form'] = DespidoForm()
+        ctx['form'] = DespidoForm(user_cecos=_get_user_cecos(self.request.user))
         ctx['tipo'] = 'despido'
         ctx['titulo'] = 'Nuevo Despido'
+        ctx['descripcion'] = 'Inicia un proceso de despido con bloqueo inmediato de accesos, recuperacion de activos y finiquito. Requiere confirmacion RRHH.'
+        ctx['tareas_info'] = [
+            ('Recuperacion de activos', 'Logistica'),
+            ('Bloqueo de accesos (CRITICO)', 'TI'),
+            ('Coordinacion finiquito', 'Finanzas'),
+        ]
         return ctx
 
     def post(self, request):
-        form = DespidoForm(request.POST)
+        form = DespidoForm(request.POST, user_cecos=_get_user_cecos(request.user))
         if form.is_valid():
             try:
                 proceso = services.crear_proceso_despido(
@@ -198,7 +232,20 @@ class ProcessDetailView(RoleRequiredMixin, DetailView):
 
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
-        ctx['tareas'] = self.object.tareas.select_related('usuario_responsable').all()
+        tareas = self.object.tareas.select_related('usuario_responsable').all()
+        ctx['tareas'] = tareas
+        
+        completadas = sum(
+            1 for t in tareas
+            if t.estado in (Task.EstadoChoices.COMPLETADA, Task.EstadoChoices.GESTIONADO_EXTERNO)
+        )
+        total = tareas.count()
+        ctx['tareas_completadas_count'] = completadas
+        ctx['porcentaje_completado'] = int(completadas / total * 100) if total > 0 else 0
+        
+        for t in tareas:
+            t.esta_bloqueada = t.tareas_anteriores().exists()
+        
         return ctx
 
 
@@ -233,6 +280,29 @@ class TaskCompleteView(RoleRequiredMixin, View):
         if task.estado in (Task.EstadoChoices.COMPLETADA, Task.EstadoChoices.GESTIONADO_EXTERNO):
             messages.warning(request, 'Esta tarea ya fue completada.')
             return redirect('processes:process_detail', pk=pk)
+
+        anteriores = task.tareas_anteriores()
+        if anteriores.exists():
+            names = ', '.join([t.get_tipo_display() for t in anteriores])
+            messages.error(
+                request,
+                f'No puede completar esta tarea. Primero complete: {names}.'
+            )
+            return redirect('processes:process_detail', pk=pk)
+
+        # BLOQUEO_ACCESOS en TERMINO requiere FINIQUITO_COORDINACION completado
+        if (task.tipo == Task.TipoChoices.BLOQUEO_ACCESOS
+                and task.proceso.tipo == Process.TipoChoices.TERMINO):
+            finiquito = task.proceso.tareas.filter(
+                tipo=Task.TipoChoices.FINIQUITO_COORDINACION
+            ).first()
+            if finiquito and finiquito.estado != Task.EstadoChoices.COMPLETADA:
+                messages.error(
+                    request,
+                    'No puede bloquear accesos hasta que Finanzas complete la coordinación de finiquito. '
+                    f'<a href="mailto:?subject=Recordatorio: Finiquito proceso #{task.proceso.pk}" class="alert-link">Enviar recordatorio a Finanzas</a>'
+                )
+                return redirect('processes:process_detail', pk=pk)
 
         if task.tipo in (Task.TipoChoices.FINIQUITO_COORDINACION,):
             services.gestionar_externamente_tarea(task)

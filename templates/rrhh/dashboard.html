@@ -22,6 +22,7 @@
 
 <div class="row mb-4">
     <div class="col-xl-3 col-md-6 mb-3">
+        <a href="{% url 'rrhh:trabajadores' %}?estado=activo" class="text-decoration-none">
         <div class="card border-left-success shadow h-100 py-2">
             <div class="card-body">
                 <div class="row g-0 align-items-center">
@@ -35,9 +36,11 @@
                 </div>
             </div>
         </div>
+        </a>
     </div>
 
     <div class="col-xl-3 col-md-6 mb-3">
+        <a href="{% url 'rrhh:procesos' %}?estado=en_curso" class="text-decoration-none">
         <div class="card border-left-primary shadow h-100 py-2">
             <div class="card-body">
                 <div class="row g-0 align-items-center">
@@ -51,9 +54,11 @@
                 </div>
             </div>
         </div>
+        </a>
     </div>
 
     <div class="col-xl-3 col-md-6 mb-3">
+        <a href="{% url 'rrhh:procesos' %}?estado=en_curso" class="text-decoration-none">
         <div class="card border-left-danger shadow h-100 py-2">
             <div class="card-body">
                 <div class="row g-0 align-items-center">
@@ -67,15 +72,11 @@
                 </div>
             </div>
         </div>
+        </a>
     </div>
 
     <div class="col-xl-3 col-md-6 mb-3">
-        <div class="card border-left-warning shadow h-100 py-2">
-            <div class="card-body">
-                <div class="row g-0 align-items-center">
-                    <div class="col me-2">
-                        <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">Contratos por vencer</div>
-                        <div class="h5 mb-0 font-weight-bold text-gray-800">{{ stats.contratos_por_vencer }}</div>
+        <a href="{% url 'rrhh:alertas_contratos' %}" class="text-decoration-none">
                         <div class="text-xs text-gray-600">Próximos 30 días</div>
                     </div>
                     <div class="col-auto">
@@ -84,6 +85,7 @@
                 </div>
             </div>
         </div>
+        </a>
     </div>
 </div>
 
@@ -131,32 +133,7 @@
                                 <span class="badge bg-light text-dark">{{ pendientes|length }}</span>
                             </div>
                             <div class="card-body kanban-column" data-column="pendientes">
-                                {% for task in pendientes %}
-                                <div class="kanban-card card mb-2">
-                                    <div class="card-body p-2">
-                                        <div class="d-flex justify-content-between align-items-start mb-1">
-                                            <small class="text-muted text-uppercase" style="font-size: 0.65rem;">
-                                                {{ task.proceso.get_tipo_display }}
-                                            </small>
-                                            {% if task.urgencia == 'critica' %}
-                                            <span class="badge bg-danger" style="font-size: 0.6rem;">CRÍTICA</span>
-                                            {% endif %}
-                                        </div>
-                                        <div class="small font-weight-bold mb-1">{{ task.get_tipo_display }}</div>
-                                        <div class="text-muted" style="font-size: 0.7rem;">
-                                            {{ task.proceso.trabajador.nombre }}
-                                        </div>
-                                        {% if task.plazo_limite %}
-                                        <div class="text-danger" style="font-size: 0.65rem;">
-                                            <i class="fas fa-calendar-alt me-1"></i>
-                                            {{ task.plazo_limite|date:"d/m/Y H:i" }}
-                                        </div>
-                                        {% endif %}
-                                    </div>
-                                </div>
-                                {% empty %}
-                                <p class="text-muted text-center small">No hay tareas pendientes</p>
-                                {% endfor %}
+                                {% include 'kanban/_column.html' with tasks=pendientes columna='pendientes' %}
                             </div>
                         </div>
                     </div>
@@ -168,32 +145,7 @@
                                 <span class="badge bg-light text-dark">{{ en_proceso|length }}</span>
                             </div>
                             <div class="card-body kanban-column" data-column="en-proceso">
-                                {% for task in en_proceso %}
-                                <div class="kanban-card card mb-2">
-                                    <div class="card-body p-2">
-                                        <div class="d-flex justify-content-between align-items-start mb-1">
-                                            <small class="text-muted text-uppercase" style="font-size: 0.65rem;">
-                                                {{ task.proceso.get_tipo_display }}
-                                            </small>
-                                            {% if task.urgencia == 'critica' %}
-                                            <span class="badge bg-danger" style="font-size: 0.6rem;">CRÍTICA</span>
-                                            {% endif %}
-                                        </div>
-                                        <div class="small font-weight-bold mb-1">{{ task.get_tipo_display }}</div>
-                                        <div class="text-muted" style="font-size: 0.7rem;">
-                                            {{ task.proceso.trabajador.nombre }}
-                                        </div>
-                                        {% if task.plazo_limite %}
-                                        <div class="text-warning" style="font-size: 0.65rem;">
-                                            <i class="fas fa-calendar-alt me-1"></i>
-                                            {{ task.plazo_limite|date:"d/m/Y H:i" }}
-                                        </div>
-                                        {% endif %}
-                                    </div>
-                                </div>
-                                {% empty %}
-                                <p class="text-muted text-center small">No hay tareas en proceso</p>
-                                {% endfor %}
+                                {% include 'kanban/_column.html' with tasks=en_proceso columna='en-proceso' %}
                             </div>
                         </div>
                     </div>
@@ -205,29 +157,7 @@
                                 <span class="badge bg-light text-dark">{{ completadas|length }}</span>
                             </div>
                             <div class="card-body kanban-column" data-column="completadas">
-                                {% for task in completadas %}
-                                <div class="kanban-card card mb-2" style="opacity: 0.7;">
-                                    <div class="card-body p-2">
-                                        <div class="d-flex justify-content-between align-items-start mb-1">
-                                            <small class="text-muted text-uppercase" style="font-size: 0.65rem;">
-                                                {{ task.proceso.get_tipo_display }}
-                                            </small>
-                                        </div>
-                                        <div class="small font-weight-bold mb-1">{{ task.get_tipo_display }}</div>
-                                        <div class="text-muted" style="font-size: 0.7rem;">
-                                            {{ task.proceso.trabajador.nombre }}
-                                        </div>
-                                        {% if task.fecha_completado %}
-                                        <div class="text-success" style="font-size: 0.65rem;">
-                                            <i class="fas fa-check-circle me-1"></i>
-                                            {{ task.fecha_completado|date:"d/m/Y H:i" }}
-                                        </div>
-                                        {% endif %}
-                                    </div>
-                                </div>
-                                {% empty %}
-                                <p class="text-muted text-center small">No hay tareas completadas</p>
-                                {% endfor %}
+                                {% include 'kanban/_column.html' with tasks=completadas columna='completadas' %}
                             </div>
                         </div>
                     </div>

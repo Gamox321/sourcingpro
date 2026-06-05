@@ -25,7 +25,42 @@
             <div class="card-body">
                 <form method="post" data-dirty>
                     {% csrf_token %}
+
+                    <div class="alert alert-info mb-4">
+                        <i class="fas fa-info-circle me-2"></i>
+                        <strong>Ayuda:</strong> Complete los datos del activo. Los campos marcados con * son obligatorios.
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Tipo de activo <span class="text-danger">*</span></label>
+                        {% render_field form.tipo class="form-control" %}
+                        <div class="form-text">Seleccione la categoría que mejor describe el activo</div>
+                        {% if form.tipo.errors %}<div class="text-danger small">{{ form.tipo.errors }}</div>{% endif %}
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Marca <span class="text-danger">*</span></label>
+                        {% render_field form.marca class="form-control" placeholder="Dell, Apple, Samsung..." %}
+                        <div class="form-text">Fabricante o marca del activo</div>
+                        {% if form.marca.errors %}<div class="text-danger small">{{ form.marca.errors }}</div>{% endif %}
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Modelo <span class="text-danger">*</span></label>
+                        {% render_field form.modelo class="form-control" placeholder="Latitude 5520, MacBook Pro..." %}
+                        <div class="form-text">Nombre o referencia comercial del modelo</div>
+                        {% if form.modelo.errors %}<div class="text-danger small">{{ form.modelo.errors }}</div>{% endif %}
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Número de serie <span class="text-danger">*</span></label>
+                        {% render_field form.numero_serie class="form-control" placeholder="ABC123XYZ456" %}
+                        <div class="form-text">Número de serie único del fabricante</div>
+                        {% if form.numero_serie.errors %}<div class="text-danger small">{{ form.numero_serie.errors }}</div>{% endif %}
+                    </div>
+
                     {% for field in form %}
+                    {% if field.name not in 'tipo,marca,modelo,numero_serie' %}
                     <div class="mb-3">
                         <label class="form-label">{{ field.label }}</label>
                         {% if field.errors %}
@@ -36,8 +71,13 @@
                         {% if field.errors %}
                         <div class="text-danger small">{{ field.errors }}</div>
                         {% endif %}
+                        {% if field.help_text %}
+                        <div class="form-text">{{ field.help_text }}</div>
+                        {% endif %}
                     </div>
+                    {% endif %}
                     {% endfor %}
+
                     <button type="submit" class="btn btn-primary">
                         <i class="fas fa-save me-1"></i>Guardar
                     </button>

@@ -1,19 +1,29 @@
 {% load static %}
 {% for n in notifications %}
-<form method="post" action="{% url 'notifications:mark_read' n.pk %}" class="dropdown-item d-flex align-items-center p-0">
-    {% csrf_token %}
-    <button type="submit" class="dropdown-item d-flex align-items-center">
-        <div class="me-3">
-            <div class="icon-circle bg-primary">
-                <i class="fas fa-bell text-white"></i>
-            </div>
+<a href="{% url 'notifications:mark_read' n.pk %}"
+   class="dropdown-item d-flex align-items-start py-2 {% if n.estado == 'enviada' %}bg-light{% endif %}">
+    <div class="me-2 mt-1">
+        {% if n.canal == 'correo' %}
+        <i class="fas fa-envelope fa-sm text-primary"></i>
+        {% else %}
+        <i class="fas fa-bell fa-sm text-warning"></i>
+        {% endif %}
+    </div>
+    <div class="flex-grow-1" style="min-width:0">
+        <div class="small text-truncate {% if n.estado == 'enviada' %}fw-bold{% endif %}">
+            {{ n.contenido|truncatechars:80 }}
         </div>
-        <div>
-            <div class="small text-gray-500">{{ n.fecha_envio|date:'d/m/Y H:i' }}</div>
-            <span class="fw-bold">{{ n.contenido|truncatechars:60 }}</span>
+        <div class="d-flex justify-content-between align-items-center mt-1">
+            <small class="text-muted">{{ n.fecha_envio|date:'d/m H:i' }}</small>
+            {% if n.proceso %}
+            <small class="badge bg-light text-dark">{{ n.proceso.get_tipo_display|truncatechars:10 }}</small>
+            {% endif %}
         </div>
-    </button>
-</form>
+    </div>
+</a>
 {% empty %}
-<a class="dropdown-item text-center small text-gray-500" href="#">Sin notificaciones</a>
+<a class="dropdown-item text-center small text-muted py-3" href="{% url 'notifications:list' %}">
+    <i class="fas fa-inbox fa-2x mb-2 d-block"></i>
+    Sin notificaciones &mdash; Ver todas
+</a>
 {% endfor %}

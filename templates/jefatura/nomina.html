@@ -3,8 +3,20 @@
 
 {% block title %}Mi Nómina{% endblock %}
 
+{% block breadcrumbs %}
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{% url 'jefatura:nomina' %}"><i class="fas fa-home"></i></a></li>
+        <li class="breadcrumb-item active">Mi Nómina</li>
+    </ol>
+</nav>
+{% endblock %}
+
 {% block content %}
 <div class="container-fluid">
+    {% if not cecos %}
+        {% include 'components/_sin_cecos.html' %}
+    {% else %}
     <div class="row">
         <!-- Sidebar de CeCos -->
         <div class="col-md-2">
@@ -15,10 +27,11 @@
                 <div class="card-body p-0">
                     <div class="list-group list-group-flush">
                         {% for ceco in cecos %}
-                        <a href="?ceco={{ ceco.pk }}" 
+                        <a href="?ceco={{ ceco.pk }}{% if filtro_estado %}&estado={{ filtro_estado }}{% endif %}{% if query %}&q={{ query }}{% endif %}" 
                            class="list-group-item list-group-item-action {% if ceco_seleccionado and ceco.pk == ceco_seleccionado.pk %}active{% endif %}">
                             <div class="d-flex w-100 justify-content-between">
                                 <h6 class="mb-1">{{ ceco.nombre }}</h6>
+                                <span class="badge bg-light text-dark">{{ ceco.workers_activos|default:0 }}</span>
                             </div>
                             <small>{{ ceco.codigo }}</small>
                         </a>
@@ -121,5 +134,6 @@
             </div>
         </div>
     </div>
+    {% endif %}
 </div>
 {% endblock %}

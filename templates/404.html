@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+{% block title %}404 — Página No Encontrada{% endblock %}
+{% block content %}
+<div class="text-center py-5">
+    <i class="fas fa-map-marker-alt fa-4x text-warning mb-4"></i>
+    <h1 class="h2 text-gray-800 mb-2">404 — Página No Encontrada</h1>
+    <p class="text-muted mb-4">La página que buscas no existe o fue movida. Verifica que la dirección esté correcta.</p>
+    <div class="d-grid gap-2 d-md-flex justify-content-center">
+        <a href="/" class="btn btn-primary">
+            <i class="fas fa-home me-1"></i>Ir al inicio
+        </a>
+        <a href="javascript:history.back()" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left me-1"></i>Volver atrás
+        </a>
+    </div>
+</div>
+{% endblock %}

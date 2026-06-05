@@ -142,9 +142,14 @@ class AssetReturnView(RoleRequiredMixin, View):
         asset = get_object_or_404(Asset, pk=pk)
         asignacion_id = request.POST.get('asignacion', '').strip()
         estado_dev = request.POST.get('estado_devolucion', '').strip()
+        foto_evidencia = request.FILES.get('foto_evidencia')
 
         if not asignacion_id or not estado_dev:
             messages.error(request, 'Debe seleccionar la asignación y el estado de devolución.')
+            return redirect('inventory:asset_detail', pk=pk)
+
+        if estado_dev in ('danado', 'con_perdida') and not foto_evidencia:
+            messages.error(request, 'Debe agregar foto como evidencia del daño/pérdida.')
             return redirect('inventory:asset_detail', pk=pk)
 
         try:
@@ -158,7 +163,9 @@ class AssetReturnView(RoleRequiredMixin, View):
         from django.utils import timezone
         asignacion.fecha_devolucion = timezone.now()
         asignacion.estado_devolucion = estado_dev
-        asignacion.save(update_fields=['fecha_devolucion', 'estado_devolucion'])
+        if foto_evidencia:
+            asignacion.foto_evidencia = foto_evidencia
+        asignacion.save(update_fields=['fecha_devolucion', 'estado_devolucion', 'foto_evidencia'])
 
         if asset.estado == Asset.EstadoChoices.ASIGNADO:
             asset.cambiar_estado(Asset.EstadoChoices.PENDIENTE_DEVOLUCION)

@@ -1,208 +1,207 @@
 {% extends 'base.html' %}
+{% load static %}
 
-{% block title %}Proceso #{{ process.pk }}{% endblock %}
+{% block title %}Proceso #{{ process.pk }} — {{ process.get_tipo_display }}{% endblock %}
 
 {% block breadcrumbs %}
 <nav aria-label="breadcrumb">
     <ol class="breadcrumb">
         <li class="breadcrumb-item"><a href="/"><i class="fas fa-home"></i></a></li>
         <li class="breadcrumb-item"><a href="{% url 'processes:process_list' %}">Procesos</a></li>
-        <li class="breadcrumb-item active">#{{ process.pk }} — {{ process.get_tipo_display }}</li>
+        <li class="breadcrumb-item active">{{ process.get_tipo_display }} #{{ process.pk }}</li>
     </ol>
 </nav>
 {% endblock %}
 
 {% block content %}
 <div class="d-flex justify-content-between align-items-center mb-3">
-    <h1 class="h3 text-gray-800">
-        {% if process.tipo == 'contratacion' %}
-            <span class="badge bg-primary fs-6">{{ process.get_tipo_display }}</span>
-        {% elif process.tipo == 'cambio_ceco' %}
-            <span class="badge bg-info fs-6">{{ process.get_tipo_display }}</span>
-        {% elif process.tipo == 'termino' %}
-            <span class="badge bg-warning fs-6">{{ process.get_tipo_display }}</span>
-        {% else %}
-            <span class="badge bg-danger fs-6">{{ process.get_tipo_display }}</span>
-        {% endif %}
-        #{{ process.pk }} — {{ process.trabajador.nombre }}
+    <h1 class="h3 text-gray-800 mb-0">
+        <span class="badge {% if process.tipo == 'contratacion' %}bg-primary{% elif process.tipo == 'cambio_ceco' %}bg-info{% elif process.tipo == 'termino' %}bg-warning{% else %}bg-danger{% endif %} me-2">
+            {{ process.get_tipo_display }}
+        </span>
+        {{ process.trabajador.nombre }}
     </h1>
-    <div>
-        <a href="{% url 'processes:process_list' %}" class="btn btn-secondary">
-            <i class="fas fa-arrow-left me-1"></i>Volver
+    <a href="{% url 'processes:process_list' %}" class="btn btn-sm btn-outline-secondary">
+        <i class="fas fa-arrow-left me-1"></i>Volver
+    </a>
+</div>
+
+<div class="row mb-4">
+    <div class="col-xl-3 col-md-6 mb-3">
+        <a href="{% url 'workers:worker_detail' process.trabajador.pk %}" class="text-decoration-none">
+        <div class="card border-left-primary shadow h-100 py-2">
+            <div class="card-body">
+                <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">Trabajador</div>
+                <div class="h6 mb-0 text-gray-800">{{ process.trabajador.nombre }}</div>
+                <small class="text-muted">{{ process.trabajador.run }}</small>
+            </div>
+        </div>
+        </a>
+    </div>
+    <div class="col-xl-3 col-md-6 mb-3">
+        <div class="card border-left-info shadow h-100 py-2">
+            <div class="card-body">
+                <div class="text-xs font-weight-bold text-info text-uppercase mb-1">Estado</div>
+                <span class="badge {% if process.estado == 'en_curso' %}bg-success{% elif process.estado == 'completado' %}bg-secondary{% else %}bg-dark{% endif %}">
+                    {{ process.get_estado_display }}
+                </span>
+                <small class="text-muted d-block mt-1">Inicio: {{ process.fecha_inicio|date:'d/m/Y H:i' }}</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-3 col-md-6 mb-3">
+        <div class="card border-left-warning shadow h-100 py-2">
+            <div class="card-body">
+                <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">Iniciado por</div>
+                <div class="h6 mb-0 text-gray-800">{{ process.usuario_inicio.nombre }}</div>
+                {% if process.ceco_origen %}
+                <small class="text-muted">{{ process.ceco_origen.nombre }}</small>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-3 col-md-6 mb-3">
+        <div class="card border-left-success shadow h-100 py-2">
+            <div class="card-body">
+                <div class="text-xs font-weight-bold text-success text-uppercase mb-1">Progreso</div>
+                <div class="h6 mb-0 font-weight-bold text-gray-800">
+                    {{ tareas_completadas_count }}/{{ tareas|length }} tareas
+                </div>
+                <div class="progress mt-2" style="height:6px">
+                    <div class="progress-bar bg-success" role="progressbar" style="width:{{ porcentaje_completado }}%" aria-valuenow="{{ porcentaje_completado }}" aria-valuemin="0" aria-valuemax="100"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% if process.ceco_destino %}
+<div class="row mb-4">
+    <div class="col-12">
+        <a href="{% url 'clients:costcenter_detail' process.ceco_destino.pk %}" class="text-decoration-none">
+        <div class="card border-left-primary shadow py-2">
+            <div class="card-body py-2">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <span class="text-xs text-primary text-uppercase">Centro de Costo Destino</span>
+                        <strong class="d-block">{{ process.ceco_destino.nombre }}</strong>
+                    </div>
+                    <i class="fas fa-chevron-right text-muted"></i>
+                </div>
+            </div>
+        </div>
         </a>
     </div>
 </div>
+{% endif %}
 
-<div class="row">
-    <div class="col-md-3 mb-4">
-        <div class="card border-left-primary shadow h-100 py-2">
-            <div class="card-body">
-                <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">Estado</div>
-                <div>
-                    {% if process.estado == 'en_curso' %}
-                        <span class="badge bg-success fs-6">En curso</span>
-                    {% elif process.estado == 'completado' %}
-                        <span class="badge bg-secondary fs-6">Completado</span>
-                    {% else %}
-                        <span class="badge bg-dark fs-6">Cancelado</span>
-                    {% endif %}
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="col-md-3 mb-4">
-        <div class="card border-left-success shadow h-100 py-2">
-            <div class="card-body">
-                <div class="text-xs font-weight-bold text-success text-uppercase mb-1">Trabajador</div>
-                <div class="h5 mb-0 font-weight-bold">
-                    <a href="{% url 'workers:worker_detail' process.trabajador.pk %}">
-                        {{ process.trabajador.nombre }}
-                    </a>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    {% if process.tipo == 'cambio_ceco' %}
-    <div class="col-md-3 mb-4">
-        <div class="card border-left-info shadow h-100 py-2">
-            <div class="card-body">
-                <div class="text-xs font-weight-bold text-info text-uppercase mb-1">CeCo Destino</div>
-                <div class="h5 mb-0 font-weight-bold text-gray-800">{{ process.ceco_destino.nombre|default:'—' }}</div>
-            </div>
-        </div>
-    </div>
+{% if process.motivo %}
+<div class="alert alert-light border mb-4">
+    <strong>Motivo:</strong> {{ process.motivo }}
+    {% if process.causal_legal %}
+    <br><strong>Causal legal:</strong> {{ process.causal_legal }}
     {% endif %}
-
-    <div class="col-md-3 mb-4">
-        <div class="card border-left-warning shadow h-100 py-2">
-            <div class="card-body">
-                <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">Inicio</div>
-                <div class="h5 mb-0 font-weight-bold text-gray-800">{{ process.fecha_inicio|date:'d/m/Y H:i' }}</div>
-            </div>
-        </div>
-    </div>
 </div>
-
-<div class="card shadow mb-4">
-    <div class="card-header py-3">
-        <h6 class="m-0 font-weight-bold text-primary">Detalles del Proceso</h6>
-    </div>
-    <div class="card-body">
-        <dl class="row">
-            <dt class="col-sm-3">Tipo</dt>
-            <dd class="col-sm-9">{{ process.get_tipo_display }}</dd>
-
-            <dt class="col-sm-3">Estado</dt>
-            <dd class="col-sm-9">{{ process.get_estado_display }}</dd>
-
-            <dt class="col-sm-3">Trabajador</dt>
-            <dd class="col-sm-9">{{ process.trabajador.nombre }} ({{ process.trabajador.run }})</dd>
-
-            <dt class="col-sm-3">Iniciado por</dt>
-            <dd class="col-sm-9">{{ process.usuario_inicio.nombre }}</dd>
-
-            {% if process.ceco_origen %}
-            <dt class="col-sm-3">CeCo origen</dt>
-            <dd class="col-sm-9">{{ process.ceco_origen.nombre }}</dd>
-            {% endif %}
-
-            {% if process.ceco_destino %}
-            <dt class="col-sm-3">CeCo destino</dt>
-            <dd class="col-sm-9">{{ process.ceco_destino.nombre }}</dd>
-            {% endif %}
-
-            {% if process.motivo %}
-            <dt class="col-sm-3">Motivo</dt>
-            <dd class="col-sm-9">{{ process.motivo }}</dd>
-            {% endif %}
-
-            {% if process.causal_legal %}
-            <dt class="col-sm-3">Causal legal</dt>
-            <dd class="col-sm-9">{{ process.causal_legal }}</dd>
-            {% endif %}
-
-            {% if process.fecha_cierre %}
-            <dt class="col-sm-3">Fecha de cierre</dt>
-            <dd class="col-sm-9">{{ process.fecha_cierre|date:'d/m/Y H:i' }}</dd>
-            {% endif %}
-        </dl>
-    </div>
-</div>
+{% endif %}
 
 <div class="card shadow mb-4">
     <div class="card-header py-3 d-flex justify-content-between align-items-center">
-        <h6 class="m-0 font-weight-bold text-primary">Tareas</h6>
+        <h6 class="m-0 font-weight-bold text-primary">
+            <i class="fas fa-list-check me-2"></i>Tareas
+            <small class="text-muted">({{ tareas_completadas_count }}/{{ tareas|length }} completadas)</small>
+        </h6>
+        {% if process.estado == 'en_curso' %}
+        <span class="badge bg-info">En curso</span>
+        {% endif %}
     </div>
     <div class="card-body">
         <div class="table-responsive">
             <table class="table table-hover">
                 <thead>
                     <tr>
+                        <th>#</th>
                         <th>Tarea</th>
                         <th>Responsable</th>
                         <th>Estado</th>
-                        <th>Urgencia</th>
                         <th>Plazo</th>
-                        <th>Acciones</th>
+                        <th>Accion</th>
                     </tr>
                 </thead>
                 <tbody>
                     {% for task in tareas %}
-                    <tr class="{% if task.omitida %}table-secondary{% endif %}">
+                    <tr class="{% if task.estado == 'vencida' %}table-danger{% elif task.omitida %}text-muted{% endif %}">
+                        <td class="text-muted small">{{ task.orden|default:forloop.counter }}</td>
                         <td>
-                            {{ task.get_tipo_display }}
+                            <strong>{{ task.get_tipo_display }}</strong>
                             {% if task.omitida %}
-                                <br><small class="text-muted">Omitida: {{ task.motivo_omision }}</small>
+                            <small class="text-muted d-block">Omitida{% if task.motivo_omision %}: {{ task.motivo_omision }}{% endif %}</small>
+                            {% elif task.esta_bloqueada and task.estado == 'pendiente' %}
+                            <span class="badge bg-warning text-dark small">Bloqueada</span>
+                            <small class="text-muted d-block">
+                                Requiere: {% for t in task.tareas_anteriores %}{{ t.get_tipo_display }}{% if not forloop.last %}, {% endif %}{% endfor %}
+                            </small>
                             {% endif %}
                         </td>
-                        <td>{{ task.usuario_responsable.nombre|default:'Sin asignar' }}</td>
+                        <td>
+                            {% if task.usuario_responsable %}
+                            {{ task.usuario_responsable.nombre }}
+                            {% else %}
+                            <span class="text-muted">Sin asignar</span>
+                            {% endif %}
+                        </td>
                         <td>
                             {% if task.estado == 'pendiente' %}
-                                <span class="badge bg-secondary">Pendiente</span>
+                            <span class="badge bg-secondary">Pendiente</span>
                             {% elif task.estado == 'en_proceso' %}
-                                <span class="badge bg-primary">En proceso</span>
+                            <span class="badge bg-primary">En proceso</span>
                             {% elif task.estado == 'completada' %}
-                                <span class="badge bg-success">Completada</span>
+                            <span class="badge bg-success">Completada</span>
                             {% elif task.estado == 'vencida' %}
-                                <span class="badge bg-danger">Vencida</span>
+                            <span class="badge bg-danger">Vencida</span>
                             {% elif task.estado == 'escalada' %}
-                                <span class="badge bg-warning">Escalada</span>
+                            <span class="badge bg-warning">Escalada</span>
                             {% elif task.estado == 'gestionado_externo' %}
-                                <span class="badge bg-info">Gest. externo</span>
+                            <span class="badge bg-info">Gest. externo</span>
+                            {% endif %}
+                            {% if task.urgencia == 'critica' and task.estado != 'completada' %}
+                            <span class="badge bg-danger ms-1">Critica</span>
                             {% endif %}
                         </td>
                         <td>
-                            {% if task.urgencia == 'critica' %}
-                                <span class="badge bg-danger">Crítica</span>
+                            {% if task.plazo_limite %}
+                            <small class="{% if task.estado == 'vencida' %}text-danger fw-bold{% endif %}">
+                                {{ task.plazo_limite|date:'d/m/Y H:i' }}
+                            </small>
                             {% else %}
-                                <span class="badge bg-info">Normal</span>
+                            <span class="text-muted">—</span>
                             {% endif %}
                         </td>
-                        <td>{{ task.plazo_limite|date:'d/m/Y'|default:'—' }}</td>
                         <td>
-                            {% if process.estado == 'en_curso' and not task.omitida %}
-                                {% if task.estado != 'completada' and task.estado != 'gestionado_externo' %}
-                                <form method="post" action="{% url 'processes:task_complete' process.pk task.pk %}" class="d-inline">
+                            {% if process.estado == 'en_curso' and not task.omitida and task.estado != 'completada' and task.estado != 'gestionado_externo' %}
+                                {% if task.tipo == 'finiquito_coordinacion' %}
+                                <form method="post" action="{% url 'processes:task_complete' process.pk task.pk %}" class="d-inline"
+                                      data-confirm-form="Marcar como gestionado externamente: {{ task.get_tipo_display }}?">
                                     {% csrf_token %}
-                                    {% if task.tipo == 'finiquito_coordinacion' %}
-                                        <button type="submit" class="btn btn-sm btn-info" title="Marcar como gestionado externamente">
-                                            <i class="fas fa-external-link-alt"></i> Gest. externo
-                                        </button>
-                                    {% else %}
-                                        <button type="submit" class="btn btn-sm btn-success" title="Completar">
-                                            <i class="fas fa-check"></i> Completar
-                                        </button>
-                                    {% endif %}
+                                    <button type="submit" class="btn btn-sm btn-info">
+                                        <i class="fas fa-external-link-alt me-1"></i>Gest. externo
+                                    </button>
+                                </form>
+                                {% else %}
+                                <form method="post" action="{% url 'processes:task_complete' process.pk task.pk %}" class="d-inline"
+                                      data-confirm-form="Confirmar que {{ task.get_tipo_display }} esta completada?">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-sm btn-success"
+                                            {% if task.esta_bloqueada %}disabled title="Tareas previas no completadas"{% endif %}>
+                                        <i class="fas fa-check me-1"></i>Completar
+                                    </button>
                                 </form>
                                 {% endif %}
+                            {% elif task.estado == 'completada' %}
+                            <small class="text-success">{{ task.fecha_completado|date:'d/m/Y' }}</small>
+                            {% elif task.estado == 'gestionado_externo' %}
+                            <small class="text-info">Externo</small>
                             {% endif %}
                         </td>
-                    </tr>
-                    {% empty %}
-                    <tr>
-                        <td colspan="6" class="text-center text-muted">Sin tareas asociadas.</td>
                     </tr>
                     {% endfor %}
                 </tbody>
@@ -214,29 +213,53 @@
 {% if process.estado == 'en_curso' %}
 <div class="card shadow mb-4">
     <div class="card-header py-3">
-        <h6 class="m-0 font-weight-bold text-primary">Acciones del Proceso</h6>
+        <h6 class="m-0 font-weight-bold text-primary">
+            <i class="fas fa-cogs me-2"></i>Acciones del Proceso
+        </h6>
     </div>
     <div class="card-body">
-        {% if process.requiere_confirmacion_rrhh %}
-        <form method="post" action="{% url 'processes:process_close' process.pk %}" class="d-inline">
-            {% csrf_token %}
-            <input type="hidden" name="accion" value="completar">
-            <button type="submit" class="btn btn-success" data-confirm="¿Confirmar cierre del proceso?">
-                <i class="fas fa-check-circle me-1"></i>Confirmar Cierre (RRHH)
-            </button>
-        </form>
-        {% endif %}
-
-        <form method="post" action="{% url 'processes:process_close' process.pk %}" class="d-inline">
-            {% csrf_token %}
-            <input type="hidden" name="accion" value="cancelar">
-            <div class="input-group mt-2">
-                <input type="text" name="motivo_cancelacion" class="form-control" placeholder="Motivo de cancelación" required>
-                <button type="submit" class="btn btn-danger" data-confirm="¿Cancelar este proceso?">
-                    <i class="fas fa-times me-1"></i>Cancelar Proceso
+        <div class="row">
+            {% if process.requiere_confirmacion_rrhh %}
+            <div class="col-md-6 mb-2">
+                <form method="post" action="{% url 'processes:process_close' process.pk %}"
+                      data-confirm-form="Esta accion finalizara el despido y desvinculara al trabajador. No se puede deshacer.">
+                    {% csrf_token %}
+                    <input type="hidden" name="accion" value="completar">
+                    <button type="submit" class="btn btn-danger w-100">
+                        <i class="fas fa-check-circle me-1"></i>Confirmar Cierre del Despido
+                    </button>
+                </form>
+            </div>
+            <div class="col-md-6 mb-2">
+                <button class="btn btn-outline-warning w-100" type="button" data-bs-toggle="collapse" data-bs-target="#cancelForm">
+                    <i class="fas fa-times-circle me-1"></i>Cancelar Proceso
                 </button>
             </div>
-        </form>
+            {% else %}
+            <div class="col-md-6 mb-2">
+                <button class="btn btn-outline-warning w-100" type="button" data-bs-toggle="collapse" data-bs-target="#cancelForm">
+                    <i class="fas fa-times-circle me-1"></i>Cancelar Proceso
+                </button>
+            </div>
+            {% endif %}
+        </div>
+
+        <div class="collapse mt-3" id="cancelForm">
+            <div class="card card-body bg-light">
+                <form method="post" action="{% url 'processes:process_close' process.pk %}"
+                      data-confirm-form="Cancelar este proceso permanentemente? Esta accion no se puede deshacer.">
+                    {% csrf_token %}
+                    <input type="hidden" name="accion" value="cancelar">
+                    <div class="mb-2">
+                        <label class="form-label">Motivo de cancelacion</label>
+                        <textarea name="motivo_cancelacion" class="form-control" rows="2" required placeholder="Explica por que se cancela el proceso..."></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-danger">
+                        <i class="fas fa-ban me-1"></i>Confirmar Cancelacion
+                    </button>
+                </button>
+            </div>
+        </div>
     </div>
 </div>
 {% endif %}

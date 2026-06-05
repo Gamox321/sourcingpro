@@ -1,7 +1,7 @@
 from django.contrib import messages
 from django.http import JsonResponse
 from django.shortcuts import redirect, get_object_or_404
-from django.urls import reverse_lazy
+from django.urls import reverse
 from django.views.generic import ListView, View
 
 from apps.accounts.decorators import RoleRequiredMixin
@@ -41,11 +41,24 @@ class NotificationListView(RoleRequiredMixin, ListView):
 class NotificationMarkReadView(RoleRequiredMixin, View):
     roles_requeridos = ['administrador', 'rrhh', 'ti', 'finanzas', 'logistica', 'prevencion', 'jefatura']
 
+    def _get_redirect_url(self, notif):
+        if notif.tarea:
+            return reverse('kanban:card_detail', kwargs={'pk': notif.tarea.pk})
+        if notif.proceso:
+            return reverse('processes:process_detail', kwargs={'pk': notif.proceso.pk})
+        return reverse('notifications:list')
+
     def post(self, request, pk):
         notif = get_object_or_404(Notification, pk=pk, usuario_destinatario=request.user)
         notif.estado = Notification.EstadoChoices.LEIDA
         notif.save(update_fields=['estado'])
-        return redirect('notifications:list')
+        return redirect(self._get_redirect_url(notif))
+
+    def get(self, request, pk):
+        notif = get_object_or_404(Notification, pk=pk, usuario_destinatario=request.user)
+        notif.estado = Notification.EstadoChoices.LEIDA
+        notif.save(update_fields=['estado'])
+        return redirect(self._get_redirect_url(notif))
 
 
 class NotificationMarkAllReadView(RoleRequiredMixin, View):

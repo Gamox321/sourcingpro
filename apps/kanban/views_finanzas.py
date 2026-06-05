@@ -1,17 +1,43 @@
-from datetime import timedelta
-
-from django.db import models as db_models
 from django.utils import timezone
 from django.views.generic import TemplateView, ListView
 
 from apps.accounts.decorators import RoleRequiredMixin
+from apps.notifications.models import Notification
 from apps.processes.models import Process, Task
-from apps.workers.models import Worker
+
+
+class FinanzasNotificacionesView(RoleRequiredMixin, ListView):
+    template_name = 'finanzas/notificaciones.html'
+    context_object_name = 'notifications'
+    roles_requeridos = ['administrador', 'finanzas']
+    paginate_by = 30
+
+    def get_queryset(self):
+        qs = Notification.objects.filter(
+            usuario_destinatario=self.request.user,
+        ).exclude(estado=Notification.EstadoChoices.ELIMINADA)
+
+        filtro = self.request.GET.get('filtro', '')
+        if filtro == 'no_leidas':
+            qs = qs.filter(estado=Notification.EstadoChoices.ENVIADA)
+        elif filtro == 'leidas':
+            qs = qs.filter(estado=Notification.EstadoChoices.LEIDA)
+
+        return qs.order_by('-fecha_envio')
+
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        ctx['filtro'] = self.request.GET.get('filtro', '')
+        ctx['no_leidas'] = Notification.objects.filter(
+            usuario_destinatario=self.request.user,
+            estado=Notification.EstadoChoices.ENVIADA,
+        ).count()
+        return ctx
 
 
 class FinanzasDashboardView(RoleRequiredMixin, TemplateView):
     template_name = 'finanzas/dashboard.html'
-    roles_requeridos = ['finanzas']
+    roles_requeridos = ['administrador', 'finanzas']
 
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
@@ -70,7 +96,7 @@ class FinanzasFiniquitosView(RoleRequiredMixin, ListView):
     model = Process
     template_name = 'finanzas/finiquitos.html'
     context_object_name = 'procesos'
-    roles_requeridos = ['finanzas']
+    roles_requeridos = ['administrador', 'finanzas']
     paginate_by = 20
 
     def get_queryset(self):
@@ -93,7 +119,7 @@ class FinanzasFiniquitosView(RoleRequiredMixin, ListView):
 
 class FinanzasTableroView(RoleRequiredMixin, TemplateView):
     template_name = 'finanzas/tablero.html'
-    roles_requeridos = ['finanzas']
+    roles_requeridos = ['administrador', 'finanzas']
 
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)

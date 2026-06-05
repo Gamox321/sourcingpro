@@ -1,8 +1,5 @@
-from datetime import timedelta
-
 from django.contrib import messages
 from django.db import models as db_models
-from django.db.models import Count, Q
 from django.shortcuts import redirect, get_object_or_404
 from django.urls import reverse_lazy
 from django.utils import timezone
@@ -22,7 +19,7 @@ TI_TASK_TYPES = [
 
 class TIDashboardView(RoleRequiredMixin, TemplateView):
     template_name = 'ti/dashboard.html'
-    roles_requeridos = ['ti']
+    roles_requeridos = ['administrador', 'ti']
 
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
@@ -95,7 +92,7 @@ class TIInventarioView(RoleRequiredMixin, ListView):
     model = Asset
     template_name = 'ti/inventario.html'
     context_object_name = 'assets'
-    roles_requeridos = ['ti']
+    roles_requeridos = ['administrador', 'ti']
     paginate_by = 20
 
     def get_queryset(self):
@@ -131,7 +128,7 @@ class TIInventarioView(RoleRequiredMixin, ListView):
 
 class TITableroGeneralView(RoleRequiredMixin, TemplateView):
     template_name = 'ti/tablero.html'
-    roles_requeridos = ['ti']
+    roles_requeridos = ['administrador', 'ti']
 
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
@@ -155,7 +152,7 @@ class TIAssetCreateView(RoleRequiredMixin, CreateView):
     model = Asset
     template_name = 'ti/asset_form.html'
     fields = ['codigo', 'nombre']
-    roles_requeridos = ['ti']
+    roles_requeridos = ['administrador', 'ti']
     success_url = reverse_lazy('ti:inventario')
 
     def form_valid(self, form):
@@ -177,11 +174,11 @@ class TIBloqueoUrgenteView(RoleRequiredMixin, TemplateView):
     Muestra lista de bloqueos urgentes pendientes y permite confirmar bloqueo ejecutado.
     """
     template_name = 'ti/bloqueo_urgente.html'
-    roles_requeridos = ['ti']
+    roles_requeridos = ['administrador', 'ti']
 
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
-        
+
         # Tareas de bloqueo urgente (despido) pendientes
         bloqueos_urgentes = Task.objects.filter(
             tipo=Task.TipoChoices.BLOQUEO_ACCESOS,
@@ -190,10 +187,21 @@ class TIBloqueoUrgenteView(RoleRequiredMixin, TemplateView):
             proceso__tipo=Process.TipoChoices.DESPIDO,
             proceso__estado=Process.EstadoChoices.EN_CURSO,
         ).select_related('proceso__trabajador', 'usuario_responsable').order_by('proceso__fecha_inicio')
-        
+
+        # Bloqueos completados hoy
+        today_start = timezone.now().replace(hour=0, minute=0, second=0, microsecond=0)
+        bloqueos_completados = Task.objects.filter(
+            tipo=Task.TipoChoices.BLOQUEO_ACCESOS,
+            urgencia=Task.UrgenciaChoices.CRITICA,
+            estado=Task.EstadoChoices.COMPLETADA,
+            proceso__tipo=Process.TipoChoices.DESPIDO,
+            fecha_completado__gte=today_start,
+        ).select_related('proceso__trabajador')
+
         ctx['bloqueos_urgentes'] = bloqueos_urgentes
+        ctx['bloqueos_completados'] = bloqueos_completados
         ctx['total_urgentes'] = bloqueos_urgentes.count()
-        
+
         return ctx
 
 
@@ -201,7 +209,7 @@ class TIConfirmarBloqueoView(RoleRequiredMixin, View):
     """
     RF-29: Confirma que el bloqueo de accesos fue ejecutado efectivamente.
     """
-    roles_requeridos = ['ti']
+    roles_requeridos = ['administrador', 'ti']
 
     def post(self, request, pk):
         task = get_object_or_404(

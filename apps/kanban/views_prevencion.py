@@ -17,7 +17,7 @@ PREVENCION_TASK_TYPES = [
 
 class PrevencionDashboardView(RoleRequiredMixin, TemplateView):
     template_name = 'prevencion/dashboard.html'
-    roles_requeridos = ['prevencion']
+    roles_requeridos = ['administrador', 'prevencion']
 
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
@@ -40,9 +40,13 @@ class PrevencionDashboardView(RoleRequiredMixin, TemplateView):
             epp_total = Asset.objects.filter(tipo=tipo_epp)
             epp_asignados = epp_total.filter(estado=Asset.EstadoChoices.ASIGNADO).count()
             epp_disponibles = epp_total.filter(estado=Asset.EstadoChoices.DISPONIBLE).count()
+            inventario_epp = Asset.objects.filter(
+                tipo=tipo_epp
+            ).select_related('tipo').prefetch_related('asignaciones__trabajador')[:5]
         except AssetType.DoesNotExist:
             epp_asignados = 0
             epp_disponibles = 0
+            inventario_epp = Asset.objects.none()
         
         examenes_pendientes = mis_tareas.filter(
             tipo=Task.TipoChoices.EXAMENES_PREOCUPACIONALES,
@@ -58,16 +62,34 @@ class PrevencionDashboardView(RoleRequiredMixin, TemplateView):
         }
         
         ctx['mis_tareas'] = tareas_activas.order_by('-urgencia', 'plazo_limite')[:10]
-        
-        try:
-            tipo_epp = AssetType.objects.get(nombre__icontains='EPP')
-            inventario_epp = Asset.objects.filter(
-                tipo=tipo_epp
-            ).select_related('tipo').prefetch_related('asignaciones__trabajador')[:10]
-        except AssetType.DoesNotExist:
-            inventario_epp = Asset.objects.none()
-        
+        ctx['total_mis_tareas'] = tareas_activas.count()
         ctx['inventario_epp'] = inventario_epp
+        
+        prox_30_dias = now + timedelta(days=30)
+        tareas_cert = Task.objects.filter(
+            tipo=Task.TipoChoices.EXAMENES_PREOCUPACIONALES,
+            omitida=False,
+            proceso__estado=Process.EstadoChoices.EN_CURSO,
+            estado__in=[Task.EstadoChoices.PENDIENTE, Task.EstadoChoices.EN_PROCESO],
+            plazo_limite__lte=prox_30_dias,
+        ).select_related('proceso__trabajador').order_by('plazo_limite')[:3]
+        
+        certificaciones = []
+        for tarea in tareas_cert:
+            dias = (tarea.plazo_limite - now).days if tarea.plazo_limite else 0
+            if dias <= 7:
+                urgencia, color, pct = 'critica', '#E24B4A', 90
+            elif dias <= 14:
+                urgencia, color, pct = 'alta', '#EF9F27', 60
+            else:
+                urgencia, color, pct = 'normal', '#639922', 30
+            certificaciones.append({
+                'tarea': tarea, 'dias_restantes': dias,
+                'urgencia': urgencia, 'color': color, 'pct': pct,
+            })
+        
+        ctx['certificaciones'] = certificaciones
+        ctx['total_certificaciones_prox'] = tareas_cert.count()
         
         return ctx
 
@@ -76,7 +98,7 @@ class PrevencionInventarioView(RoleRequiredMixin, ListView):
     model = Asset
     template_name = 'prevencion/inventario.html'
     context_object_name = 'assets'
-    roles_requeridos = ['prevencion']
+    roles_requeridos = ['administrador', 'prevencion']
     paginate_by = 20
 
     def get_queryset(self):
@@ -112,7 +134,7 @@ class PrevencionInventarioView(RoleRequiredMixin, ListView):
 
 class PrevencionCertificacionesView(RoleRequiredMixin, TemplateView):
     template_name = 'prevencion/certificaciones.html'
-    roles_requeridos = ['prevencion']
+    roles_requeridos = ['administrador', 'prevencion']
 
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
@@ -153,7 +175,7 @@ class PrevencionCertificacionesView(RoleRequiredMixin, TemplateView):
 
 class PrevencionTableroGeneralView(RoleRequiredMixin, TemplateView):
     template_name = 'prevencion/tablero.html'
-    roles_requeridos = ['prevencion']
+    roles_requeridos = ['administrador', 'prevencion']
 
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
@@ -162,7 +184,12 @@ class PrevencionTableroGeneralView(RoleRequiredMixin, TemplateView):
             tipo__in=PREVENCION_TASK_TYPES,
             omitida=False,
             proceso__estado=Process.EstadoChoices.EN_CURSO,
-        ).select_related('proceso__trabajador', 'usuario_responsable')
+        ).select_related('proceso__trabajador', 'usuario_responsable', 'proceso__ceco_origen')
+        
+        tipo_proceso = self.request.GET.get('tipo_proceso', '')
+        ctx['filtro_tipo_proceso'] = tipo_proceso
+        if tipo_proceso:
+            qs = qs.filter(proceso__tipo=tipo_proceso)
         
         ctx['pendientes'] = qs.filter(estado=Task.EstadoChoices.PENDIENTE)
         ctx['en_proceso'] = qs.filter(estado=Task.EstadoChoices.EN_PROCESO)
@@ -176,7 +203,7 @@ class PrevencionTableroGeneralView(RoleRequiredMixin, TemplateView):
 class PrevencionNotificacionesView(RoleRequiredMixin, ListView):
     template_name = 'prevencion/notificaciones.html'
     context_object_name = 'notifications'
-    roles_requeridos = ['prevencion']
+    roles_requeridos = ['administrador', 'prevencion']
     paginate_by = 30
 
     def get_queryset(self):

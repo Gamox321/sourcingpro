@@ -23,6 +23,12 @@ class CustomLoginView(LoginView):
 
     def form_valid(self, form):
         user = form.get_user()
+        if not user.is_active:
+            messages.error(
+                self.request,
+                'Cuenta bloqueada. Contacte a RRHH.'
+            )
+            return redirect('accounts:login')
         if user.contrasena_temporal:
             user.intentos_fallidos = 0
             user.save(update_fields=['intentos_fallidos'])

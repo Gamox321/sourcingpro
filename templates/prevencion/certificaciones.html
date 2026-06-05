@@ -3,6 +3,16 @@
 
 {% block title %}Certificaciones{% endblock %}
 
+{% block breadcrumbs %}
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{% url 'prevencion:dashboard' %}"><i class="fas fa-home"></i></a></li>
+        <li class="breadcrumb-item"><a href="{% url 'prevencion:dashboard' %}">Prevencion</a></li>
+        <li class="breadcrumb-item active">Certificaciones</li>
+    </ol>
+</nav>
+{% endblock %}
+
 {% block content %}
 <div class="container-fluid">
     <div class="card shadow mb-4">

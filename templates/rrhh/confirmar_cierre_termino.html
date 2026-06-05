@@ -70,11 +70,19 @@
                             <strong>{{ tarea.get_tipo_display }}</strong>
                             <small class="text-muted d-block">
                                 Responsable: {{ tarea.usuario_responsable.nombre|default:"Sin asignar" }}
+                                {% if tarea.plazo_limite %}· Plazo: {{ tarea.plazo_limite|date:'d/m/Y H:i' }}{% endif %}
                             </small>
                         </div>
-                        <span class="badge {% if tarea.estado == 'completada' or tarea.estado == 'gestionado_externo' %}bg-success{% elif tarea.estado == 'vencida' %}bg-danger{% elif tarea.estado == 'en_proceso' %}bg-warning{% else %}bg-secondary{% endif %}">
-                            {{ tarea.get_estado_display }}
-                        </span>
+                        <div class="d-flex align-items-center gap-2">
+                            {% if tarea.estado != 'completada' and tarea.estado != 'gestionado_externo' and tarea.usuario_responsable %}
+                            <a href="mailto:{{ tarea.usuario_responsable.email }}?subject=Recordatorio: Tarea pendiente — {{ tarea.get_tipo_display }} — Proceso #{{ proceso.pk }}" class="btn btn-sm btn-outline-danger">
+                                <i class="fas fa-envelope"></i> Contactar
+                            </a>
+                            {% endif %}
+                            <span class="badge {% if tarea.estado == 'completada' or tarea.estado == 'gestionado_externo' %}bg-success{% elif tarea.estado == 'vencida' %}bg-danger{% elif tarea.estado == 'en_proceso' %}bg-warning{% else %}bg-secondary{% endif %}">
+                                {{ tarea.get_estado_display }}
+                            </span>
+                        </div>
                     </div>
                     {% endfor %}
                 </div>
@@ -106,7 +114,12 @@
                     </div>
                 </form>
                 {% else %}
-                <div class="text-center">
+                <div class="alert alert-warning">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    <strong>Tareas pendientes</strong>
+                    <p class="mb-0 mt-1 small">Contacte a los responsables para completar las tareas antes de confirmar el cierre.</p>
+                </div>
+                <div class="d-grid">
                     <a href="{% url 'rrhh:procesos' %}" class="btn btn-secondary">
                         <i class="fas fa-arrow-left me-1"></i> Volver a Procesos
                     </a>

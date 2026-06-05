@@ -6,7 +6,8 @@ from django.views.generic import ListView, DetailView, CreateView, UpdateView, V
 
 from apps.accounts.decorators import RoleRequiredMixin
 from apps.notifications.services import notificar
-from .models import Worker, CostCenterHistory
+from apps.processes.models import Process
+from .models import Worker
 
 
 class WorkerListView(RoleRequiredMixin, ListView):
@@ -73,6 +74,13 @@ class WorkerDetailView(RoleRequiredMixin, DetailView):
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
         ctx['historial_ceco'] = self.object.historial_ceco.select_related('centro_costo').all()
+        ctx['transiciones_permitidas'] = self.object.transiciones_permitidas()
+        ctx['procesos_activos'] = self.object.procesos.filter(
+            estado=Process.EstadoChoices.EN_CURSO
+        ).order_by('-fecha_inicio')
+        ctx['procesos_cerrados'] = self.object.procesos.exclude(
+            estado=Process.EstadoChoices.EN_CURSO
+        ).order_by('-fecha_inicio')
         return ctx
 
 
@@ -134,6 +142,12 @@ class WorkerStateChangeView(RoleRequiredMixin, View):
 
         if nuevo_estado not in dict(Worker.EstadoChoices.choices):
             messages.error(request, 'Estado no válido.')
+        elif not worker.puede_transicionar_a(nuevo_estado):
+            messages.error(
+                request,
+                f'No se puede cambiar de "{worker.get_estado_display()}" a "{dict(Worker.EstadoChoices.choices).get(nuevo_estado, nuevo_estado)}". '
+                'Esta transición no está permitida.'
+            )
         elif not motivo:
             messages.error(request, 'Debes indicar un motivo para el cambio de estado manual.')
         else:

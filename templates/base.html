@@ -25,27 +25,152 @@
 
             <hr class="sidebar-divider my-0">
 
-            {% if 'rrhh' in user_roles and 'administrador' not in user_roles %}
+            {% if 'administrador' in user_roles %}
+
+            {% if 'rrhh' in user_roles or 'ti' in user_roles or 'jefatura' in user_roles or 'prevencion' in user_roles or 'finanzas' in user_roles or 'logistica' in user_roles %}
+            <li class="nav-item sidebar-heading ps-3 pt-3 pb-1" style="font-size:0.65rem">Acceso rápido</li>
+            {% endif %}
+            {% if 'rrhh' in user_roles %}
             <li class="nav-item">
-                <a class="nav-link" href="{% url 'rrhh:dashboard' %}">
+                <a class="nav-link py-1{% if '/rrhh/' in request.path %} active{% endif %}" href="{% url 'rrhh:dashboard' %}">
+                    <i class="fas fa-external-link-alt fa-sm me-1"></i>
+                    <span>RRHH</span></a>
+            </li>
+            {% endif %}
+            {% if 'ti' in user_roles %}
+            <li class="nav-item">
+                <a class="nav-link py-1{% if '/ti/' in request.path %} active{% endif %}" href="{% url 'ti:dashboard' %}">
+                    <i class="fas fa-external-link-alt fa-sm me-1"></i>
+                    <span>TI</span></a>
+            </li>
+            {% endif %}
+            {% if 'jefatura' in user_roles %}
+            <li class="nav-item">
+                <a class="nav-link py-1{% if '/jefatura/' in request.path %} active{% endif %}" href="{% url 'jefatura:nomina' %}">
+                    <i class="fas fa-external-link-alt fa-sm me-1"></i>
+                    <span>Jefatura</span></a>
+            </li>
+            {% endif %}
+            {% if 'prevencion' in user_roles %}
+            <li class="nav-item">
+                <a class="nav-link py-1{% if '/prevencion/' in request.path %} active{% endif %}" href="{% url 'prevencion:dashboard' %}">
+                    <i class="fas fa-external-link-alt fa-sm me-1"></i>
+                    <span>Prevención</span></a>
+            </li>
+            {% endif %}
+            {% if 'finanzas' in user_roles %}
+            <li class="nav-item">
+                <a class="nav-link py-1{% if '/finanzas/' in request.path %} active{% endif %}" href="{% url 'finanzas:dashboard' %}">
+                    <i class="fas fa-external-link-alt fa-sm me-1"></i>
+                    <span>Finanzas</span></a>
+            </li>
+            {% endif %}
+            {% if 'logistica' in user_roles %}
+            <li class="nav-item">
+                <a class="nav-link py-1{% if '/logistica/' in request.path %} active{% endif %}" href="{% url 'logistica:dashboard' %}">
+                    <i class="fas fa-external-link-alt fa-sm me-1"></i>
+                    <span>Logística</span></a>
+            </li>
+            {% endif %}
+
+            <hr class="sidebar-divider">
+            <div class="sidebar-heading">Procesos</div>
+
+            <li class="nav-item">
+                <a class="nav-link{% if '/procesos/' in request.path %} active{% endif %}" href="{% url 'processes:process_list' %}">
+                    <i class="fas fa-tachometer-alt"></i>
+                    <span>Todos los Procesos</span></a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link{% if '/procesos/nuevo' in request.path %} active{% endif %}" href="{% url 'processes:process_type_select' %}">
+                    <i class="fas fa-plus-circle"></i>
+                    <span>Nuevo Proceso</span></a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link{% if '/procesos/nuevo/contratacion' in request.path %} active{% endif %}" href="{% url 'processes:process_create_contratacion' %}">
+                    <i class="fas fa-user-plus"></i>
+                    <span>Contratación</span></a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link{% if '/procesos/nuevo/cambio-ceco' in request.path %} active{% endif %}" href="{% url 'processes:process_create_cambio_ceco' %}">
+                    <i class="fas fa-exchange-alt"></i>
+                    <span>Cambio de CeCo</span></a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link{% if '/procesos/nuevo/termino' in request.path %} active{% endif %}" href="{% url 'processes:process_create_termino' %}">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span>Término de Contrato</span></a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link{% if '/procesos/nuevo/despido' in request.path %} active{% endif %}" href="{% url 'processes:process_create_despido' %}">
+                    <i class="fas fa-user-minus"></i>
+                    <span>Despido</span></a>
+            </li>
+
+            <hr class="sidebar-divider">
+            <div class="sidebar-heading">Gestión</div>
+
+            <li class="nav-item">
+                <a class="nav-link{% if '/trabajadores/' in request.path %} active{% endif %}" href="{% url 'workers:worker_list' %}">
+                    <i class="fas fa-users"></i>
+                    <span>Trabajadores</span></a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link{% if '/clientes/' in request.path %} active{% endif %}" href="{% url 'clients:client_list' %}">
+                    <i class="fas fa-building"></i>
+                    <span>Clientes</span></a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link{% if '/centros-costo/' in request.path %} active{% endif %}" href="{% url 'clients:costcenter_list' %}">
+                    <i class="fas fa-code-branch"></i>
+                    <span>Centros de Costo</span></a>
+            </li>
+
+            <hr class="sidebar-divider">
+            <div class="sidebar-heading">Sistema</div>
+
+            <li class="nav-item">
+                <a class="nav-link{% if '/notificaciones/' in request.path %} active{% endif %}" href="{% url 'notifications:list' %}">
+                    <i class="fas fa-bell"></i>
+                    <span>Notificaciones</span></a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link{% if '/inventario/' in request.path %} active{% endif %}" href="{% url 'inventory:asset_list' %}">
+                    <i class="fas fa-boxes"></i>
+                    <span>Inventario</span></a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link{% if '/usuarios/' in request.path %} active{% endif %}" href="{% url 'accounts:user_list' %}">
+                    <i class="fas fa-user-cog"></i>
+                    <span>Usuarios</span></a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="/admin/">
+                    <i class="fas fa-cog"></i>
+                    <span>Administración</span></a>
+            </li>
+
+            {% elif primary_role == 'rrhh' %}
+            <li class="nav-item">
+                <a class="nav-link{% if request.path == '/' or request.resolver_match.url_name == 'dashboard' %} active{% endif %}" href="{% url 'rrhh:dashboard' %}">
                     <i class="fas fa-tachometer-alt"></i>
                     <span>Dashboard</span>
                 </a>
             </li>
             <li class="nav-item">
-                <a class="nav-link" href="{% url 'rrhh:trabajadores' %}">
+                <a class="nav-link{% if '/rrhh/trabajadores' in request.path %} active{% endif %}" href="{% url 'rrhh:trabajadores' %}">
                     <i class="fas fa-users"></i>
                     <span>Trabajadores</span>
                 </a>
             </li>
             <li class="nav-item">
-                <a class="nav-link" href="{% url 'rrhh:procesos' %}">
+                <a class="nav-link{% if '/rrhh/procesos' in request.path %} active{% endif %}" href="{% url 'rrhh:procesos' %}">
                     <i class="fas fa-tasks"></i>
                     <span>Procesos</span>
                 </a>
             </li>
             <li class="nav-item">
-                <a class="nav-link" href="{% url 'rrhh:cecos' %}">
+                <a class="nav-link{% if '/rrhh/cecos' in request.path %} active{% endif %}" href="{% url 'rrhh:cecos' %}">
                     <i class="fas fa-building"></i>
                     <span>Centros de Costo</span>
                 </a>
@@ -55,26 +180,27 @@
             <div class="sidebar-heading">Sistema</div>
 
             <li class="nav-item">
-                <a class="nav-link" href="{% url 'notifications:list' %}">
+                <a class="nav-link{% if '/notificaciones/' in request.path %} active{% endif %}" href="{% url 'notifications:list' %}">
                     <i class="fas fa-bell"></i>
                     <span>Notificaciones</span>
                 </a>
             </li>
             <li class="nav-item">
-                <a class="nav-link" href="{% url 'rrhh:reportes' %}">
+                <a class="nav-link{% if '/rrhh/reportes' in request.path %} active{% endif %}" href="{% url 'rrhh:reportes' %}">
                     <i class="fas fa-chart-bar"></i>
                     <span>Reportes</span>
                 </a>
             </li>
-            {% elif 'ti' in user_roles and 'administrador' not in user_roles and 'rrhh' not in user_roles %}
+
+            {% elif primary_role == 'ti' %}
             <li class="nav-item">
-                <a class="nav-link" href="{% url 'ti:dashboard' %}">
+                <a class="nav-link{% if request.resolver_match.url_name == 'dashboard' %} active{% endif %}" href="{% url 'ti:dashboard' %}">
                     <i class="fas fa-clipboard-list"></i>
                     <span>Mis Tareas</span>
                 </a>
             </li>
             <li class="nav-item">
-                <a class="nav-link" href="{% url 'ti:inventario' %}">
+                <a class="nav-link{% if '/ti/inventario' in request.path %} active{% endif %}" href="{% url 'ti:inventario' %}">
                     <i class="fas fa-laptop"></i>
                     <span>Inventario TI</span>
                 </a>
@@ -84,7 +210,7 @@
             <div class="sidebar-heading">Urgente</div>
 
             <li class="nav-item">
-                <a class="nav-link" href="{% url 'ti:bloqueo_urgente' %}">
+                <a class="nav-link{% if '/ti/bloqueo-urgente' in request.path %} active{% endif %}" href="{% url 'ti:bloqueo_urgente' %}">
                     <i class="fas fa-lock text-danger"></i>
                     <span class="text-danger">Bloqueo Urgente</span>
                 </a>
@@ -94,38 +220,39 @@
             <div class="sidebar-heading">Consulta</div>
 
             <li class="nav-item">
-                <a class="nav-link" href="{% url 'ti:tablero' %}">
+                <a class="nav-link{% if '/ti/tablero' in request.path %} active{% endif %}" href="{% url 'ti:tablero' %}">
                     <i class="fas fa-columns"></i>
                     <span>Tablero General</span>
                 </a>
             </li>
             <li class="nav-item">
-                <a class="nav-link" href="{% url 'notifications:list' %}">
+                <a class="nav-link{% if '/notificaciones/' in request.path %} active{% endif %}" href="{% url 'notifications:list' %}">
                     <i class="fas fa-bell"></i>
                     <span>Notificaciones</span>
                 </a>
             </li>
-            {% elif 'jefatura' in user_roles and 'administrador' not in user_roles and 'rrhh' not in user_roles and 'ti' not in user_roles %}
+
+            {% elif primary_role == 'jefatura' %}
             <li class="nav-item">
-                <a class="nav-link" href="{% url 'jefatura:nomina' %}">
+                <a class="nav-link{% if request.resolver_match.url_name == 'nomina' %} active{% endif %}" href="{% url 'jefatura:nomina' %}">
                     <i class="fas fa-users"></i>
                     <span>Mi Nómina</span>
                 </a>
             </li>
             <li class="nav-item">
-                <a class="nav-link" href="{% url 'jefatura:tablero' %}">
+                <a class="nav-link{% if '/jefatura/tablero' in request.path %} active{% endif %}" href="{% url 'jefatura:tablero' %}">
                     <i class="fas fa-columns"></i>
                     <span>Tablero Kanban</span>
                 </a>
             </li>
             <li class="nav-item">
-                <a class="nav-link" href="{% url 'jefatura:procesos' %}">
+                <a class="nav-link{% if '/jefatura/procesos' in request.path %} active{% endif %}" href="{% url 'jefatura:procesos' %}">
                     <i class="fas fa-tasks"></i>
                     <span>Procesos Activos</span>
                 </a>
             </li>
             <li class="nav-item">
-                <a class="nav-link" href="{% url 'jefatura:ceco' %}">
+                <a class="nav-link{% if '/jefatura/ceco' in request.path %} active{% endif %}" href="{% url 'jefatura:ceco' %}">
                     <i class="fas fa-building"></i>
                     <span>Mi CeCo</span>
                 </a>
@@ -135,26 +262,27 @@
             <div class="sidebar-heading">Sistema</div>
 
             <li class="nav-item">
-                <a class="nav-link" href="{% url 'notifications:list' %}">
+                <a class="nav-link{% if '/jefatura/notificaciones' in request.path %} active{% endif %}" href="{% url 'jefatura:notificaciones' %}">
                     <i class="fas fa-bell"></i>
                     <span>Notificaciones</span>
                 </a>
             </li>
-            {% elif 'prevencion' in user_roles and 'administrador' not in user_roles and 'rrhh' not in user_roles and 'ti' not in user_roles and 'jefatura' not in user_roles %}
+
+            {% elif primary_role == 'prevencion' %}
             <li class="nav-item">
-                <a class="nav-link" href="{% url 'prevencion:dashboard' %}">
+                <a class="nav-link{% if request.resolver_match.url_name == 'dashboard' %} active{% endif %}" href="{% url 'prevencion:dashboard' %}">
                     <i class="fas fa-clipboard-list"></i>
                     <span>Mis Tareas</span>
                 </a>
             </li>
             <li class="nav-item">
-                <a class="nav-link" href="{% url 'prevencion:inventario' %}">
+                <a class="nav-link{% if '/prevencion/inventario' in request.path %} active{% endif %}" href="{% url 'prevencion:inventario' %}">
                     <i class="fas fa-hard-hat"></i>
                     <span>Inventario EPP</span>
                 </a>
             </li>
             <li class="nav-item">
-                <a class="nav-link" href="{% url 'prevencion:certificaciones' %}">
+                <a class="nav-link{% if '/prevencion/certificaciones' in request.path %} active{% endif %}" href="{% url 'prevencion:certificaciones' %}">
                     <i class="fas fa-certificate"></i>
                     <span>Certificaciones</span>
                 </a>
@@ -164,26 +292,27 @@
             <div class="sidebar-heading">Consulta</div>
 
             <li class="nav-item">
-                <a class="nav-link" href="{% url 'prevencion:tablero' %}">
+                <a class="nav-link{% if '/prevencion/tablero' in request.path %} active{% endif %}" href="{% url 'prevencion:tablero' %}">
                     <i class="fas fa-columns"></i>
                     <span>Tablero General</span>
                 </a>
             </li>
             <li class="nav-item">
-                <a class="nav-link" href="{% url 'notifications:list' %}">
+                <a class="nav-link{% if '/prevencion/notificaciones' in request.path %} active{% endif %}" href="{% url 'prevencion:notificaciones' %}">
                     <i class="fas fa-bell"></i>
                     <span>Notificaciones</span>
                 </a>
             </li>
-            {% elif 'finanzas' in user_roles and 'administrador' not in user_roles and 'rrhh' not in user_roles and 'ti' not in user_roles and 'prevencion' not in user_roles and 'jefatura' not in user_roles %}
+
+            {% elif primary_role == 'finanzas' %}
             <li class="nav-item">
-                <a class="nav-link" href="{% url 'finanzas:dashboard' %}">
+                <a class="nav-link{% if request.resolver_match.url_name == 'dashboard' %} active{% endif %}" href="{% url 'finanzas:dashboard' %}">
                     <i class="fas fa-file-invoice-dollar"></i>
                     <span>Finiquitos</span>
                 </a>
             </li>
             <li class="nav-item">
-                <a class="nav-link" href="{% url 'finanzas:finiquitos' %}">
+                <a class="nav-link{% if '/finanzas/finiquitos' in request.path %} active{% endif %}" href="{% url 'finanzas:finiquitos' %}">
                     <i class="fas fa-file-signature"></i>
                     <span>Procesos de Término</span>
                 </a>
@@ -193,38 +322,39 @@
             <div class="sidebar-heading">Consulta</div>
 
             <li class="nav-item">
-                <a class="nav-link" href="{% url 'finanzas:tablero' %}">
+                <a class="nav-link{% if '/finanzas/tablero' in request.path %} active{% endif %}" href="{% url 'finanzas:tablero' %}">
                     <i class="fas fa-columns"></i>
                     <span>Tablero General</span>
                 </a>
             </li>
             <li class="nav-item">
-                <a class="nav-link" href="{% url 'notifications:list' %}">
+                <a class="nav-link{% if '/finanzas/notificaciones' in request.path %} active{% endif %}" href="{% url 'finanzas:notificaciones' %}">
                     <i class="fas fa-bell"></i>
                     <span>Notificaciones</span>
                 </a>
             </li>
-            {% elif 'logistica' in user_roles and 'administrador' not in user_roles and 'rrhh' not in user_roles and 'ti' not in user_roles and 'prevencion' not in user_roles and 'jefatura' not in user_roles and 'finanzas' not in user_roles %}
+
+            {% elif primary_role == 'logistica' %}
             <li class="nav-item">
-                <a class="nav-link" href="{% url 'logistica:dashboard' %}">
+                <a class="nav-link{% if request.resolver_match.url_name == 'dashboard' %} active{% endif %}" href="{% url 'logistica:dashboard' %}">
                     <i class="fas fa-boxes"></i>
                     <span>Dashboard</span>
                 </a>
             </li>
             <li class="nav-item">
-                <a class="nav-link" href="{% url 'logistica:devoluciones' %}">
+                <a class="nav-link{% if '/logistica/devoluciones' in request.path %} active{% endif %}" href="{% url 'logistica:devoluciones' %}">
                     <i class="fas fa-undo"></i>
                     <span>Devoluciones</span>
                 </a>
             </li>
             <li class="nav-item">
-                <a class="nav-link" href="{% url 'logistica:recuperaciones' %}">
+                <a class="nav-link{% if '/logistica/recuperaciones' in request.path %} active{% endif %}" href="{% url 'logistica:recuperaciones' %}">
                     <i class="fas fa-box-open"></i>
                     <span>Recuperaciones</span>
                 </a>
             </li>
             <li class="nav-item">
-                <a class="nav-link" href="{% url 'logistica:inventario' %}">
+                <a class="nav-link{% if '/logistica/inventario' in request.path %} active{% endif %}" href="{% url 'logistica:inventario' %}">
                     <i class="fas fa-warehouse"></i>
                     <span>Inventario</span>
                 </a>
@@ -234,90 +364,18 @@
             <div class="sidebar-heading">Consulta</div>
 
             <li class="nav-item">
-                <a class="nav-link" href="{% url 'logistica:tablero' %}">
+                <a class="nav-link{% if '/logistica/tablero' in request.path %} active{% endif %}" href="{% url 'logistica:tablero' %}">
                     <i class="fas fa-columns"></i>
                     <span>Tablero General</span>
                 </a>
             </li>
             <li class="nav-item">
-                <a class="nav-link" href="{% url 'notifications:list' %}">
+                <a class="nav-link{% if '/notificaciones/' in request.path %} active{% endif %}" href="{% url 'notifications:list' %}">
                     <i class="fas fa-bell"></i>
                     <span>Notificaciones</span>
                 </a>
             </li>
-            {% else %}
-            <li class="nav-item">
-                <a class="nav-link" href="{% url 'processes:process_list' %}">
-                    <i class="fas fa-tachometer-alt"></i>
-                    <span>Procesos</span>
-                </a>
-            </li>
 
-            <hr class="sidebar-divider">
-            <div class="sidebar-heading">Procesos</div>
-
-            <li class="nav-item">
-                <a class="nav-link" href="{% url 'processes:process_create_contratacion' %}">
-                    <i class="fas fa-user-plus"></i>
-                    <span>Contratación</span>
-                </a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link" href="{% url 'processes:process_create_cambio_ceco' %}">
-                    <i class="fas fa-exchange-alt"></i>
-                    <span>Cambio de CeCo</span>
-                </a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link" href="{% url 'processes:process_create_termino' %}">
-                    <i class="fas fa-sign-out-alt"></i>
-                    <span>Término de Contrato</span>
-                </a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link" href="{% url 'processes:process_create_despido' %}">
-                    <i class="fas fa-user-minus"></i>
-                    <span>Despido</span>
-                </a>
-            </li>
-
-            <hr class="sidebar-divider">
-            <div class="sidebar-heading">Gestión</div>
-
-            <li class="nav-item">
-                <a class="nav-link" href="{% url 'workers:worker_list' %}">
-                    <i class="fas fa-users"></i>
-                    <span>Trabajadores</span>
-                </a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link" href="{% url 'clients:costcenter_list' %}">
-                    <i class="fas fa-building"></i>
-                    <span>Centros de Costo</span>
-                </a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link" href="{% url 'inventory:asset_list' %}">
-                    <i class="fas fa-boxes"></i>
-                    <span>Inventario</span>
-                </a>
-            </li>
-
-            <hr class="sidebar-divider">
-            <div class="sidebar-heading">Sistema</div>
-
-            <li class="nav-item">
-                <a class="nav-link" href="{% url 'notifications:list' %}">
-                    <i class="fas fa-bell"></i>
-                    <span>Notificaciones</span>
-                </a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link" href="/admin/">
-                    <i class="fas fa-cog"></i>
-                    <span>Administración</span>
-                </a>
-            </li>
             {% endif %}
 
             <hr class="sidebar-divider d-none d-md-block">
@@ -415,11 +473,14 @@
 
     <div class="toast-container position-fixed bottom-0 end-0 p-3" style="z-index:9999">
         <div id="sessionToast" class="toast text-bg-warning border-0" role="alert" aria-live="assertive" aria-atomic="true">
-            <div class="d-flex">
+            <div class="d-flex align-items-center">
                 <div class="toast-body">
                     <i class="fas fa-clock me-2"></i>
                     <strong>Sesión por expirar</strong>
-                    <p class="mb-0 small">Tu sesión expirará en <span id="sessionCountdown">10:00</span> minutos. Guarda tus cambios.</p>
+                    <p class="mb-1 small">Tu sesión expirará en <span id="sessionCountdown">10:00</span>. ¿Deseas mantener la sesión?</p>
+                    <button class="btn btn-sm btn-light" onclick="location.reload()">
+                        <i class="fas fa-redo me-1"></i>Mantener sesión
+                    </button>
                 </div>
                 <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
             </div>

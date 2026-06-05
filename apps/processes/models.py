@@ -1,5 +1,6 @@
 from django.core.exceptions import ValidationError
 from django.db import models
+from django.utils import timezone
 
 
 class Process(models.Model):
@@ -113,6 +114,7 @@ class Task(models.Model):
     plazo_limite = models.DateTimeField(blank=True, null=True, verbose_name='Plazo límite')
     fecha_completado = models.DateTimeField(blank=True, null=True, verbose_name='Fecha completado')
     descripcion = models.TextField(blank=True, null=True, verbose_name='Descripción')
+    orden = models.PositiveIntegerField(default=0, db_index=True, verbose_name='Orden')
     omitida = models.BooleanField(default=False, verbose_name='Omitida')
     motivo_omision = models.CharField(max_length=255, blank=True, null=True, verbose_name='Motivo de omisión')
     proceso = models.ForeignKey(
@@ -129,7 +131,7 @@ class Task(models.Model):
         db_table = 'tarea'
         verbose_name = 'Tarea'
         verbose_name_plural = 'Tareas'
-        ordering = ['-urgencia', 'plazo_limite']
+        ordering = ['orden', '-urgencia', 'plazo_limite']
 
     def __str__(self):
         return f'{self.get_tipo_display()} — {self.proceso}'
@@ -137,6 +139,19 @@ class Task(models.Model):
     @property
     def area_responsable(self):
         return self.TIPO_AREA_MAP.get(self.tipo, '')
+
+    @property
+    def dias_restantes(self):
+        if not self.plazo_limite:
+            return None
+        return (self.plazo_limite.date() - timezone.now().date()).days
+
+    def tareas_anteriores(self):
+        return self.proceso.tareas.filter(
+            orden__lt=self.orden
+        ).exclude(
+            estado__in=[self.EstadoChoices.COMPLETADA, self.EstadoChoices.GESTIONADO_EXTERNO]
+        ).exclude(omitida=True)
 
     def clean(self):
         if self.motivo_omision and not self.omitida:

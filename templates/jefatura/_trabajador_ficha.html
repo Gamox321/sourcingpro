@@ -1,92 +1,95 @@
 <div class="card shadow">
-    <div class="card-header py-3">
+    <div class="card-header py-3 d-flex justify-content-between align-items-center">
         <h6 class="m-0 font-weight-bold text-primary">
             <i class="fas fa-user me-2"></i>Ficha de Trabajador
         </h6>
+        <span class="badge {% if worker.estado == 'activo' %}bg-success{% elif worker.estado == 'en_proceso' %}bg-info{% elif worker.estado == 'en_transito' %}bg-warning{% elif worker.estado == 'por_egresar' %}bg-danger{% elif worker.estado == 'despedido_en_proceso' %}bg-dark{% else %}bg-secondary{% endif %}">
+            {{ worker.get_estado_display }}
+        </span>
     </div>
     <div class="card-body">
-        <!-- Datos básicos -->
-        <div class="mb-4">
-            <h5>{{ worker.nombre }}</h5>
-            <p class="text-muted mb-1">
-                <i class="fas fa-id-card me-2"></i>RUN: {{ worker.run }}
-            </p>
-            <p class="text-muted mb-1">
-                <i class="fas fa-envelope me-2"></i>{{ worker.correo }}
-            </p>
-            <p class="text-muted mb-1">
-                <i class="fas fa-briefcase me-2"></i>{{ worker.cargo }}
-            </p>
-            <p class="text-muted mb-1">
-                <i class="fas fa-building me-2"></i>{{ worker.centro_costo_actual.nombre }}
-            </p>
-            {% if worker.fecha_ingreso_efectiva %}
-            <p class="text-muted mb-1">
-                <i class="fas fa-calendar me-2"></i>Ingreso: {{ worker.fecha_ingreso_efectiva|date:"d/m/Y" }}
-            </p>
-            {% endif %}
-            <p class="mb-0">
-                {% if worker.estado == 'activo' %}
-                <span class="badge bg-success">Activo</span>
-                {% elif worker.estado == 'en_proceso' %}
-                <span class="badge bg-info">En proceso</span>
-                {% elif worker.estado == 'en_transito' %}
-                <span class="badge bg-warning">En tránsito</span>
-                {% elif worker.estado == 'por_egresar' %}
-                <span class="badge bg-danger">Por egresar</span>
-                {% else %}
-                <span class="badge bg-secondary">{{ worker.get_estado_display }}</span>
+        <h5 class="mb-3">{{ worker.nombre }}</h5>
+
+        <div class="row mb-3">
+            <div class="col-6">
+                <small class="text-muted d-block"><i class="fas fa-id-card me-1"></i> RUN: {{ worker.run }}</small>
+                <small class="text-muted d-block"><i class="fas fa-envelope me-1"></i> {{ worker.correo }}</small>
+                <small class="text-muted d-block"><i class="fas fa-briefcase me-1"></i> {{ worker.cargo }}</small>
+            </div>
+            <div class="col-6">
+                <small class="text-muted d-block"><i class="fas fa-building me-1"></i> {{ worker.centro_costo_actual.nombre }}</small>
+                {% if worker.fecha_ingreso_efectiva %}
+                <small class="text-muted d-block"><i class="fas fa-calendar-plus me-1"></i> Ingreso: {{ worker.fecha_ingreso_efectiva|date:"d/m/Y" }}</small>
                 {% endif %}
-            </p>
+                {% if worker.fecha_termino_contrato %}
+                <small class="text-muted d-block {% if worker.dias_restantes_contrato and worker.dias_restantes_contrato < 30 %}text-danger fw-bold{% endif %}">
+                    <i class="fas fa-calendar-times me-1"></i>
+                    Término contrato: {{ worker.fecha_termino_contrato|date:"d/m/Y" }}
+                    {% if worker.dias_restantes_contrato and worker.dias_restantes_contrato >= 0 %}
+                    ({{ worker.dias_restantes_contrato }} días)
+                    {% endif %}
+                </small>
+                {% endif %}
+            </div>
         </div>
 
         <hr>
 
-        <!-- Procesos activos -->
-        <div class="mb-4">
-            <h6 class="font-weight-bold text-primary">
+        <div class="mb-3">
+            <h6 class="font-weight-bold text-primary mb-2">
                 <i class="fas fa-tasks me-2"></i>Procesos Activos
+                {% if procesos_activos %}
+                <span class="badge bg-info float-end">{{ procesos_activos|length }}</span>
+                {% endif %}
             </h6>
             {% if procesos_activos %}
             <div class="list-group list-group-flush">
                 {% for proceso in procesos_activos %}
-                <div class="list-group-item px-0">
-                    <div class="d-flex w-100 justify-content-between">
-                        <h6 class="mb-1">{{ proceso.get_tipo_display }}</h6>
-                        <small class="text-muted">{{ proceso.fecha_inicio|date:"d/m/Y" }}</small>
+                <a href="{% url 'processes:process_detail' proceso.pk %}" class="list-group-item list-group-item-action px-0 border-0">
+                    <div class="d-flex w-100 justify-content-between align-items-start">
+                        <div>
+                            <span class="badge {% if proceso.tipo == 'contratacion' %}bg-success{% elif proceso.tipo == 'cambio_ceco' %}bg-info{% elif proceso.tipo == 'termino' %}bg-warning{% else %}bg-danger{% endif %} me-1">
+                                {{ proceso.get_tipo_display }}
+                            </span>
+                            <small class="text-muted">{{ proceso.fecha_inicio|date:"d/m/Y" }}</small>
+                        </div>
+                        <i class="fas fa-chevron-right text-muted small"></i>
                     </div>
-                    {% if proceso.motivo %}
-                    <p class="mb-1 small">{{ proceso.motivo }}</p>
-                    {% endif %}
                     {% if proceso.ceco_origen or proceso.ceco_destino %}
-                    <small class="text-muted">
+                    <small class="text-muted d-block mt-1">
                         {% if proceso.ceco_origen %}{{ proceso.ceco_origen.nombre }}{% endif %}
-                        {% if proceso.ceco_origen and proceso.ceco_destino %} → {% endif %}
+                        {% if proceso.ceco_origen and proceso.ceco_destino %} &rarr; {% endif %}
                         {% if proceso.ceco_destino %}{{ proceso.ceco_destino.nombre }}{% endif %}
                     </small>
                     {% endif %}
-                </div>
+                    <small class="text-muted d-block">
+                        {{ proceso.tareas.count }} tareas &middot;
+                        {{ proceso.tareas_completadas|default:0 }} completadas
+                    </small>
+                </a>
                 {% endfor %}
             </div>
             {% else %}
-            <p class="text-muted small mb-0">No hay procesos activos</p>
+            <p class="text-muted small mb-0">Sin procesos activos</p>
             {% endif %}
         </div>
 
         <hr>
 
-        <!-- Activos asignados -->
-        <div class="mb-4">
-            <h6 class="font-weight-bold text-primary">
+        <div class="mb-3">
+            <h6 class="font-weight-bold text-primary mb-2">
                 <i class="fas fa-box me-2"></i>Activos Asignados
+                {% if activos %}
+                <span class="badge bg-info float-end">{{ activos|length }}</span>
+                {% endif %}
             </h6>
             {% if activos %}
             <div class="list-group list-group-flush">
                 {% for asignacion in activos %}
-                <div class="list-group-item px-0">
+                <a href="{% url 'inventory:asset_detail' asignacion.activo.pk %}" class="list-group-item list-group-item-action px-0 border-0">
                     <div class="d-flex w-100 justify-content-between">
                         <h6 class="mb-1">{{ asignacion.activo.nombre }}</h6>
-                        <span class="badge bg-info">{{ asignacion.activo.get_estado_display }}</span>
+                        <span class="badge bg-info small">{{ asignacion.activo.get_estado_display }}</span>
                     </div>
                     <p class="mb-1 small">
                         <strong>Código:</strong> {{ asignacion.activo.codigo }}
@@ -94,46 +97,37 @@
                     <small class="text-muted">
                         Asignado: {{ asignacion.fecha_asignacion|date:"d/m/Y" }}
                     </small>
-                </div>
+                </a>
                 {% endfor %}
             </div>
             {% else %}
-            <p class="text-muted small mb-0">No hay activos asignados</p>
+            <p class="text-muted small mb-0">Sin activos asignados</p>
             {% endif %}
         </div>
 
         <hr>
 
-        <!-- Historial de procesos -->
         <div>
-            <h6 class="font-weight-bold text-primary">
-                <i class="fas fa-history me-2"></i>Historial de Procesos
+            <h6 class="font-weight-bold text-primary mb-2">
+                <i class="fas fa-history me-2"></i>Historial reciente
             </h6>
             {% if historial %}
-            <div class="list-group list-group-flush">
+            <div class="list-group list-group-flush small">
                 {% for proceso in historial %}
-                <div class="list-group-item px-0">
+                <div class="list-group-item px-0 border-0 py-1">
                     <div class="d-flex w-100 justify-content-between">
-                        <h6 class="mb-1">{{ proceso.get_tipo_display }}</h6>
-                        {% if proceso.estado == 'completado' %}
-                        <span class="badge bg-success">Completado</span>
-                        {% elif proceso.estado == 'en_curso' %}
-                        <span class="badge bg-primary">En curso</span>
-                        {% else %}
-                        <span class="badge bg-secondary">{{ proceso.get_estado_display }}</span>
-                        {% endif %}
+                        <span>
+                            <span class="badge {% if proceso.estado == 'completado' %}bg-success{% elif proceso.estado == 'en_curso' %}bg-primary{% else %}bg-secondary{% endif %}">
+                                {{ proceso.get_tipo_display }}
+                            </span>
+                        </span>
+                        <small class="text-muted">{{ proceso.fecha_inicio|date:"d/m/Y" }}</small>
                     </div>
-                    <small class="text-muted">
-                        {{ proceso.fecha_inicio|date:"d/m/Y H:i" }}
-                        {% if proceso.usuario_inicio %}
-                        · {{ proceso.usuario_inicio.nombre }}
-                        {% endif %}
-                    </small>
                 </div>
                 {% endfor %}
             </div>
             {% else %}
-            <p class="text-muted small mb-0">No hay historial disponible</p>
+            <p class="text-muted small mb-0">Sin historial disponible</p>
             {% endif %}
         </div>
     </div>

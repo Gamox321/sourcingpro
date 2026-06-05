@@ -97,7 +97,10 @@ class AssetAssignment(models.Model):
     )
     foto_evidencia_url = models.CharField(
         max_length=500, blank=True, null=True,
-        verbose_name='Foto evidencia (URL alternativa)'
+        verbose_name='Foto evidencia (URL alternativa)',
+        help_text='URL externa como alternativa a la subida de archivo. '
+                   'Ambos campos son mutuamente excluyentes en la práctica '
+                   '(la vista de logistica asigna uno y limpia el otro).'
     )
     activo = models.ForeignKey(
         Asset, on_delete=models.CASCADE,

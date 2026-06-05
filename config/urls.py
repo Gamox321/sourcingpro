@@ -2,6 +2,7 @@ from django.contrib import admin
 from django.urls import path, include
 from django.views.generic import RedirectView
 
+from apps.accounts.utils import get_primary_role
 from apps.kanban.urls import rrhh_urlpatterns, ti_urlpatterns, jefatura_urlpatterns, prevencion_urlpatterns, finanzas_urlpatterns, logistica_urlpatterns
 
 
@@ -10,21 +11,10 @@ class SmartRedirectView(RedirectView):
 
     def get_redirect_url(self, *args, **kwargs):
         if self.request.user.is_authenticated:
-            user_roles = set(
-                self.request.user.roles.values_list('nombre', flat=True)
-            )
-            if 'rrhh' in user_roles and 'administrador' not in user_roles:
-                return '/rrhh/'
-            elif 'ti' in user_roles and 'administrador' not in user_roles and 'rrhh' not in user_roles:
-                return '/ti/'
-            elif 'jefatura' in user_roles and 'administrador' not in user_roles and 'rrhh' not in user_roles and 'ti' not in user_roles:
-                return '/jefatura/'
-            elif 'prevencion' in user_roles and 'administrador' not in user_roles and 'rrhh' not in user_roles and 'ti' not in user_roles and 'jefatura' not in user_roles:
-                return '/prevencion/'
-            elif 'finanzas' in user_roles and 'administrador' not in user_roles and 'rrhh' not in user_roles and 'ti' not in user_roles and 'prevencion' not in user_roles and 'jefatura' not in user_roles:
-                return '/finanzas/'
-            elif 'logistica' in user_roles and 'administrador' not in user_roles and 'rrhh' not in user_roles and 'ti' not in user_roles and 'prevencion' not in user_roles and 'jefatura' not in user_roles and 'finanzas' not in user_roles:
-                return '/logistica/'
+            user_roles = set(self.request.user.roles.values_list('nombre', flat=True))
+            primary = get_primary_role(user_roles)
+            if primary and primary != 'administrador' and 'administrador' not in user_roles:
+                return f'/{primary}/'
         return '/kanban/'
 
 

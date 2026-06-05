@@ -30,6 +30,7 @@ function iniciarSortable() {
 
 /* API call to update task state */
 function actualizarTarea(taskId, estado) {
+    var card = document.querySelector('[data-task-id="' + taskId + '"]');
     fetch('/kanban/tarea/' + taskId + '/actualizar/', {
         method: 'POST',
         headers: {
@@ -41,14 +42,22 @@ function actualizarTarea(taskId, estado) {
     .then(function (r) { return r.json(); })
     .then(function (data) {
         if (data.error) {
-            alert(data.error);
-            location.reload();
+            alert('Error: ' + data.error);
             return;
         }
+        /* Success feedback */
+        if (card) {
+            card.style.transition = 'background-color 0.3s';
+            card.style.backgroundColor = '#d4edda';
+            setTimeout(function () {
+                card.style.backgroundColor = '';
+            }, 800);
+        }
+        toast('Tarea actualizada', 'success');
         actualizarIndicadorCarga();
     })
     .catch(function () {
-        location.reload();
+        alert('Error al guardar. Intenta de nuevo.');
     });
 }
 
@@ -61,10 +70,32 @@ function abrirDetalle(taskId) {
     content.innerHTML = '<div class="modal-body text-center py-5"><i class="fas fa-spinner fa-spin fa-2x"></i><p class="mt-2">Cargando...</p></div>';
     modal.show();
 
-    fetch('/kanban/tarea/' + taskId + '/')
+    var controller = new AbortController();
+    var timeout = setTimeout(function () { controller.abort(); }, 10000);
+
+    fetch('/kanban/tarea/' + taskId + '/', { signal: controller.signal })
         .then(function (r) { return r.text(); })
         .then(function (html) {
+            clearTimeout(timeout);
             content.innerHTML = html;
+        })
+        .catch(function (err) {
+            clearTimeout(timeout);
+            if (err.name === 'AbortError') {
+                content.innerHTML = '<div class="modal-body text-center py-5">' +
+                    '<i class="fas fa-clock fa-2x text-muted mb-3 d-block"></i>' +
+                    '<p class="text-muted">Tiempo de espera excedido.</p>' +
+                    '<button class="btn btn-primary btn-sm" onclick="abrirDetalle(' + taskId + ')">' +
+                    '<i class="fas fa-redo me-1"></i>Reintentar</button>' +
+                    '</div>';
+            } else {
+                content.innerHTML = '<div class="modal-body text-center py-5">' +
+                    '<i class="fas fa-exclamation-triangle fa-2x text-danger mb-3 d-block"></i>' +
+                    '<p class="text-muted">Error al cargar los detalles.</p>' +
+                    '<button class="btn btn-primary btn-sm" onclick="abrirDetalle(' + taskId + ')">' +
+                    '<i class="fas fa-redo me-1"></i>Reintentar</button>' +
+                    '</div>';
+            }
         });
 }
 

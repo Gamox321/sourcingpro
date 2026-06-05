@@ -1,10 +1,8 @@
-from datetime import timedelta
-
 from django.contrib import messages
 from django.db import models as db_models
 from django.shortcuts import redirect, get_object_or_404
 from django.utils import timezone
-from django.views.generic import TemplateView, ListView, DetailView, UpdateView, View
+from django.views.generic import TemplateView, ListView, View
 
 from apps.accounts.decorators import RoleRequiredMixin
 from apps.inventory.models import Asset, AssetAssignment, AssetType
@@ -13,7 +11,7 @@ from apps.processes.models import Process, Task
 
 class LogisticaDashboardView(RoleRequiredMixin, TemplateView):
     template_name = 'logistica/dashboard.html'
-    roles_requeridos = ['logistica']
+    roles_requeridos = ['administrador', 'logistica']
 
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
@@ -67,7 +65,7 @@ class LogisticaDevolucionesView(RoleRequiredMixin, ListView):
     model = AssetAssignment
     template_name = 'logistica/devoluciones.html'
     context_object_name = 'asignaciones'
-    roles_requeridos = ['logistica']
+    roles_requeridos = ['administrador', 'logistica']
     paginate_by = 20
 
     def get_queryset(self):
@@ -89,7 +87,7 @@ class LogisticaRecuperacionesView(RoleRequiredMixin, ListView):
     model = AssetAssignment
     template_name = 'logistica/recuperaciones.html'
     context_object_name = 'asignaciones'
-    roles_requeridos = ['logistica']
+    roles_requeridos = ['administrador', 'logistica']
     paginate_by = 20
 
     def get_queryset(self):
@@ -111,7 +109,7 @@ class LogisticaInventarioView(RoleRequiredMixin, ListView):
     model = Asset
     template_name = 'logistica/inventario.html'
     context_object_name = 'assets'
-    roles_requeridos = ['logistica']
+    roles_requeridos = ['administrador', 'logistica']
     paginate_by = 20
 
     def get_queryset(self):
@@ -148,7 +146,7 @@ class LogisticaInventarioView(RoleRequiredMixin, ListView):
 
 class LogisticaTableroView(RoleRequiredMixin, TemplateView):
     template_name = 'logistica/tablero.html'
-    roles_requeridos = ['logistica']
+    roles_requeridos = ['administrador', 'logistica']
 
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
@@ -173,7 +171,7 @@ class LogisticaTableroView(RoleRequiredMixin, TemplateView):
 
 
 class LogisticaRegistrarDevolucionView(RoleRequiredMixin, View):
-    roles_requeridos = ['logistica']
+    roles_requeridos = ['administrador', 'logistica']
 
     def post(self, request, pk):
         asignacion = get_object_or_404(AssetAssignment, pk=pk)
@@ -212,7 +210,7 @@ class LogisticaRegistrarDevolucionView(RoleRequiredMixin, View):
 
 
 class LogisticaRegistrarRecuperacionView(RoleRequiredMixin, View):
-    roles_requeridos = ['logistica']
+    roles_requeridos = ['administrador', 'logistica']
 
     def post(self, request, pk):
         asignacion = get_object_or_404(AssetAssignment, pk=pk)

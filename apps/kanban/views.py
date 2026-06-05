@@ -1,10 +1,8 @@
 from datetime import timedelta
 
-from django.contrib import messages
 from django.db import models as db_models
 from django.http import JsonResponse
-from django.shortcuts import get_object_or_404, redirect, render
-from django.urls import reverse_lazy
+from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from django.views.generic import TemplateView, View
 

@@ -1,53 +1,69 @@
 {% load static %}
 {% for task in tasks %}
-<div class="kanban-card card mb-2 {% if task.urgencia == 'critica' %}border-danger{% endif %}"
+<div class="kanban-card card mb-2 border-start border-2
+    {% if task.urgencia == 'critica' %}border-danger{% elif task.urgencia == 'urgente' %}border-warning{% else %}border-info{% endif %}"
      data-task-id="{{ task.pk }}"
      style="cursor: pointer;">
     <div class="card-body p-2">
-        <div class="d-flex justify-content-between">
-            <small class="text-muted">
-                {% if task.proceso.tipo == 'contratacion' %}
-                    <span class="badge bg-primary">Contratación</span>
-                {% elif task.proceso.tipo == 'cambio_ceco' %}
-                    <span class="badge bg-info">Cambio CeCo</span>
-                {% elif task.proceso.tipo == 'termino' %}
-                    <span class="badge bg-warning text-dark">Término</span>
-                {% elif task.proceso.tipo == 'despido' %}
-                    <span class="badge bg-danger">Despido</span>
+        <div class="d-flex justify-content-between align-items-center mb-1">
+            <span class="badge
+                {% if task.proceso.tipo == 'contratacion' %}bg-primary
+                {% elif task.proceso.tipo == 'cambio_ceco' %}bg-info
+                {% elif task.proceso.tipo == 'termino' %}bg-warning text-dark
+                {% elif task.proceso.tipo == 'despido' %}bg-danger
+                {% endif %} small">
+                {{ task.proceso.get_tipo_display }}
+            </span>
+            <span class="small ms-auto
+                {% if task.urgencia == 'critica' %}text-danger fw-bold
+                {% elif task.urgencia == 'urgente' %}text-warning fw-semibold
+                {% endif %}">
+                {% if task.urgencia == 'critica' %}
+                    <i class="fas fa-exclamation-triangle me-1"></i>Crítica
+                {% elif task.urgencia == 'urgente' %}
+                    <i class="fas fa-exclamation-circle me-1"></i>Urgente
                 {% endif %}
-            </small>
-            {% if task.urgencia == 'critica' %}
-                <small class="text-danger fw-bold"><i class="fas fa-exclamation-triangle"></i> Crítica</small>
-            {% endif %}
+            </span>
         </div>
 
-        <div class="fw-bold small mt-1">{{ task.get_tipo_display }}</div>
+        <div class="fw-semibold small mb-1">{{ task.get_tipo_display }}</div>
 
-        <div class="small">
-            <i class="fas fa-user me-1"></i>{{ task.proceso.trabajador.nombre }}
+        <div class="d-flex align-items-center gap-1 small text-muted">
+            <i class="fas fa-user fa-fw"></i>
+            <span class="text-dark fw-semibold">{{ task.proceso.trabajador.nombre }}</span>
+            <span class="text-secondary">&middot;</span>
+            <span>{{ task.proceso.trabajador.cargo }}</span>
         </div>
 
-        <div class="small text-muted">
-            <i class="fas fa-tag me-1"></i>{{ task.proceso.trabajador.cargo }}
-        </div>
-
-        {% if task.plazo_limite %}
-        <div class="small text-muted">
-            <i class="fas fa-calendar me-1"></i>{{ task.plazo_limite|date:'d/m/Y' }}
-        </div>
-        {% endif %}
-
-        <div class="small text-muted mt-1">
-            <i class="fas fa-user-circle me-1"></i>{{ task.usuario_responsable.nombre|default:'Sin asignar' }}
-            {% if task.usuario_responsable == request.user %}
-                <span class="badge bg-warning text-dark ms-1">Tú</span>
-            {% endif %}
+        <div class="d-flex justify-content-between align-items-center small mt-1">
+            <span class="text-muted">
+                {% if task.plazo_limite %}
+                    <i class="fas fa-calendar me-1"></i>{{ task.plazo_limite|date:'d/m/Y' }}
+                    {% if task.dias_restantes is not None %}
+                        {% if task.dias_restantes < 0 %}
+                            <span class="badge bg-danger ms-1">vencido</span>
+                        {% elif task.dias_restantes <= 2 %}
+                            <span class="badge bg-warning text-dark ms-1">{{ task.dias_restantes }}d</span>
+                        {% else %}
+                            <span class="badge bg-light text-dark ms-1">{{ task.dias_restantes }}d</span>
+                        {% endif %}
+                    {% endif %}
+                {% else %}
+                    <i class="fas fa-calendar me-1"></i>Sin plazo
+                {% endif %}
+            </span>
+            <span class="text-muted">
+                <i class="fas fa-user-circle me-1"></i>{{ task.usuario_responsable.nombre|default:'Sin asignar' }}
+                {% if task.usuario_responsable == request.user %}
+                    <span class="badge bg-warning text-dark ms-1">Tú</span>
+                {% endif %}
+            </span>
         </div>
     </div>
 </div>
 {% empty %}
-<div class="text-center text-muted small py-4">
-    <i class="fas fa-inbox fa-2x mb-2"></i>
-    <p>Sin tareas</p>
+<div class="text-center text-muted py-4">
+    <i class="fas fa-inbox fa-3x mb-2 d-block"></i>
+    <p class="mb-0">Sin tareas</p>
 </div>
 {% endfor %}

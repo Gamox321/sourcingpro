@@ -8,6 +8,7 @@
     <ol class="breadcrumb">
         <li class="breadcrumb-item"><a href="/"><i class="fas fa-home"></i></a></li>
         <li class="breadcrumb-item"><a href="{% url 'processes:process_list' %}">Procesos</a></li>
+        <li class="breadcrumb-item"><a href="{% url 'processes:process_type_select' %}">Nuevo Proceso</a></li>
         <li class="breadcrumb-item active">{{ titulo }}</li>
     </ol>
 </nav>
@@ -15,33 +16,70 @@
 
 {% block content %}
 <div class="row justify-content-center">
-    <div class="col-xl-6 col-lg-8">
+    <div class="col-xl-7 col-lg-9">
         <div class="card shadow mb-4">
             <div class="card-header py-3">
-                <h6 class="m-0 font-weight-bold text-primary">{{ titulo }}</h6>
+                <h6 class="m-0 font-weight-bold text-primary">
+                    {% if tipo == 'contratacion' %}
+                    <i class="fas fa-user-plus me-2"></i>
+                    {% elif tipo == 'cambio_ceco' %}
+                    <i class="fas fa-exchange-alt me-2"></i>
+                    {% elif tipo == 'termino' %}
+                    <i class="fas fa-sign-out-alt me-2"></i>
+                    {% else %}
+                    <i class="fas fa-user-minus me-2"></i>
+                    {% endif %}
+                    {{ titulo }}
+                </h6>
             </div>
             <div class="card-body">
-                <form method="post">
+                {% if descripcion %}
+                <div class="alert alert-light border mb-4">
+                    <i class="fas fa-info-circle text-primary me-2"></i>{{ descripcion }}
+                </div>
+                {% endif %}
+
+                <form method="post" data-dirty>
                     {% csrf_token %}
 
                     {% for field in form %}
                     <div class="mb-3">
-                        <label class="form-label">{{ field.label }}</label>
+                        <label class="form-label">{{ field.label }}{% if field.field.required %} <span class="text-danger">*</span>{% endif %}</label>
                         {% if field.errors %}
-                        {% render_field field class="form-control is-invalid" %}
-                        {% else %}
-                        {% render_field field class="form-control" %}
-                        {% endif %}
-                        {% if field.errors %}
+                        {% render_field field|add_class:"is-invalid" %}
                         <div class="text-danger small">{{ field.errors }}</div>
+                        {% else %}
+                        {% render_field field %}
+                        {% endif %}
+                        {% if field.help_text %}
+                        <div class="form-text">{{ field.help_text }}</div>
                         {% endif %}
                     </div>
                     {% endfor %}
 
-                    <button type="submit" class="btn btn-primary">
-                        <i class="fas fa-play me-1"></i>Iniciar Proceso
-                    </button>
-                    <a href="{% url 'processes:process_type_select' %}" class="btn btn-secondary">Cancelar</a>
+                    {% if tareas_info %}
+                    <hr>
+                    <div class="mb-3">
+                        <h6 class="font-weight-bold text-gray-800 mb-2">
+                            <i class="fas fa-tasks me-1"></i>Tareas que se generaran
+                        </h6>
+                        <div class="list-group list-group-flush small">
+                            {% for tarea, area in tareas_info %}
+                            <div class="list-group-item d-flex justify-content-between align-items-center px-0 py-1 border-0">
+                                <span>{{ forloop.counter }}. {{ tarea }}</span>
+                                <span class="badge bg-light text-muted">{{ area }}</span>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4">
+                        <a href="{% url 'processes:process_type_select' %}" class="btn btn-secondary">Cancelar</a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-play me-1"></i>Iniciar Proceso
+                        </button>
+                    </div>
                 </form>
             </div>
         </div>

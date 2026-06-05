@@ -2,12 +2,12 @@ from datetime import timedelta
 
 from django.contrib import messages
 from django.db import models as db_models
-from django.db.models import Count, Q
+from django.db.models import Count
 from django.shortcuts import redirect, get_object_or_404
-from django.urls import reverse_lazy
 from django.utils import timezone
-from django.views.generic import TemplateView, ListView, View
-from django.views.generic.edit import FormView
+from django.views.generic import TemplateView, ListView
+
+DIAS_REPORTE_ATRAS = 180
 
 from apps.accounts.decorators import RoleRequiredMixin
 from apps.clients.models import CostCenter
@@ -28,7 +28,7 @@ AREA_LABELS = {
 
 class RRHHDashboardView(RoleRequiredMixin, TemplateView):
     template_name = 'rrhh/dashboard.html'
-    roles_requeridos = ['rrhh']
+    roles_requeridos = ['administrador', 'rrhh']
 
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
@@ -95,7 +95,7 @@ class RRHHTrabajadoresView(RoleRequiredMixin, ListView):
     model = Worker
     template_name = 'rrhh/trabajadores.html'
     context_object_name = 'workers'
-    roles_requeridos = ['rrhh']
+    roles_requeridos = ['administrador', 'rrhh']
     paginate_by = 20
 
     def get_queryset(self):
@@ -138,7 +138,7 @@ class RRHHProcesosView(RoleRequiredMixin, ListView):
     model = Process
     template_name = 'rrhh/procesos.html'
     context_object_name = 'processes'
-    roles_requeridos = ['rrhh']
+    roles_requeridos = ['administrador', 'rrhh']
     paginate_by = 20
 
     def get_queryset(self):
@@ -165,7 +165,7 @@ class RRHHCecosView(RoleRequiredMixin, ListView):
     model = CostCenter
     template_name = 'rrhh/cecos.html'
     context_object_name = 'costcenters'
-    roles_requeridos = ['rrhh']
+    roles_requeridos = ['administrador', 'rrhh']
     paginate_by = 20
 
     def get_queryset(self):
@@ -192,7 +192,7 @@ class RRHHCecosView(RoleRequiredMixin, ListView):
 
 class RRHHReportesView(RoleRequiredMixin, TemplateView):
     template_name = 'rrhh/reportes.html'
-    roles_requeridos = ['rrhh']
+    roles_requeridos = ['administrador', 'rrhh']
 
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
@@ -221,7 +221,7 @@ class RRHHReportesView(RoleRequiredMixin, TemplateView):
         ctx['distribucion_ceco'] = list(distribucion_ceco)
         
         now = timezone.now()
-        ultimos_6_meses = now - timedelta(days=180)
+        ultimos_6_meses = now - timedelta(days=DIAS_REPORTE_ATRAS)
         
         ingresos_recientes = Worker.objects.filter(
             fecha_ingreso_efectiva__gte=ultimos_6_meses,
@@ -257,7 +257,7 @@ class RRHHReportesView(RoleRequiredMixin, TemplateView):
 
 class RRHHConfigPlazosView(RoleRequiredMixin, TemplateView):
     template_name = 'rrhh/config_plazos.html'
-    roles_requeridos = ['rrhh']
+    roles_requeridos = ['administrador', 'rrhh']
 
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
@@ -286,7 +286,7 @@ class RRHHAlertasContratosView(RoleRequiredMixin, ListView):
     model = Worker
     template_name = 'rrhh/alertas_contratos.html'
     context_object_name = 'workers'
-    roles_requeridos = ['rrhh']
+    roles_requeridos = ['administrador', 'rrhh']
     paginate_by = 20
 
     def get_queryset(self):
@@ -323,7 +323,7 @@ class RRHHAlertasContratosView(RoleRequiredMixin, ListView):
 
 class RRHHConfirmarCierreTerminoView(RoleRequiredMixin, TemplateView):
     template_name = 'rrhh/confirmar_cierre_termino.html'
-    roles_requeridos = ['rrhh']
+    roles_requeridos = ['administrador', 'rrhh']
 
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
@@ -359,7 +359,7 @@ class RRHHProcesoDetailView(RoleRequiredMixin, TemplateView):
     Muestra información del proceso, tareas, activos asignados y bitácora de auditoría.
     """
     template_name = 'rrhh/proceso_detalle.html'
-    roles_requeridos = ['rrhh']
+    roles_requeridos = ['administrador', 'rrhh']
 
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)

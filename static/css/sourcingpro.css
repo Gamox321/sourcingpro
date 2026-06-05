@@ -173,7 +173,7 @@ body {
    Professional Polish — Kanban Cards
    ============================================= */
 .kanban-card {
-    transition: transform .15s ease, box-shadow .15s ease;
+    transition: transform .15s ease, box-shadow .15s ease, border-color .15s ease;
     border: 1px solid #e3e6f0;
     border-radius: .35rem;
 }
@@ -187,6 +187,13 @@ body {
 }
 .kanban-card:hover .card-body {
     background: #fafbfc;
+}
+/* Urgency-based left border for kanban cards */
+.kanban-card.border-start.border-danger {
+    border-left-width: 3px !important;
+}
+.kanban-card.border-start.border-warning {
+    border-left-width: 3px !important;
 }
 
 /* =============================================
@@ -209,6 +216,16 @@ body {
 .card.border-left-secondary .text-xs {
     font-size: .7rem;
     letter-spacing: .03em;
+}
+/* Clickable stat card hover */
+a.text-decoration-none .card.border-left-primary:hover,
+a.text-decoration-none .card.border-left-info:hover,
+a.text-decoration-none .card.border-left-success:hover,
+a.text-decoration-none .card.border-left-warning:hover,
+a.text-decoration-none .card.border-left-danger:hover,
+a.text-decoration-none .card.border-left-secondary:hover {
+    box-shadow: 0 .4rem .8rem rgba(0, 0, 0, .18) !important;
+    border-color: #d1d3e2;
 }
 
 /* =============================================

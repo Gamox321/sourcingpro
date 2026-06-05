@@ -13,60 +13,85 @@
 {% endblock %}
 
 {% block content %}
-<div class="card shadow mb-4">
-    <div class="card-header py-3">
-        <h6 class="m-0 font-weight-bold text-primary">Seleccionar Tipo de Proceso</h6>
-    </div>
-    <div class="card-body">
-        <div class="row seleccion-proceso">
-            <div class="col-lg-3 col-md-6 mb-4">
-                <a href="{% url 'processes:process_create_contratacion' %}" class="text-decoration-none">
-                    <div class="card border-left-primary shadow h-100 py-3">
-                        <div class="card-body text-center">
-                            <i class="fas fa-user-plus fa-3x text-primary mb-2"></i>
-                            <h5 class="text-gray-900">Contratación</h5>
-                            <p class="small text-muted">Incorporación de nuevo trabajador</p>
-                        </div>
-                    </div>
-                </a>
-            </div>
+<div class="d-sm-flex align-items-center justify-content-between mb-3">
+    <h1 class="h3 text-gray-800">Seleccionar Tipo de Proceso</h1>
+</div>
 
-            <div class="col-lg-3 col-md-6 mb-4">
-                <a href="{% url 'processes:process_create_cambio_ceco' %}" class="text-decoration-none">
-                    <div class="card border-left-info shadow h-100 py-3">
-                        <div class="card-body text-center">
-                            <i class="fas fa-exchange-alt fa-3x text-info mb-2"></i>
-                            <h5 class="text-gray-900">Cambio de CeCo</h5>
-                            <p class="small text-muted">Traslado entre centros de costo</p>
-                        </div>
-                    </div>
-                </a>
-            </div>
-
-            <div class="col-lg-3 col-md-6 mb-4">
-                <a href="{% url 'processes:process_create_termino' %}" class="text-decoration-none">
-                    <div class="card border-left-warning shadow h-100 py-3">
-                        <div class="card-body text-center">
-                            <i class="fas fa-sign-out-alt fa-3x text-warning mb-2"></i>
-                            <h5 class="text-gray-900">Término de Contrato</h5>
-                            <p class="small text-muted">Egreso planificado</p>
-                        </div>
-                    </div>
-                </a>
-            </div>
-
-            <div class="col-lg-3 col-md-6 mb-4">
-                <a href="{% url 'processes:process_create_despido' %}" class="text-decoration-none">
-                    <div class="card border-left-danger shadow h-100 py-3">
-                        <div class="card-body text-center">
-                            <i class="fas fa-user-minus fa-3x text-danger mb-2"></i>
-                            <h5 class="text-gray-900">Despido</h5>
-                            <p class="small text-muted">Desvinculación inmediata</p>
-                        </div>
-                    </div>
-                </a>
+<div class="row seleccion-proceso">
+    <div class="col-lg-3 col-md-6 mb-4">
+        <a href="{% url 'processes:process_create_contratacion' %}" class="text-decoration-none">
+        <div class="card border-left-primary shadow h-100 py-3 card-hover">
+            <div class="card-body text-center">
+                <i class="fas fa-user-plus fa-3x text-primary mb-2"></i>
+                <h5 class="text-gray-900">Contratacion</h5>
+                <p class="small text-muted">Incorporacion de nuevo trabajador</p>
+                <hr class="my-2">
+                <div class="d-flex justify-content-center gap-2 flex-wrap">
+                    <span class="badge bg-light text-dark">TI</span>
+                    <span class="badge bg-light text-dark">Prevencion</span>
+                    <span class="badge bg-light text-dark">Logistica</span>
+                </div>
+                <small class="text-muted d-block mt-2">4 tareas secuenciales</small>
             </div>
         </div>
+        </a>
+    </div>
+
+    <div class="col-lg-3 col-md-6 mb-4">
+        <a href="{% url 'processes:process_create_cambio_ceco' %}" class="text-decoration-none">
+        <div class="card border-left-info shadow h-100 py-3 card-hover">
+            <div class="card-body text-center">
+                <i class="fas fa-exchange-alt fa-3x text-info mb-2"></i>
+                <h5 class="text-gray-900">Cambio de CeCo</h5>
+                <p class="small text-muted">Traslado entre centros de costo</p>
+                <hr class="my-2">
+                <div class="d-flex justify-content-center gap-2 flex-wrap">
+                    <span class="badge bg-light text-dark">Logistica</span>
+                    <span class="badge bg-light text-dark">TI</span>
+                    <span class="badge bg-light text-dark">Prevencion</span>
+                </div>
+                <small class="text-muted d-block mt-2">Hasta 4 tareas · incluye devolucion</small>
+            </div>
+        </div>
+        </a>
+    </div>
+
+    <div class="col-lg-3 col-md-6 mb-4">
+        <a href="{% url 'processes:process_create_termino' %}" class="text-decoration-none">
+        <div class="card border-left-warning shadow h-100 py-3 card-hover">
+            <div class="card-body text-center">
+                <i class="fas fa-sign-out-alt fa-3x text-warning mb-2"></i>
+                <h5 class="text-gray-900">Termino de Contrato</h5>
+                <p class="small text-muted">Egreso planificado</p>
+                <hr class="my-2">
+                <div class="d-flex justify-content-center gap-2 flex-wrap">
+                    <span class="badge bg-light text-dark">Logistica</span>
+                    <span class="badge bg-light text-dark">TI</span>
+                    <span class="badge bg-light text-dark">Finanzas</span>
+                </div>
+                <small class="text-muted d-block mt-2">4 tareas secuenciales · bloqueo al final</small>
+            </div>
+        </div>
+        </a>
+    </div>
+
+    <div class="col-lg-3 col-md-6 mb-4">
+        <a href="{% url 'processes:process_create_despido' %}" class="text-decoration-none">
+        <div class="card border-left-danger shadow h-100 py-3 card-hover">
+            <div class="card-body text-center">
+                <i class="fas fa-user-minus fa-3x text-danger mb-2"></i>
+                <h5 class="text-gray-900">Despido</h5>
+                <p class="small text-muted">Desvinculacion inmediata</p>
+                <hr class="my-2">
+                <div class="d-flex justify-content-center gap-2 flex-wrap">
+                    <span class="badge bg-light text-dark">Logistica</span>
+                    <span class="badge bg-light text-dark">TI</span>
+                    <span class="badge bg-light text-dark">Finanzas</span>
+                </div>
+                <small class="text-muted d-block mt-2">3 tareas criticas · requiere confirmacion RRHH</small>
+            </div>
+        </div>
+        </a>
     </div>
 </div>
 {% endblock %}

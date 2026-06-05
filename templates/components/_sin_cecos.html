@@ -1,0 +1,18 @@
+<div class="text-center py-5">
+    <i class="fas fa-building fa-4x text-gray-300 mb-4 d-block"></i>
+    <h4 class="text-gray-800 mb-2">Sin Centros de Costo asignados</h4>
+    <p class="text-muted mb-3">
+        No tienes ningún Centro de Costo a tu cargo.<br>
+        Contacta a <strong>RRHH</strong> o al <strong>administrador</strong> del sistema para que te asignen uno.
+    </p>
+    <div class="d-grid gap-2 d-md-flex justify-content-center">
+        <a href="{% url 'notifications:list' %}" class="btn btn-outline-primary">
+            <i class="fas fa-bell me-1"></i> Ver notificaciones
+        </a>
+        {% if 'administrador' in user_roles or 'rrhh' in user_roles %}
+        <a href="{% url 'clients:costcenter_list' %}" class="btn btn-primary">
+            <i class="fas fa-building me-1"></i> Gestionar Centros de Costo
+        </a>
+        {% endif %}
+    </div>
+</div>

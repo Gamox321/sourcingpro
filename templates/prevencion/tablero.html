@@ -3,6 +3,16 @@
 
 {% block title %}Tablero General{% endblock %}
 
+{% block breadcrumbs %}
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{% url 'prevencion:dashboard' %}"><i class="fas fa-home"></i></a></li>
+        <li class="breadcrumb-item"><a href="{% url 'prevencion:dashboard' %}">Prevencion</a></li>
+        <li class="breadcrumb-item active">Tablero</li>
+    </ol>
+</nav>
+{% endblock %}
+
 {% block content %}
 <div class="container-fluid">
     <div class="card shadow mb-4">
@@ -12,6 +22,25 @@
             </h6>
         </div>
         <div class="card-body">
+            <form method="get" class="row g-2 mb-4">
+                <div class="col-md-3">
+                    <select name="tipo_proceso" class="form-select form-select-sm" onchange="this.form.submit()">
+                        <option value="">Todos los procesos</option>
+                        <option value="contratacion" {% if filtro_tipo_proceso == 'contratacion' %}selected{% endif %}>Contratacion</option>
+                        <option value="cambio_ceco" {% if filtro_tipo_proceso == 'cambio_ceco' %}selected{% endif %}>Cambio CeCo</option>
+                        <option value="termino" {% if filtro_tipo_proceso == 'termino' %}selected{% endif %}>Termino</option>
+                        <option value="despido" {% if filtro_tipo_proceso == 'despido' %}selected{% endif %}>Despido</option>
+                    </select>
+                </div>
+                {% if filtro_tipo_proceso %}
+                <div class="col-md-3">
+                    <a href="{% url 'prevencion:tablero' %}" class="btn btn-sm btn-outline-secondary">
+                        <i class="fas fa-times me-1"></i>Limpiar filtro
+                    </a>
+                </div>
+                {% endif %}
+            </form>
+
             <div class="row">
                 <!-- Columna Pendientes -->
                 <div class="col-md-4">

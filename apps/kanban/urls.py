@@ -45,6 +45,7 @@ jefatura_urlpatterns = ([
     path('procesos/', views_jefatura.JefaturaProcesosView.as_view(), name='procesos'),
     path('ceco/', views_jefatura.JefaturaCeCoView.as_view(), name='ceco'),
     path('ceco/<int:pk>/', views_jefatura.JefaturaCeCoView.as_view(), name='ceco_detail'),
+    path('notificaciones/', views_jefatura.JefaturaNotificacionesView.as_view(), name='notificaciones'),
 ], 'jefatura')
 
 prevencion_urlpatterns = ([
@@ -52,12 +53,14 @@ prevencion_urlpatterns = ([
     path('inventario/', views_prevencion.PrevencionInventarioView.as_view(), name='inventario'),
     path('certificaciones/', views_prevencion.PrevencionCertificacionesView.as_view(), name='certificaciones'),
     path('tablero/', views_prevencion.PrevencionTableroGeneralView.as_view(), name='tablero'),
+    path('notificaciones/', views_prevencion.PrevencionNotificacionesView.as_view(), name='notificaciones'),
 ], 'prevencion')
 
 finanzas_urlpatterns = ([
     path('', views_finanzas.FinanzasDashboardView.as_view(), name='dashboard'),
     path('finiquitos/', views_finanzas.FinanzasFiniquitosView.as_view(), name='finiquitos'),
     path('tablero/', views_finanzas.FinanzasTableroView.as_view(), name='tablero'),
+    path('notificaciones/', views_finanzas.FinanzasNotificacionesView.as_view(), name='notificaciones'),
 ], 'finanzas')
 
 logistica_urlpatterns = ([
