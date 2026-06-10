@@ -405,7 +405,11 @@
                                 <div id="notif-dropdown">
                                     <a class="dropdown-item text-center small text-gray-500" href="#">Cargando...</a>
                                 </div>
-                                <a class="dropdown-item text-center small text-gray-500" href="{% url 'notifications:list' %}">
+                                <a class="dropdown-item text-center small text-gray-500" href="
+                                {% if primary_role == 'jefatura' %}{% url 'jefatura:notificaciones' %}
+                                {% elif primary_role == 'finanzas' %}{% url 'finanzas:notificaciones' %}
+                                {% elif primary_role == 'prevencion' %}{% url 'prevencion:notificaciones' %}
+                                {% else %}{% url 'notifications:list' %}{% endif %}">
                                     Ver todas las notificaciones
                                 </a>
                             </div>

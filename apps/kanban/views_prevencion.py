@@ -6,6 +6,7 @@ from django.views.generic import TemplateView, ListView
 
 from apps.accounts.decorators import RoleRequiredMixin
 from apps.inventory.models import Asset, AssetType
+from apps.notifications.views import NotificationListView
 from apps.processes.models import Process, Task
 
 
@@ -200,32 +201,6 @@ class PrevencionTableroGeneralView(RoleRequiredMixin, TemplateView):
         return ctx
 
 
-class PrevencionNotificacionesView(RoleRequiredMixin, ListView):
+class PrevencionNotificacionesView(NotificationListView):
     template_name = 'prevencion/notificaciones.html'
-    context_object_name = 'notifications'
     roles_requeridos = ['administrador', 'prevencion']
-    paginate_by = 30
-
-    def get_queryset(self):
-        from apps.notifications.models import Notification
-        qs = Notification.objects.filter(
-            usuario_destinatario=self.request.user,
-        ).exclude(estado=Notification.EstadoChoices.ELIMINADA)
-
-        filtro = self.request.GET.get('filtro', '')
-        if filtro == 'no_leidas':
-            qs = qs.filter(estado=Notification.EstadoChoices.ENVIADA)
-        elif filtro == 'leidas':
-            qs = qs.filter(estado=Notification.EstadoChoices.LEIDA)
-
-        return qs
-
-    def get_context_data(self, **kwargs):
-        ctx = super().get_context_data(**kwargs)
-        from apps.notifications.models import Notification
-        ctx['filtro'] = self.request.GET.get('filtro', '')
-        ctx['no_leidas'] = Notification.objects.filter(
-            usuario_destinatario=self.request.user,
-            estado=Notification.EstadoChoices.ENVIADA,
-        ).count()
-        return ctx

@@ -3,36 +3,13 @@ from django.views.generic import TemplateView, ListView
 
 from apps.accounts.decorators import RoleRequiredMixin
 from apps.notifications.models import Notification
+from apps.notifications.views import NotificationListView
 from apps.processes.models import Process, Task
 
 
-class FinanzasNotificacionesView(RoleRequiredMixin, ListView):
+class FinanzasNotificacionesView(NotificationListView):
     template_name = 'finanzas/notificaciones.html'
-    context_object_name = 'notifications'
     roles_requeridos = ['administrador', 'finanzas']
-    paginate_by = 30
-
-    def get_queryset(self):
-        qs = Notification.objects.filter(
-            usuario_destinatario=self.request.user,
-        ).exclude(estado=Notification.EstadoChoices.ELIMINADA)
-
-        filtro = self.request.GET.get('filtro', '')
-        if filtro == 'no_leidas':
-            qs = qs.filter(estado=Notification.EstadoChoices.ENVIADA)
-        elif filtro == 'leidas':
-            qs = qs.filter(estado=Notification.EstadoChoices.LEIDA)
-
-        return qs.order_by('-fecha_envio')
-
-    def get_context_data(self, **kwargs):
-        ctx = super().get_context_data(**kwargs)
-        ctx['filtro'] = self.request.GET.get('filtro', '')
-        ctx['no_leidas'] = Notification.objects.filter(
-            usuario_destinatario=self.request.user,
-            estado=Notification.EstadoChoices.ENVIADA,
-        ).count()
-        return ctx
 
 
 class FinanzasDashboardView(RoleRequiredMixin, TemplateView):

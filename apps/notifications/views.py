@@ -70,6 +70,9 @@ class NotificationMarkAllReadView(RoleRequiredMixin, View):
             estado=Notification.EstadoChoices.ENVIADA,
         ).update(estado=Notification.EstadoChoices.LEIDA)
         messages.success(request, 'Todas las notificaciones marcadas como leídas.')
+        next_url = request.GET.get('next') or request.POST.get('next', '')
+        if next_url:
+            return redirect(next_url)
         return redirect('notifications:list')
 
 
@@ -80,6 +83,9 @@ class NotificationDeleteView(RoleRequiredMixin, View):
         notif = get_object_or_404(Notification, pk=pk, usuario_destinatario=request.user)
         notif.estado = Notification.EstadoChoices.ELIMINADA
         notif.save(update_fields=['estado'])
+        next_url = request.GET.get('next') or request.POST.get('next', '')
+        if next_url:
+            return redirect(next_url)
         return redirect('notifications:list')
 
 

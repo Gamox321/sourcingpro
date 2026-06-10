@@ -21,7 +21,7 @@
     </h1>
     <div>
         {% if no_leidas %}
-        <form method="post" action="{% url 'notifications:mark_all_read' %}" class="d-inline">
+        <form method="post" action="{% url 'notifications:mark_all_read' %}?next={{ request.path|urlencode }}" class="d-inline">
             {% csrf_token %}
             <button type="submit" class="btn btn-success btn-sm">
                 <i class="fas fa-check-double me-1"></i>Marcar todas leidas
@@ -32,7 +32,9 @@
 </div>
 
 <div class="mb-3">
+    {% block filter_todas %}
     <a href="{% url 'notifications:list' %}" class="btn btn-sm {% if filtro == '' %}btn-primary{% else %}btn-outline-primary{% endif %}">Todas</a>
+    {% endblock %}
     <a href="?filtro=no_leidas" class="btn btn-sm {% if filtro == 'no_leidas' %}btn-primary{% else %}btn-outline-primary{% endif %}">No leidas</a>
     <a href="?filtro=leidas" class="btn btn-sm {% if filtro == 'leidas' %}btn-primary{% else %}btn-outline-primary{% endif %}">Leidas</a>
 </div>
