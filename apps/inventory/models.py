@@ -14,6 +14,8 @@ class AssetType(models.Model):
         default=EstadoChoices.ACTIVO, verbose_name='Estado'
     )
     es_personalizado = models.BooleanField(default=False, verbose_name='Es personalizado')
+    es_ti = models.BooleanField(default=False, verbose_name='Visible en TI')
+    es_prevencion = models.BooleanField(default=False, verbose_name='Visible en Prevención')
 
     class Meta:
         db_table = 'tipo_activo'

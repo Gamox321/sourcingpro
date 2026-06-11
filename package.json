@@ -1,0 +1,23 @@
+{
+  "name": "sourcingpro-main",
+  "version": "1.0.0",
+  "description": "SourcingPro es un sistema desarrollado para **Sourcing SPA**, empresa de servicios a la industria minera en Chile. El sistema centraliza y automatiza la gestión del ciclo de vida del trabajador, eliminando la coordinación manual entre las áreas de Recursos Humanos, TI, Finanzas, Logística y Prevención de Riesgos.",
+  "main": "index.js",
+  "scripts": {},
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Gamox321/sourcingpro.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/Gamox321/sourcingpro/issues"
+  },
+  "homepage": "https://github.com/Gamox321/sourcingpro#readme",
+  "devDependencies": {
+    "@playwright/test": "^1.60.0",
+    "@types/node": "^25.9.3"
+  }
+}

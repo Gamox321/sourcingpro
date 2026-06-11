@@ -45,14 +45,13 @@ class TIDashboardView(RoleRequiredMixin, TemplateView):
             fecha_completado__gte=primer_dia_mes,
         ).count()
         
-        try:
-            tipo_equipo_ti = AssetType.objects.get(nombre__icontains='Equipo TI')
-            equipos_ti_total = Asset.objects.filter(tipo=tipo_equipo_ti).count()
+        tipos_ti = AssetType.objects.filter(es_ti=True, estado='activo').values_list('pk', flat=True)
+        if tipos_ti:
+            equipos_ti_total = Asset.objects.filter(tipo__in=tipos_ti).count()
             equipos_ti_asignados = Asset.objects.filter(
-                tipo=tipo_equipo_ti,
-                estado=Asset.EstadoChoices.ASIGNADO
+                tipo__in=tipos_ti, estado=Asset.EstadoChoices.ASIGNADO
             ).count()
-        except AssetType.DoesNotExist:
+        else:
             equipos_ti_total = 0
             equipos_ti_asignados = 0
         
@@ -75,12 +74,11 @@ class TIDashboardView(RoleRequiredMixin, TemplateView):
         ctx['alerta_critica'] = alerta_critica
         ctx['mis_tareas'] = tareas_pendientes.order_by('-urgencia', 'plazo_limite')[:10]
         
-        try:
-            tipo_equipo_ti = AssetType.objects.get(nombre__icontains='Equipo TI')
+        if tipos_ti:
             inventario_ti = Asset.objects.filter(
-                tipo=tipo_equipo_ti
+                tipo__in=tipos_ti
             ).select_related('tipo').prefetch_related('asignaciones__trabajador')[:10]
-        except AssetType.DoesNotExist:
+        else:
             inventario_ti = Asset.objects.none()
         
         ctx['inventario_ti'] = inventario_ti
@@ -96,11 +94,10 @@ class TIInventarioView(RoleRequiredMixin, ListView):
     paginate_by = 20
 
     def get_queryset(self):
-        try:
-            tipo_equipo_ti = AssetType.objects.get(nombre__icontains='Equipo TI')
-            qs = Asset.objects.filter(tipo=tipo_equipo_ti).select_related('tipo')
-        except AssetType.DoesNotExist:
-            qs = Asset.objects.none()
+        tipos_ti = AssetType.objects.filter(es_ti=True, estado='activo').values_list('pk', flat=True)
+        if not tipos_ti:
+            return Asset.objects.none()
+        qs = Asset.objects.filter(tipo__in=tipos_ti).select_related('tipo')
 
         q = self.request.GET.get('q', '').strip()
         estado = self.request.GET.get('estado', '')
@@ -151,20 +148,22 @@ class TITableroGeneralView(RoleRequiredMixin, TemplateView):
 class TIAssetCreateView(RoleRequiredMixin, CreateView):
     model = Asset
     template_name = 'ti/asset_form.html'
-    fields = ['codigo', 'nombre']
+    fields = ['codigo', 'nombre', 'tipo']
     roles_requeridos = ['administrador', 'ti']
     success_url = reverse_lazy('ti:inventario')
 
+    def get_form(self, form_class=None):
+        form = super().get_form(form_class)
+        form.fields['tipo'].queryset = AssetType.objects.filter(
+            es_ti=True, estado=AssetType.EstadoChoices.ACTIVO
+        )
+        form.fields['tipo'].empty_label = '— Seleccionar tipo —'
+        return form
+
     def form_valid(self, form):
-        try:
-            tipo_equipo_ti = AssetType.objects.get(nombre__icontains='Equipo TI')
-        except AssetType.DoesNotExist:
-            messages.error(self.request, 'No existe el tipo de activo "Equipo TI".')
-            return redirect('ti:inventario')
-        
-        form.instance.tipo = tipo_equipo_ti
         form.instance.estado = Asset.EstadoChoices.DISPONIBLE
-        messages.success(self.request, f'Equipo TI "{form.instance.nombre}" creado exitosamente.')
+        tipo_nombre = form.instance.tipo.nombre
+        messages.success(self.request, f'{tipo_nombre} "{form.instance.nombre}" creado exitosamente.')
         return super().form_valid(form)
 
 

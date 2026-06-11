@@ -5,8 +5,16 @@
 {% block breadcrumbs %}
 <nav aria-label="breadcrumb">
     <ol class="breadcrumb">
+        {% if primary_role == 'ti' %}
+        <li class="breadcrumb-item"><a href="{% url 'ti:dashboard' %}"><i class="fas fa-home"></i></a></li>
+        <li class="breadcrumb-item"><a href="{% url 'ti:inventario' %}">TI</a></li>
+        {% elif primary_role == 'prevencion' %}
+        <li class="breadcrumb-item"><a href="{% url 'prevencion:dashboard' %}"><i class="fas fa-home"></i></a></li>
+        <li class="breadcrumb-item"><a href="{% url 'prevencion:inventario' %}">Prevención</a></li>
+        {% else %}
         <li class="breadcrumb-item"><a href="/"><i class="fas fa-home"></i></a></li>
         <li class="breadcrumb-item"><a href="{% url 'inventory:asset_list' %}">Inventario</a></li>
+        {% endif %}
         <li class="breadcrumb-item active">{{ asset.codigo }} — {{ asset.nombre }}</li>
     </ol>
 </nav>
@@ -16,13 +24,25 @@
 <div class="d-flex justify-content-between align-items-center mb-3">
     <h1 class="h3 text-gray-800">{{ asset.codigo }} — {{ asset.nombre }}</h1>
     <div>
+        {% if primary_role == 'ti' %}
+        <a href="{% url 'ti:inventario' %}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left me-1"></i>Volver
+        </a>
+        {% elif primary_role == 'prevencion' %}
+        <a href="{% url 'prevencion:inventario' %}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left me-1"></i>Volver
+        </a>
+        {% else %}
         <a href="{% url 'inventory:asset_list' %}" class="btn btn-secondary">
             <i class="fas fa-arrow-left me-1"></i>Volver
         </a>
+        {% endif %}
         {% if asset.estado != 'dado_de_baja' %}
-        <a href="{% url 'inventory:asset_edit' asset.pk %}" class="btn btn-warning">
-            <i class="fas fa-edit me-1"></i>Editar
-        </a>
+            {% if 'administrador' in user_roles or 'jefatura' in user_roles or 'logistica' in user_roles %}
+            <a href="{% url 'inventory:asset_edit' asset.pk %}" class="btn btn-warning">
+                <i class="fas fa-edit me-1"></i>Editar
+            </a>
+            {% endif %}
         {% endif %}
     </div>
 </div>
@@ -165,6 +185,7 @@
     {% endif %}
 
     {% if asset.estado != 'dado_de_baja' %}
+    {% if 'administrador' in user_roles or 'rrhh' in user_roles %}
     <div class="col-md-6 mb-4">
         <div class="card shadow border-danger">
             <div class="card-header py-3 bg-danger text-white">
@@ -184,6 +205,7 @@
             </div>
         </div>
     </div>
+    {% endif %}
     {% endif %}
 </div>
 

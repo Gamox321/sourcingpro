@@ -1,0 +1,21 @@
+Resultados de tests Playwright — 11/06/2026
+=============================================
+
+Tests ejecutados: 68
+Tests pasados:    68
+Tests fallidos:   0
+Errores:          Ninguno
+
+Resumen por archivo:
+  ✓ admin.spec.ts       — 5/5  Administración de Usuarios
+  ✓ auth.spec.ts        — 12/12 Autenticación
+  ✓ clients.spec.ts     — 10/10 Clientes y Centros de Costo
+  ✓ inventory.spec.ts   — 6/6  Inventario
+  ✓ kanban.spec.ts      — 6/6  Kanban Board
+  ✓ notifications.spec.ts — 5/5  Notificaciones
+  ✓ processes.spec.ts   — 6/6  Procesos
+  ✓ roles.spec.ts       — 11/11 Acceso por Roles
+  ✓ workers.spec.ts     — 7/7  Trabajadores
+
+Total: 68 passed en 2.0 minutos.
+Sin errores detectados.

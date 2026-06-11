@@ -10,3 +10,11 @@ staticfiles/
 .pytest_cache/
 .coverage
 htmlcov/
+
+# Playwright
+node_modules/
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/
+/playwright/.auth/

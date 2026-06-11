@@ -24,9 +24,11 @@ class AssetListView(RoleRequiredMixin, ListView):
         user = self.request.user
         if not user.roles.filter(nombre__in=ROLES_INVENTARIO).exists():
             if user.roles.filter(nombre='ti').exists():
-                qs = qs.filter(tipo__nombre='Equipos TI')
+                tipos_ti = AssetType.objects.filter(es_ti=True).values_list('pk', flat=True)
+                qs = qs.filter(tipo__in=tipos_ti)
             elif user.roles.filter(nombre='prevencion').exists():
-                qs = qs.filter(tipo__nombre='EPP')
+                tipos_epp = AssetType.objects.filter(es_prevencion=True).values_list('pk', flat=True)
+                qs = qs.filter(tipo__in=tipos_epp)
             else:
                 qs = qs.none()
 
@@ -63,7 +65,7 @@ class AssetDetailView(RoleRequiredMixin, DetailView):
     model = Asset
     template_name = 'inventory/asset_detail.html'
     context_object_name = 'asset'
-    roles_requeridos = ROLES_INVENTARIO + ['ti']
+    roles_requeridos = ROLES_INVENTARIO + ['ti', 'prevencion']
 
     def get_queryset(self):
         return Asset.objects.select_related('tipo')
@@ -103,10 +105,20 @@ class AssetUpdateView(RoleRequiredMixin, UpdateView):
 
 
 class AssetAssignView(RoleRequiredMixin, View):
-    roles_requeridos = ROLES_INVENTARIO
+    roles_requeridos = ROLES_INVENTARIO + ['ti', 'prevencion']
 
     def post(self, request, pk):
         asset = get_object_or_404(Asset, pk=pk)
+
+        if not request.user.roles.filter(nombre__in=ROLES_INVENTARIO).exists():
+            roles_usuario = set(request.user.roles.values_list('nombre', flat=True))
+            if 'ti' in roles_usuario and not asset.tipo.es_ti:
+                messages.error(request, 'Solo puedes asignar activos gestionados por TI.')
+                return redirect('inventory:asset_detail', pk=pk)
+            if 'prevencion' in roles_usuario and not asset.tipo.es_prevencion:
+                messages.error(request, 'Solo puedes asignar activos de EPP.')
+                return redirect('inventory:asset_detail', pk=pk)
+
         worker_id = request.POST.get('trabajador', '').strip()
 
         if asset.estado != Asset.EstadoChoices.DISPONIBLE:
@@ -136,10 +148,20 @@ class AssetAssignView(RoleRequiredMixin, View):
 
 
 class AssetReturnView(RoleRequiredMixin, View):
-    roles_requeridos = ROLES_INVENTARIO
+    roles_requeridos = ROLES_INVENTARIO + ['ti', 'prevencion']
 
     def post(self, request, pk):
         asset = get_object_or_404(Asset, pk=pk)
+
+        if not request.user.roles.filter(nombre__in=ROLES_INVENTARIO).exists():
+            roles_usuario = set(request.user.roles.values_list('nombre', flat=True))
+            if 'ti' in roles_usuario and not asset.tipo.es_ti:
+                messages.error(request, 'Solo puedes gestionar devoluciones de activos gestionados por TI.')
+                return redirect('inventory:asset_detail', pk=pk)
+            if 'prevencion' in roles_usuario and not asset.tipo.es_prevencion:
+                messages.error(request, 'Solo puedes gestionar devoluciones de activos de EPP.')
+                return redirect('inventory:asset_detail', pk=pk)
+
         asignacion_id = request.POST.get('asignacion', '').strip()
         estado_dev = request.POST.get('estado_devolucion', '').strip()
         foto_evidencia = request.FILES.get('foto_evidencia')

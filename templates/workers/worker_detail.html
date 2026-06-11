@@ -287,6 +287,67 @@
     </div>
 </div>
 
+<!-- Activos Asignados -->
+<div class="card shadow mb-4">
+    <div class="card-header py-3 d-flex justify-content-between align-items-center">
+        <h6 class="m-0 font-weight-bold text-primary">
+            <i class="fas fa-box me-2"></i>Activos Asignados
+        </h6>
+        {% if activos_asignados %}
+        <span class="badge bg-info">{{ activos_asignados|length }} activo(s)</span>
+        {% endif %}
+    </div>
+    <div class="card-body">
+        {% if activos_asignados %}
+        <div class="table-responsive">
+            <table class="table table-sm">
+                <thead>
+                    <tr>
+                        <th>Código</th>
+                        <th>Nombre</th>
+                        <th>Tipo</th>
+                        <th>Estado</th>
+                        <th>Fecha Asignación</th>
+                        <th>Acción</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for as in activos_asignados %}
+                    <tr>
+                        <td><code>{{ as.activo.codigo }}</code></td>
+                        <td>{{ as.activo.nombre }}</td>
+                        <td>{{ as.activo.tipo.nombre }}</td>
+                        <td>
+                            {% if as.activo.estado == 'asignado' %}
+                            <span class="badge bg-primary">Asignado</span>
+                            {% elif as.activo.estado == 'disponible' %}
+                            <span class="badge bg-success">Disponible</span>
+                            {% elif as.activo.estado == 'en_revision' %}
+                            <span class="badge bg-warning">En revisión</span>
+                            {% else %}
+                            <span class="badge bg-secondary">{{ as.activo.get_estado_display }}</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ as.fecha_asignacion|date:'d/m/Y' }}</td>
+                        <td>
+                            <a href="{% url 'inventory:asset_detail' as.activo.pk %}" class="btn btn-sm btn-info" title="Ver detalle">
+                                <i class="fas fa-eye"></i>
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <p class="text-center text-muted mb-0">
+            <i class="fas fa-box-open fa-2x mb-2 d-block"></i>
+            Sin activos asignados.
+        </p>
+        {% endif %}
+    </div>
+</div>
+
 <div class="card shadow mb-4">
     <div class="card-header py-3 d-flex justify-content-between align-items-center">
         <h6 class="m-0 font-weight-bold text-primary">Procesos Asociados</h6>

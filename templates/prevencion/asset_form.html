@@ -1,14 +1,14 @@
 {% extends "base.html" %}
 {% load widget_tweaks %}
 
-{% block title %}Nuevo Equipo{% endblock %}
+{% block title %}Nuevo EPP{% endblock %}
 
 {% block breadcrumbs %}
 <nav aria-label="breadcrumb">
     <ol class="breadcrumb">
-        <li class="breadcrumb-item"><a href="{% url 'ti:dashboard' %}"><i class="fas fa-home"></i></a></li>
-        <li class="breadcrumb-item"><a href="{% url 'ti:inventario' %}">Inventario TI</a></li>
-        <li class="breadcrumb-item active">Nuevo Equipo</li>
+        <li class="breadcrumb-item"><a href="{% url 'prevencion:dashboard' %}"><i class="fas fa-home"></i></a></li>
+        <li class="breadcrumb-item"><a href="{% url 'prevencion:inventario' %}">Inventario EPP</a></li>
+        <li class="breadcrumb-item active">Nuevo EPP</li>
     </ol>
 </nav>
 {% endblock %}
@@ -20,7 +20,7 @@
             <div class="card shadow mb-4">
                 <div class="card-header py-3">
                     <h6 class="m-0 font-weight-bold text-primary">
-                        <i class="fas fa-laptop me-2"></i>Nuevo Equipo
+                        <i class="fas fa-hard-hat me-2"></i>Nuevo Elemento EPP
                     </h6>
                 </div>
                 <div class="card-body">
@@ -28,42 +28,42 @@
                         {% csrf_token %}
 
                         <div class="mb-3">
-                            <label for="{{ form.tipo.id_for_label }}" class="form-label">Tipo de equipo <span class="text-danger">*</span></label>
+                            <label for="{{ form.tipo.id_for_label }}" class="form-label">Tipo de EPP <span class="text-danger">*</span></label>
                             {% render_field form.tipo class="form-select" %}
                             {% if form.tipo.errors %}
                             <div class="text-danger small mt-1">{{ form.tipo.errors }}</div>
                             {% endif %}
-                            <small class="form-text text-muted">Seleccione el tipo de equipo a registrar</small>
+                            <small class="form-text text-muted">Seleccione el tipo de elemento de protección a registrar</small>
                         </div>
 
                         <div class="mb-3">
                             <label for="{{ form.codigo.id_for_label }}" class="form-label">Código <span class="text-danger">*</span></label>
-                            {% render_field form.codigo class="form-control" placeholder="Ej: CP-001, TB-001, NB-001" %}
+                            {% render_field form.codigo class="form-control" placeholder="Ej: EPP-001, CAS-001" %}
                             {% if form.codigo.errors %}
                             <div class="text-danger small mt-1">{{ form.codigo.errors }}</div>
                             {% endif %}
-                            <small class="form-text text-muted">Código único del equipo</small>
+                            <small class="form-text text-muted">Código único del elemento</small>
                         </div>
 
                         <div class="mb-3">
                             <label for="{{ form.nombre.id_for_label }}" class="form-label">Nombre <span class="text-danger">*</span></label>
-                            {% render_field form.nombre class="form-control" placeholder="Ej: Laptop Dell Latitude 5540" %}
+                            {% render_field form.nombre class="form-control" placeholder="Ej: Casco de seguridad 3M" %}
                             {% if form.nombre.errors %}
                             <div class="text-danger small mt-1">{{ form.nombre.errors }}</div>
                             {% endif %}
-                            <small class="form-text text-muted">Nombre descriptivo del equipo</small>
+                            <small class="form-text text-muted">Nombre descriptivo del elemento</small>
                         </div>
 
                         <div class="alert alert-info">
                             <i class="fas fa-info-circle me-2"></i>
-                            El equipo se registrará con estado "Disponible".
+                            El elemento se registrará con estado "Disponible".
                         </div>
 
                         <div class="d-flex gap-2">
                             <button type="submit" class="btn btn-primary">
-                                <i class="fas fa-save me-1"></i>Guardar Equipo
+                                <i class="fas fa-save me-1"></i>Guardar EPP
                             </button>
-                            <a href="{% url 'ti:inventario' %}" class="btn btn-secondary">
+                            <a href="{% url 'prevencion:inventario' %}" class="btn btn-secondary">
                                 <i class="fas fa-times me-1"></i>Cancelar
                             </a>
                         </div>

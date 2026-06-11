@@ -1,8 +1,11 @@
 from datetime import timedelta
 
+from django.contrib import messages
 from django.db import models as db_models
+from django.shortcuts import redirect
+from django.urls import reverse_lazy
 from django.utils import timezone
-from django.views.generic import TemplateView, ListView
+from django.views.generic import TemplateView, ListView, CreateView
 
 from apps.accounts.decorators import RoleRequiredMixin
 from apps.inventory.models import Asset, AssetType
@@ -36,15 +39,15 @@ class PrevencionDashboardView(RoleRequiredMixin, TemplateView):
             estado__in=[Task.EstadoChoices.PENDIENTE, Task.EstadoChoices.EN_PROCESO]
         )
         
-        try:
-            tipo_epp = AssetType.objects.get(nombre__icontains='EPP')
-            epp_total = Asset.objects.filter(tipo=tipo_epp)
+        tipos_epp = AssetType.objects.filter(es_prevencion=True, estado='activo').values_list('pk', flat=True)
+        if tipos_epp:
+            epp_total = Asset.objects.filter(tipo__in=tipos_epp)
             epp_asignados = epp_total.filter(estado=Asset.EstadoChoices.ASIGNADO).count()
             epp_disponibles = epp_total.filter(estado=Asset.EstadoChoices.DISPONIBLE).count()
             inventario_epp = Asset.objects.filter(
-                tipo=tipo_epp
+                tipo__in=tipos_epp
             ).select_related('tipo').prefetch_related('asignaciones__trabajador')[:5]
-        except AssetType.DoesNotExist:
+        else:
             epp_asignados = 0
             epp_disponibles = 0
             inventario_epp = Asset.objects.none()
@@ -103,11 +106,10 @@ class PrevencionInventarioView(RoleRequiredMixin, ListView):
     paginate_by = 20
 
     def get_queryset(self):
-        try:
-            tipo_epp = AssetType.objects.get(nombre__icontains='EPP')
-            qs = Asset.objects.filter(tipo=tipo_epp).select_related('tipo')
-        except AssetType.DoesNotExist:
-            qs = Asset.objects.none()
+        tipos_epp = AssetType.objects.filter(es_prevencion=True, estado='activo').values_list('pk', flat=True)
+        if not tipos_epp:
+            return Asset.objects.none()
+        qs = Asset.objects.filter(tipo__in=tipos_epp).select_related('tipo')
 
         q = self.request.GET.get('q', '').strip()
         estado = self.request.GET.get('estado', '')
@@ -199,6 +201,28 @@ class PrevencionTableroGeneralView(RoleRequiredMixin, TemplateView):
         )
         
         return ctx
+
+
+class PrevencionAssetCreateView(RoleRequiredMixin, CreateView):
+    model = Asset
+    template_name = 'prevencion/asset_form.html'
+    fields = ['codigo', 'nombre', 'tipo']
+    roles_requeridos = ['administrador', 'prevencion']
+    success_url = reverse_lazy('prevencion:inventario')
+
+    def get_form(self, form_class=None):
+        form = super().get_form(form_class)
+        form.fields['tipo'].queryset = AssetType.objects.filter(
+            es_prevencion=True, estado=AssetType.EstadoChoices.ACTIVO
+        )
+        form.fields['tipo'].empty_label = '— Seleccionar tipo —'
+        return form
+
+    def form_valid(self, form):
+        form.instance.estado = Asset.EstadoChoices.DISPONIBLE
+        tipo_nombre = form.instance.tipo.nombre
+        messages.success(self.request, f'{tipo_nombre} "{form.instance.nombre}" creado exitosamente.')
+        return super().form_valid(form)
 
 
 class PrevencionNotificacionesView(NotificationListView):

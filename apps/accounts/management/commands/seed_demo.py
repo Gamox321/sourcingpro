@@ -97,12 +97,12 @@ class Command(BaseCommand):
 
     def _crear_activos(self, cecos, workers, admin):
         tipos = {t.nombre: t for t in AssetType.objects.all()}
-        if 'Equipo TI' in tipos:
+        if 'Equipos TI' in tipos:
             Asset.objects.get_or_create(
                 codigo='TI-001',
                 defaults={
                     'nombre': 'Notebook Dell Latitude',
-                    'tipo': tipos['Equipo TI'],
+                    'tipo': tipos['Equipos TI'],
                     'estado': 'asignado',
                 },
             )
@@ -110,7 +110,7 @@ class Command(BaseCommand):
                 codigo='TI-002',
                 defaults={
                     'nombre': 'Monitor Samsung 24"',
-                    'tipo': tipos['Equipo TI'],
+                    'tipo': tipos['Equipos TI'],
                     'estado': 'disponible',
                 },
             )
@@ -149,7 +149,7 @@ class Command(BaseCommand):
             'nombre': 'Andrés Castillo',
             'correo': 'andres.castillo@minera.cl',
             'cargo': 'Ayudante de Terreno',
-            'centro_costo': cecos[0].pk,
+            'centro_costo': cecos[0],
             'fecha_ingreso_estimada': (now + timedelta(days=7)).date(),
             'motivo': 'Cubrir licencia médica',
         })
@@ -162,7 +162,7 @@ class Command(BaseCommand):
             'nombre': 'Camila Reyes',
             'correo': 'camila.reyes@minera.cl',
             'cargo': 'Ingeniera en Prevención',
-            'centro_costo': cecos[2].pk,
+            'centro_costo': cecos[2],
             'fecha_ingreso_estimada': (now + timedelta(days=14)).date(),
             'motivo': 'Nuevo puesto creado',
         })

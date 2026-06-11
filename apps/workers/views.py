@@ -5,6 +5,7 @@ from django.urls import reverse_lazy
 from django.views.generic import ListView, DetailView, CreateView, UpdateView, View
 
 from apps.accounts.decorators import RoleRequiredMixin
+from apps.inventory.models import AssetAssignment
 from apps.notifications.services import notificar
 from apps.processes.models import Process
 from .models import Worker
@@ -81,6 +82,9 @@ class WorkerDetailView(RoleRequiredMixin, DetailView):
         ctx['procesos_cerrados'] = self.object.procesos.exclude(
             estado=Process.EstadoChoices.EN_CURSO
         ).order_by('-fecha_inicio')
+        ctx['activos_asignados'] = AssetAssignment.objects.filter(
+            trabajador=self.object, fecha_devolucion__isnull=True
+        ).select_related('activo__tipo')
         return ctx
 
 

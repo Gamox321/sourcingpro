@@ -51,6 +51,7 @@ jefatura_urlpatterns = ([
 prevencion_urlpatterns = ([
     path('', views_prevencion.PrevencionDashboardView.as_view(), name='dashboard'),
     path('inventario/', views_prevencion.PrevencionInventarioView.as_view(), name='inventario'),
+    path('inventario/nuevo/', views_prevencion.PrevencionAssetCreateView.as_view(), name='asset_create'),
     path('certificaciones/', views_prevencion.PrevencionCertificacionesView.as_view(), name='certificaciones'),
     path('tablero/', views_prevencion.PrevencionTableroGeneralView.as_view(), name='tablero'),
     path('notificaciones/', views_prevencion.PrevencionNotificacionesView.as_view(), name='notificaciones'),
