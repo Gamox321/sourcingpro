@@ -1,9 +1,12 @@
 from django.contrib import messages
 from django.db import models as db_models
 from django.shortcuts import redirect, get_object_or_404
+from django.views.decorators.cache import never_cache
 from django.views.generic import ListView, DetailView, TemplateView, View
+from django.utils.decorators import method_decorator
 
 from apps.accounts.decorators import RoleRequiredMixin
+from apps.inventory.models import Asset, AssetType
 from .models import Process, Task
 from .forms import (
     ContratacionForm, CambioCeCoForm, TerminoForm, DespidoForm,
@@ -178,7 +181,7 @@ class ProcessListView(RoleRequiredMixin, ListView):
     model = Process
     template_name = 'processes/process_list.html'
     context_object_name = 'processes'
-    roles_requeridos = ROLES_PROCESOS + ['ti', 'finanzas', 'logistica']
+    roles_requeridos = ROLES_PROCESOS + ['ti', 'prevencion', 'finanzas', 'logistica']
     paginate_by = 20
 
     def get_queryset(self):
@@ -214,7 +217,11 @@ class ProcessDetailView(RoleRequiredMixin, DetailView):
     model = Process
     template_name = 'processes/process_detail.html'
     context_object_name = 'process'
-    roles_requeridos = ROLES_PROCESOS + ['ti', 'finanzas', 'logistica']
+    roles_requeridos = ROLES_PROCESOS + ['ti', 'prevencion', 'finanzas', 'logistica']
+
+    @method_decorator(never_cache)
+    def dispatch(self, *args, **kwargs):
+        return super().dispatch(*args, **kwargs)
 
     def get_queryset(self):
         qs = Process.objects.select_related(
@@ -272,13 +279,19 @@ class ProcessCloseView(RoleRequiredMixin, View):
 
 
 class TaskCompleteView(RoleRequiredMixin, View):
-    roles_requeridos = ROLES_PROCESOS + ['ti', 'finanzas', 'logistica']
+    roles_requeridos = ROLES_PROCESOS + ['ti', 'prevencion', 'finanzas', 'logistica']
 
     def post(self, request, pk, task_pk):
         task = get_object_or_404(Task, pk=task_pk, proceso_id=pk)
 
         if task.estado in (Task.EstadoChoices.COMPLETADA, Task.EstadoChoices.GESTIONADO_EXTERNO):
             messages.warning(request, 'Esta tarea ya fue completada.')
+            return redirect('processes:process_detail', pk=pk)
+
+        es_responsable = task.usuario_responsable == request.user
+        es_admin = request.user.roles.filter(nombre='administrador').exists()
+        if not (es_responsable or es_admin):
+            messages.error(request, 'No tienes permiso para completar esta tarea.')
             return redirect('processes:process_detail', pk=pk)
 
         anteriores = task.tareas_anteriores()
@@ -303,6 +316,75 @@ class TaskCompleteView(RoleRequiredMixin, View):
                     f'<a href="mailto:?subject=Recordatorio: Finiquito proceso #{task.proceso.pk}" class="alert-link">Enviar recordatorio a Finanzas</a>'
                 )
                 return redirect('processes:process_detail', pk=pk)
+
+        if task.tipo in (Task.TipoChoices.FINIQUITO_COORDINACION,):
+            services.gestionar_externamente_tarea(task)
+            messages.success(request, f'Tarea {task.get_tipo_display()} marcada como gestionada externamente.')
+        else:
+            services.completar_tarea(task)
+            messages.success(request, f'Tarea {task.get_tipo_display()} completada.')
+
+        return redirect('processes:process_detail', pk=pk)
+
+
+class TaskAssetAssignView(RoleRequiredMixin, TemplateView):
+    template_name = 'processes/task_asset_assign.html'
+    roles_requeridos = ROLES_PROCESOS + ['ti', 'prevencion', 'finanzas', 'logistica']
+
+    def dispatch(self, request, *args, **kwargs):
+        self.task = get_object_or_404(
+            Task.objects.select_related('proceso__trabajador', 'usuario_responsable'),
+            pk=kwargs['task_pk'],
+            proceso_id=kwargs['pk'],
+        )
+        return super().dispatch(request, *args, **kwargs)
+
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        ctx['task'] = self.task
+        ctx['process'] = self.task.proceso
+        ctx['worker'] = self.task.proceso.trabajador
+
+        if self.task.tipo == Task.TipoChoices.EPP_INDUCCION:
+            ctx['asset_label'] = 'EPP'
+            ctx['available_assets'] = Asset.objects.filter(
+                tipo__es_prevencion=True,
+                estado=Asset.EstadoChoices.DISPONIBLE,
+            ).select_related('tipo').order_by('tipo__nombre', 'codigo')
+        elif self.task.tipo == Task.TipoChoices.EQUIPAMIENTO:
+            ctx['asset_label'] = 'Equipo TI'
+            ctx['available_assets'] = Asset.objects.filter(
+                tipo__es_ti=True,
+                estado=Asset.EstadoChoices.DISPONIBLE,
+            ).select_related('tipo').order_by('tipo__nombre', 'codigo')
+        else:
+            ctx['asset_label'] = 'Activo'
+            ctx['available_assets'] = Asset.objects.none()
+
+        return ctx
+
+    def post(self, request, pk, task_pk):
+        task = self.task
+
+        if task.estado in (Task.EstadoChoices.COMPLETADA, Task.EstadoChoices.GESTIONADO_EXTERNO):
+            messages.warning(request, 'Esta tarea ya fue completada.')
+            return redirect('processes:process_detail', pk=pk)
+
+        asset_ids = request.POST.getlist('activos', [])
+        if asset_ids:
+            assigned = services.completar_tarea_con_activos(task, asset_ids)
+            if assigned:
+                messages.success(
+                    request,
+                    f'Tarea completada. {len(assigned)} activos asignados: {", ".join(assigned)}.'
+                )
+            else:
+                messages.success(request, f'Tarea completada (sin activos asignados).')
+        else:
+            services.completar_tarea(task)
+            messages.success(request, f'Tarea {task.get_tipo_display()} completada (sin asignar activos).')
+
+        return redirect('processes:process_detail', pk=pk)
 
         if task.tipo in (Task.TipoChoices.FINIQUITO_COORDINACION,):
             services.gestionar_externamente_tarea(task)

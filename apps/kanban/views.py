@@ -198,7 +198,7 @@ class KanbanCardDetailView(RoleRequiredMixin, TemplateView):
 
 
 class KanbanUpdateTaskView(RoleRequiredMixin, View):
-    roles_requeridos = ['administrador', 'ti', 'finanzas', 'logistica']
+    roles_requeridos = ['administrador', 'ti', 'prevencion', 'finanzas', 'logistica']
 
     def post(self, request, pk):
         task = get_object_or_404(Task, pk=pk)
@@ -209,14 +209,22 @@ class KanbanUpdateTaskView(RoleRequiredMixin, View):
 
         responsable = task.usuario_responsable
         es_responsable = responsable == request.user
-        es_rrhh_jefatura = request.user.roles.filter(
-            nombre__in=['administrador', 'rrhh', 'jefatura']
-        ).exists()
+        es_admin = request.user.roles.filter(nombre='administrador').exists()
 
-        if not (es_responsable or es_rrhh_jefatura):
+        if not (es_responsable or es_admin):
             return JsonResponse({'error': 'No tienes permiso para cambiar esta tarea'}, status=403)
 
         if nuevo_estado in (Task.EstadoChoices.COMPLETADA, Task.EstadoChoices.GESTIONADO_EXTERNO):
+            anteriores = task.tareas_anteriores()
+            if anteriores.exists():
+                return JsonResponse({'error': 'Complete primero las tareas previas'}, status=400)
+            if (task.tipo == Task.TipoChoices.BLOQUEO_ACCESOS
+                    and task.proceso.tipo == Process.TipoChoices.TERMINO):
+                finiquito = task.proceso.tareas.filter(
+                    tipo=Task.TipoChoices.FINIQUITO_COORDINACION
+                ).first()
+                if finiquito and finiquito.estado != Task.EstadoChoices.COMPLETADA:
+                    return JsonResponse({'error': 'Finanzas debe completar el finiquito primero'}, status=400)
             from apps.processes import services
             if nuevo_estado == Task.EstadoChoices.GESTIONADO_EXTERNO:
                 services.gestionar_externamente_tarea(task)

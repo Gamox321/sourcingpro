@@ -111,9 +111,25 @@
         <i class="fas fa-id-card me-1"></i>Ficha Trabajador
     </a>
 
-    {% if 'administrador' in user_roles or 'rrhh' in user_roles or 'jefatura' in user_roles or es_responsable %}
+    {% if es_responsable and task.estado != 'completada' and task.estado != 'gestionado_externo' and not task.omitida %}
+        {% if task.tipo == 'epp_induccion' or task.tipo == 'equipamiento' %}
+        <a href="{% url 'processes:task_asset_assign' task.proceso.pk task.pk %}" class="btn btn-success">
+            <i class="fas fa-box me-1"></i>Asignar activo
+        </a>
+        {% else %}
+        <form method="post" action="{% url 'processes:task_complete' task.proceso.pk task.pk %}" class="d-inline"
+              data-confirm-form="¿Confirmar que {{ task.get_tipo_display }} está completada?">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-success">
+                <i class="fas fa-check me-1"></i>Completar
+            </button>
+        </form>
+        {% endif %}
+    {% endif %}
+
+    {% if 'administrador' in user_roles %}
     <div class="dropdown d-inline">
-        <button class="btn btn-warning dropdown-toggle" data-bs-toggle="dropdown">
+        <button class="btn btn-warning dropdown-toggle" data-bs-toggle="dropdown" title="Admin: cambiar estado manualmente">
             <i class="fas fa-exchange-alt me-1"></i>Cambiar Estado
         </button>
         <ul class="dropdown-menu">

@@ -167,6 +167,23 @@
                                     <a href="{% url 'kanban:card_detail' tarea.pk %}" class="btn btn-sm btn-outline-primary">
                                         <i class="fas fa-eye"></i> Ver
                                     </a>
+                                    {% if tarea.estado != 'completada' and tarea.estado != 'gestionado_externo' %}
+                                        {% if tarea.tipo == 'equipamiento' %}
+                                        <a href="{% url 'processes:task_asset_assign' tarea.proceso.pk tarea.pk %}" class="btn btn-sm btn-success"
+                                           {% if tarea.tareas_anteriores.exists %}disabled{% endif %}>
+                                            <i class="fas fa-box me-1"></i>Asignar equipo
+                                        </a>
+                                        {% else %}
+                                        <form method="post" action="{% url 'processes:task_complete' tarea.proceso.pk tarea.pk %}" class="d-inline"
+                                              data-confirm-form="¿Confirmar que {{ tarea.get_tipo_display }} está completada?">
+                                            {% csrf_token %}
+                                            <button type="submit" class="btn btn-sm btn-success" title="Completar"
+                                                    {% if tarea.tareas_anteriores.exists %}disabled{% endif %}>
+                                                <i class="fas fa-check"></i>
+                                            </button>
+                                        </form>
+                                        {% endif %}
+                                    {% endif %}
                                 </td>
                             </tr>
                             {% endfor %}

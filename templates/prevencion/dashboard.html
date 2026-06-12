@@ -127,6 +127,11 @@
                                 {% endif %}
                             </div>
                             {% endif %}
+                            {% if tarea.tipo == 'epp_induccion' %}
+                            <a href="{% url 'processes:task_asset_assign' tarea.proceso.pk tarea.pk %}" class="btn btn-sm btn-outline-success">
+                                <i class="fas fa-box me-1"></i>Asignar EPP
+                            </a>
+                            {% else %}
                             <form method="post" action="{% url 'processes:task_complete' tarea.proceso.pk tarea.pk %}" class="d-inline"
                                   data-confirm-form="Confirmar que {{ tarea.get_tipo_display }} para {{ tarea.proceso.trabajador.nombre }} esta completada?">
                                 {% csrf_token %}
@@ -134,6 +139,7 @@
                                     <i class="fas fa-check me-1"></i>Registrar completado
                                 </button>
                             </form>
+                            {% endif %}
                         </div>
                         {% endfor %}
                     </div>

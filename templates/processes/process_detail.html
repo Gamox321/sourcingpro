@@ -121,6 +121,7 @@
                     <tr>
                         <th>#</th>
                         <th>Tarea</th>
+                        <th>Area</th>
                         <th>Responsable</th>
                         <th>Estado</th>
                         <th>Plazo</th>
@@ -129,7 +130,7 @@
                 </thead>
                 <tbody>
                     {% for task in tareas %}
-                    <tr class="{% if task.estado == 'vencida' %}table-danger{% elif task.omitida %}text-muted{% endif %}">
+                    <tr class="{% if task.usuario_responsable == request.user %}table-active{% endif %}{% if task.estado == 'vencida' %} table-danger{% elif task.omitida %} text-muted{% endif %}">
                         <td class="text-muted small">{{ task.orden|default:forloop.counter }}</td>
                         <td>
                             <strong>{{ task.get_tipo_display }}</strong>
@@ -143,8 +144,24 @@
                             {% endif %}
                         </td>
                         <td>
+                            <span class="badge
+                                {% if task.area_responsable == 'ti' %}bg-primary
+                                {% elif task.area_responsable == 'prevencion' %}bg-warning text-dark
+                                {% elif task.area_responsable == 'logistica' %}bg-info
+                                {% elif task.area_responsable == 'finanzas' %}bg-success
+                                {% else %}bg-secondary{% endif %} small">
+                                {% if task.area_responsable == 'ti' %}TI
+                                {% elif task.area_responsable == 'prevencion' %}Prevención
+                                {% elif task.area_responsable == 'logistica' %}Logística
+                                {% elif task.area_responsable == 'finanzas' %}Finanzas
+                                {% else %}—{% endif %}
+                            </span>
+                        </td>
+                        <td>
                             {% if task.usuario_responsable %}
-                            {{ task.usuario_responsable.nombre }}
+                            <span class="{% if task.usuario_responsable == request.user %}fw-bold{% endif %}">
+                                {{ task.usuario_responsable.nombre }}
+                            </span>
                             {% else %}
                             <span class="text-muted">Sin asignar</span>
                             {% endif %}
@@ -178,23 +195,34 @@
                         </td>
                         <td>
                             {% if process.estado == 'en_curso' and not task.omitida and task.estado != 'completada' and task.estado != 'gestionado_externo' %}
-                                {% if task.tipo == 'finiquito_coordinacion' %}
-                                <form method="post" action="{% url 'processes:task_complete' process.pk task.pk %}" class="d-inline"
-                                      data-confirm-form="Marcar como gestionado externamente: {{ task.get_tipo_display }}?">
-                                    {% csrf_token %}
-                                    <button type="submit" class="btn btn-sm btn-info">
-                                        <i class="fas fa-external-link-alt me-1"></i>Gest. externo
-                                    </button>
-                                </form>
+                                {% if task.usuario_responsable == request.user or 'administrador' in user_roles %}
+                                    {% if task.tipo == 'finiquito_coordinacion' %}
+                                    <form method="post" action="{% url 'processes:task_complete' process.pk task.pk %}" class="d-inline"
+                                          data-confirm-form="Marcar como gestionado externamente: {{ task.get_tipo_display }}?">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn btn-sm btn-info">
+                                            <i class="fas fa-external-link-alt me-1"></i>Gest. externo
+                                        </button>
+                                    </form>
+                                    {% else %}
+                                        {% if task.tipo == 'epp_induccion' or task.tipo == 'equipamiento' %}
+                                        <a href="{% url 'processes:task_asset_assign' process.pk task.pk %}" class="btn btn-sm btn-success"
+                                                {% if task.esta_bloqueada %}disabled title="Tareas previas no completadas"{% endif %}>
+                                            <i class="fas fa-box me-1"></i>Asignar activo
+                                        </a>
+                                        {% else %}
+                                        <form method="post" action="{% url 'processes:task_complete' process.pk task.pk %}" class="d-inline"
+                                              data-confirm-form="Confirmar que {{ task.get_tipo_display }} esta completada?">
+                                            {% csrf_token %}
+                                            <button type="submit" class="btn btn-sm btn-success"
+                                                    {% if task.esta_bloqueada %}disabled title="Tareas previas no completadas"{% endif %}>
+                                                <i class="fas fa-check me-1"></i>Completar
+                                            </button>
+                                        </form>
+                                        {% endif %}
+                                    {% endif %}
                                 {% else %}
-                                <form method="post" action="{% url 'processes:task_complete' process.pk task.pk %}" class="d-inline"
-                                      data-confirm-form="Confirmar que {{ task.get_tipo_display }} esta completada?">
-                                    {% csrf_token %}
-                                    <button type="submit" class="btn btn-sm btn-success"
-                                            {% if task.esta_bloqueada %}disabled title="Tareas previas no completadas"{% endif %}>
-                                        <i class="fas fa-check me-1"></i>Completar
-                                    </button>
-                                </form>
+                                    <small class="text-muted">Asignada a {{ task.usuario_responsable.nombre|default:'otra area' }}</small>
                                 {% endif %}
                             {% elif task.estado == 'completada' %}
                             <small class="text-success">{{ task.fecha_completado|date:'d/m/Y' }}</small>

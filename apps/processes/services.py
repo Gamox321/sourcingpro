@@ -1,4 +1,5 @@
 import datetime
+import logging
 
 from django.db import transaction
 from django.utils import timezone
@@ -7,6 +8,8 @@ from apps.accounts.models import User, Role
 from apps.workers.models import Worker, CostCenterHistory
 from apps.inventory.models import Asset, AssetAssignment
 from .models import Process, Task
+
+logger = logging.getLogger(__name__)
 
 
 def _notificar_tarea(task, tipo_evento='tarea_cambio_estado'):
@@ -39,23 +42,17 @@ def _notificar_iniciador(proceso, tipo_evento, titulo, descripcion):
     )
 
 
-TASK_TYPE_ROLE_MAP = {
-    Task.TipoChoices.CREAR_CUENTA_TI: 'ti',
-    Task.TipoChoices.EXAMENES_PREOCUPACIONALES: 'prevencion',
-    Task.TipoChoices.EPP_INDUCCION: 'prevencion',
-    Task.TipoChoices.EQUIPAMIENTO: 'logistica',
-    Task.TipoChoices.DEVOLUCION_ACTIVOS: 'logistica',
-    Task.TipoChoices.RECUPERACION_ACTIVOS: 'logistica',
-    Task.TipoChoices.PREPARAR_BLOQUEO_ACCESOS: 'ti',
-    Task.TipoChoices.BLOQUEO_ACCESOS: 'ti',
-    Task.TipoChoices.FINIQUITO_COORDINACION: 'finanzas',
-}
-
-
 def _find_user_for_role(role_name):
-    return User.objects.filter(
+    user = User.objects.filter(
         is_active=True, roles__nombre=role_name
     ).distinct().first()
+    if user is None:
+        logger.warning(
+            'No active user found for role "%s". Tasks of this type will be orphaned '
+            '(usuario_responsable=None). Run seed_demo or create a user with this role.',
+            role_name,
+        )
+    return user
 
 
 def _make_aware(dt):
@@ -74,8 +71,8 @@ def _create_task(proceso, tipo, descripcion=None, urgencia='normal',
                  plazo_limite=None, omitida=False, motivo_omision=None, orden=0):
     from .models import TaskDeadlineConfig
     from apps.audit.models import AuditLog
-    
-    role_name = TASK_TYPE_ROLE_MAP.get(tipo)
+
+    role_name = Task.TIPO_AREA_MAP.get(tipo)
     responsable = _find_user_for_role(role_name) if role_name else None
 
     # Obtener configuración de plazo si existe
@@ -490,6 +487,24 @@ def completar_tarea(task):
 
     _check_process_completion(task.proceso)
     return task
+
+
+def completar_tarea_con_activos(task, asset_ids):
+    worker = task.proceso.trabajador
+    assigned = []
+    for asset_id in asset_ids:
+        asset = Asset.objects.filter(pk=asset_id, estado='disponible').first()
+        if not asset:
+            continue
+        AssetAssignment.objects.create(
+            activo=asset,
+            trabajador=worker,
+            proceso=task.proceso,
+        )
+        asset.cambiar_estado(Asset.EstadoChoices.ASIGNADO)
+        assigned.append(asset.codigo)
+    completar_tarea(task)
+    return assigned
 
 
 def gestionar_externamente_tarea(task):

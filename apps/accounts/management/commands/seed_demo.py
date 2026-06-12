@@ -96,48 +96,93 @@ class Command(BaseCommand):
         return workers
 
     def _crear_activos(self, cecos, workers, admin):
+        self._seed_asset_types()
         tipos = {t.nombre: t for t in AssetType.objects.all()}
-        if 'Equipos TI' in tipos:
+
+        ti_types = ['Notebook', 'Monitor', 'Computador', 'Periférico', 'Teléfono', 'Impresora']
+        epp_types = ['Casco', 'Guantes', 'Chaleco reflectante', 'Zapatos seguridad',
+                     'Lentes seguridad', 'Arnés', 'Protector auditivo', 'Respirador', 'Ropa trabajo']
+
+        ti_models = ['Dell Latitude', 'HP EliteBook', 'Lenovo ThinkPad', 'MacBook Pro',
+                     'Samsung 24"', 'LG 27"', 'Dell 27"', 'HP 22"',
+                     'OptiPlex 7080', 'EliteDesk 800', 'ThinkCentre M90',
+                     'Teclado Logitech', 'Mouse Logitech', 'Webcam HD', 'Audífonos Jabra',
+                     'iPhone 14', 'Samsung Galaxy', 'iPhone 15',
+                     'HP LaserJet', 'Brother MFC', 'Epson EcoTank']
+
+        epp_models = ['Casco MSA V-Gard', 'Casco 3M H-700', 'Casco Kask Zenith',
+                      'Guante nitrilo', 'Guante cuero', 'Guante anticorte',
+                      'Chaleco amarillo', 'Chaleco naranja', 'Chaleco verde',
+                      'Bota seguridad 3M', 'Zapato dieléctrico', 'Bota punta composite',
+                      'Lente 3M claro', 'Lente oscuro', 'Goggle antiempañante',
+                      'Arnés cuerpo completo', 'Arnés posicionamiento',
+                      'Orejera 3M Peltor', 'Tapón reutilizable',
+                      'Respirador N95', 'Media cara 3M',
+                      'Overol azul', 'Overol naranja', 'Chaqueta trabajo']
+
+        total_ti = 0
+        for i in range(1, 34):
+            tipo_name = ti_types[i % len(ti_types)]
+            model = ti_models[(i - 1) % len(ti_models)]
             Asset.objects.get_or_create(
-                codigo='TI-001',
+                codigo='TI-{:03d}'.format(i),
                 defaults={
-                    'nombre': 'Notebook Dell Latitude',
-                    'tipo': tipos['Equipos TI'],
-                    'estado': 'asignado',
-                },
-            )
-            Asset.objects.get_or_create(
-                codigo='TI-002',
-                defaults={
-                    'nombre': 'Monitor Samsung 24"',
-                    'tipo': tipos['Equipos TI'],
+                    'nombre': '{} {}'.format(tipo_name, model),
+                    'tipo': tipos[tipo_name],
                     'estado': 'disponible',
                 },
             )
-        if 'EPP' in tipos:
+            total_ti += 1
+
+        total_epp = 0
+        for i in range(1, 34):
+            tipo_name = epp_types[i % len(epp_types)]
+            model = epp_models[(i - 1) % len(epp_models)]
             Asset.objects.get_or_create(
-                codigo='EPP-001',
+                codigo='EPP-{:03d}'.format(i),
                 defaults={
-                    'nombre': 'Casco de Seguridad MSA',
-                    'tipo': tipos['EPP'],
-                    'estado': 'asignado',
-                },
-            )
-            Asset.objects.get_or_create(
-                codigo='EPP-002',
-                defaults={
-                    'nombre': 'Arnés de Seguridad',
-                    'tipo': tipos['EPP'],
-                    'estado': 'asignado',
-                },
-            )
-            Asset.objects.get_or_create(
-                codigo='EPP-003',
-                defaults={
-                    'nombre': 'Botas de Seguridad',
-                    'tipo': tipos['EPP'],
+                    'nombre': '{} {}'.format(tipo_name, model),
+                    'tipo': tipos[tipo_name],
                     'estado': 'disponible',
                 },
+            )
+            total_epp += 1
+
+        self.stdout.write('  {} activos TI creados'.format(total_ti))
+        self.stdout.write('  {} activos EPP creados'.format(total_epp))
+
+    def _seed_asset_types(self):
+        tipos_ti = [
+            ('Computador', 'Computadores de escritorio y estaciones de trabajo'),
+            ('Tablet', 'Tablets y dispositivos móviles táctiles'),
+            ('Notebook', 'Laptops, notebooks y ultrabooks'),
+            ('Monitor', 'Monitores y pantallas'),
+            ('Teléfono', 'Teléfonos fijos y smartphones corporativos'),
+            ('Impresora', 'Impresoras, escáneres y multifuncionales'),
+            ('Periférico', 'Teclados, mouse, audífonos, webcams y otros periféricos'),
+            ('Equipos TI', 'Equipos tecnológicos generales (legado)'),
+        ]
+        tipos_epp = [
+            ('Casco', 'Cascos de seguridad industrial'),
+            ('Arnés', 'Arneses y líneas de vida'),
+            ('Zapatos seguridad', 'Zapatos y botas de seguridad'),
+            ('Chaleco reflectante', 'Chalecos de alta visibilidad'),
+            ('Guantes', 'Guantes de protección'),
+            ('Lentes seguridad', 'Lentes y goggles de protección'),
+            ('Protector auditivo', 'Protectores auditivos (orejeras, tapones)'),
+            ('Respirador', 'Respiradores y mascarillas'),
+            ('Ropa trabajo', 'Ropa de trabajo y overoles'),
+            ('EPP', 'Elementos de protección personal (legado)'),
+        ]
+        for nombre, desc in tipos_ti:
+            AssetType.objects.get_or_create(
+                nombre=nombre,
+                defaults={'descripcion': desc, 'es_ti': True},
+            )
+        for nombre, desc in tipos_epp:
+            AssetType.objects.get_or_create(
+                nombre=nombre,
+                defaults={'descripcion': desc, 'es_prevencion': True},
             )
 
     def _crear_procesos(self, usuarios, workers, cecos):
