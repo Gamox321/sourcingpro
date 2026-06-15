@@ -152,14 +152,21 @@
                                         <i class="fas fa-eye"></i>
                                     </a>
                                     {% if tarea.estado != 'completada' and tarea.estado != 'gestionado_externo' %}
-                                    <form method="post" action="{% url 'processes:task_complete' tarea.proceso.pk tarea.pk %}" class="d-inline"
-                                          data-confirm-form="¿Confirmar que {{ tarea.get_tipo_display }} está completada?">
-                                        {% csrf_token %}
-                                        <button type="submit" class="btn btn-sm btn-success" title="Completar tarea"
+                                        {% if tarea.tipo == 'crear_cuenta_ti' %}
+                                        <a href="{% url 'processes:task_account_create' tarea.proceso.pk tarea.pk %}" class="btn btn-sm btn-info" title="Registrar cuenta TI"
                                                 {% if tarea.tareas_anteriores.exists %}disabled{% endif %}>
-                                            <i class="fas fa-check"></i>
-                                        </button>
-                                    </form>
+                                            <i class="fas fa-user-plus"></i>
+                                        </a>
+                                        {% else %}
+                                        <form method="post" action="{% url 'processes:task_complete' tarea.proceso.pk tarea.pk %}" class="d-inline"
+                                              data-confirm-form="¿Confirmar que {{ tarea.get_tipo_display }} está completada?">
+                                            {% csrf_token %}
+                                            <button type="submit" class="btn btn-sm btn-success" title="Completar tarea"
+                                                    {% if tarea.tareas_anteriores.exists %}disabled{% endif %}>
+                                                <i class="fas fa-check"></i>
+                                            </button>
+                                        </form>
+                                        {% endif %}
                                     {% endif %}
                                 </div>
                             </div>

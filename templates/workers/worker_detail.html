@@ -101,6 +101,45 @@
     </div>
 </div>
 
+{% if worker.cuenta_ti_email %}
+<div class="card shadow mb-4 border-left-info">
+    <div class="card-header py-3 d-flex justify-content-between align-items-center">
+        <h6 class="m-0 font-weight-bold text-info">
+            <i class="fas fa-laptop me-2"></i>Cuenta TI (Sistema Externo)
+        </h6>
+        <small class="text-muted">{{ worker.cuenta_ti_fecha_creacion|date:'d/m/Y H:i' }}</small>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-6 mb-2">
+                <label class="small text-muted mb-1">Correo corporativo</label>
+                <div class="d-flex align-items-center gap-2">
+                    <code class="fs-6">{{ worker.cuenta_ti_email }}</code>
+                    <button type="button" class="btn btn-sm btn-outline-secondary" data-copy="{{ worker.cuenta_ti_email }}" title="Copiar correo">
+                        <i class="fas fa-copy"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="col-md-6 mb-2">
+                <label class="small text-muted mb-1">Clave inicial</label>
+                <div class="d-flex align-items-center gap-2">
+                    <code id="cuentaTiClave" title="Click para copiar">{{ worker.cuenta_ti_clave_inicial }}</code>
+                    <button type="button" class="btn btn-sm btn-outline-secondary" data-copy="{{ worker.cuenta_ti_clave_inicial }}" title="Copiar clave">
+                        <i class="fas fa-copy"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+        {% if worker.cuenta_ti_notas %}
+        <div class="mt-2">
+            <label class="small text-muted mb-1">Notas</label>
+            <p class="mb-0 small bg-light p-2 rounded">{{ worker.cuenta_ti_notas|linebreaksbr }}</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endif %}
+
 <div class="card shadow mb-4">
     <div class="card-header py-3">
         <h6 class="m-0 font-weight-bold text-primary">Procesos Asociados</h6>

@@ -1,15 +1,18 @@
 from django.contrib import messages
 from django.db import models as db_models
 from django.shortcuts import redirect, get_object_or_404
+from django.utils import timezone
 from django.views.decorators.cache import never_cache
 from django.views.generic import ListView, DetailView, TemplateView, View
 from django.utils.decorators import method_decorator
 
 from apps.accounts.decorators import RoleRequiredMixin
 from apps.inventory.models import Asset, AssetType
+from apps.workers.models import Worker
 from .models import Process, Task
 from .forms import (
     ContratacionForm, CambioCeCoForm, TerminoForm, DespidoForm,
+    AsignacionActivosForm,
 )
 from . import services
 
@@ -177,6 +180,39 @@ class ProcessCreateDespidoView(RoleRequiredMixin, TemplateView):
         return self.render_to_response(ctx)
 
 
+class ProcessCreateAsignacionActivosView(RoleRequiredMixin, TemplateView):
+    template_name = 'processes/process_form.html'
+    roles_requeridos = ROLES_PROCESOS
+
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        ctx['form'] = AsignacionActivosForm(user_cecos=_get_user_cecos(self.request.user))
+        ctx['tipo'] = 'asignacion_activos'
+        ctx['titulo'] = 'Asignacion de Activos TI'
+        ctx['descripcion'] = 'Solicita la asignacion de equipo TI a un trabajador activo. El area de TI seleccionara y asignara el equipo correspondiente.'
+        ctx['tareas_info'] = [
+            ('Asignacion de Equipo TI', 'TI'),
+        ]
+        return ctx
+
+    def post(self, request):
+        form = AsignacionActivosForm(request.POST, user_cecos=_get_user_cecos(request.user))
+        if form.is_valid():
+            try:
+                proceso = services.crear_proceso_asignacion_activos(
+                    usuario=request.user,
+                    worker_id=form.cleaned_data['trabajador'].pk,
+                    comentario=form.cleaned_data.get('comentario', ''),
+                )
+                messages.success(request, 'Proceso de asignacion de activos iniciado.')
+                return redirect('processes:process_detail', pk=proceso.pk)
+            except Exception as e:
+                messages.error(request, f'Error: {e}')
+        ctx = self.get_context_data()
+        ctx['form'] = form
+        return self.render_to_response(ctx)
+
+
 class ProcessListView(RoleRequiredMixin, ListView):
     model = Process
     template_name = 'processes/process_list.html'
@@ -315,7 +351,61 @@ class TaskCompleteView(RoleRequiredMixin, View):
                     'No puede bloquear accesos hasta que Finanzas complete la coordinación de finiquito. '
                     f'<a href="mailto:?subject=Recordatorio: Finiquito proceso #{task.proceso.pk}" class="alert-link">Enviar recordatorio a Finanzas</a>'
                 )
-                return redirect('processes:process_detail', pk=pk)
+        return redirect('processes:process_detail', pk=pk)
+
+
+class TaskAccountCreateView(RoleRequiredMixin, TemplateView):
+    template_name = 'processes/task_account_create.html'
+    roles_requeridos = ROLES_PROCESOS + ['ti', 'prevencion', 'finanzas', 'logistica']
+
+    def dispatch(self, request, *args, **kwargs):
+        self.task = get_object_or_404(
+            Task.objects.select_related('proceso__trabajador', 'usuario_responsable'),
+            pk=kwargs['task_pk'],
+            proceso_id=kwargs['pk'],
+        )
+        return super().dispatch(request, *args, **kwargs)
+
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        ctx['task'] = self.task
+        ctx['process'] = self.task.proceso
+        ctx['worker'] = self.task.proceso.trabajador
+        return ctx
+
+    def post(self, request, pk, task_pk):
+        task = self.task
+
+        if task.estado in (Task.EstadoChoices.COMPLETADA, Task.EstadoChoices.GESTIONADO_EXTERNO):
+            messages.warning(request, 'Esta tarea ya fue completada.')
+            return redirect('processes:process_detail', pk=pk)
+
+        worker = task.proceso.trabajador
+        email = request.POST.get('email', '').strip()
+        clave = request.POST.get('clave', '').strip()
+        notas = request.POST.get('notas', '').strip()
+
+        if email:
+            worker.cuenta_ti_email = email
+            worker.cuenta_ti_clave_inicial = clave or worker.cuenta_ti_clave_inicial
+            worker.cuenta_ti_fecha_creacion = timezone.now()
+            worker.cuenta_ti_notas = notas or worker.cuenta_ti_notas
+            worker.save(update_fields=[
+                'cuenta_ti_email', 'cuenta_ti_clave_inicial',
+                'cuenta_ti_fecha_creacion', 'cuenta_ti_notas',
+            ])
+
+        services.completar_tarea(task)
+
+        if email:
+            messages.success(
+                request,
+                f'Cuenta TI registrada para {worker.nombre} ({email}). Tarea completada.'
+            )
+        else:
+            messages.success(request, f'Tarea completada (sin registrar credenciales).')
+
+        return redirect('processes:process_detail', pk=pk)
 
         if task.tipo in (Task.TipoChoices.FINIQUITO_COORDINACION,):
             services.gestionar_externamente_tarea(task)
@@ -351,7 +441,7 @@ class TaskAssetAssignView(RoleRequiredMixin, TemplateView):
                 tipo__es_prevencion=True,
                 estado=Asset.EstadoChoices.DISPONIBLE,
             ).select_related('tipo').order_by('tipo__nombre', 'codigo')
-        elif self.task.tipo == Task.TipoChoices.EQUIPAMIENTO:
+        elif self.task.tipo in (Task.TipoChoices.EQUIPAMIENTO, Task.TipoChoices.ASIGNAR_EQUIPO_TI):
             ctx['asset_label'] = 'Equipo TI'
             ctx['available_assets'] = Asset.objects.filter(
                 tipo__es_ti=True,

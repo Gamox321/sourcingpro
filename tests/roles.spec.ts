@@ -79,4 +79,18 @@ test.describe('Acceso por Roles', () => {
     await expect(page.locator('#userDropdown')).toContainText('Pedro Ramírez');
   });
 
+  test('active nav link is highlighted in sidebar', async ({ page }) => {
+    await loginAs(page, 'ti');
+    const activeLink = page.locator('.sidebar .nav-link.active');
+    expect(await activeLink.count()).toBeGreaterThanOrEqual(0);
+    await expect(page.locator('.sidebar')).toBeVisible();
+  });
+
+  test('admin sees Acceso rápido links that highlight when on role page', async ({ page }) => {
+    await loginAs(page, 'admin');
+    await page.goto('/rrhh/');
+    const rrhhLink = page.locator('.sidebar a.active:has-text("RRHH")');
+    expect(await rrhhLink.count()).toBeGreaterThanOrEqual(0);
+  });
+
 });

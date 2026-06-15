@@ -1,0 +1,26 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ worker.nombre }} — Ficha{% endblock %}
+
+{% block breadcrumbs %}
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{% url 'jefatura:nomina' %}"><i class="fas fa-home"></i></a></li>
+        <li class="breadcrumb-item"><a href="{% url 'jefatura:nomina' %}">Mi Nómina</a></li>
+        <li class="breadcrumb-item active">{{ worker.nombre }}</li>
+    </ol>
+</nav>
+{% endblock %}
+
+{% block content %}
+<div class="card shadow">
+    <div class="card-header py-3">
+        <h6 class="m-0 font-weight-bold text-primary">
+            <i class="fas fa-id-card me-2"></i>Ficha del Trabajador
+        </h6>
+    </div>
+    <div class="card-body">
+        {% include 'jefatura/_trabajador_ficha.html' %}
+    </div>
+</div>
+{% endblock %}

@@ -10,6 +10,7 @@ from apps.inventory.models import AssetType, Asset, AssetAssignment
 from apps.processes.services import (
     crear_proceso_contratacion, crear_proceso_cambio_ceco,
     crear_proceso_termino, crear_proceso_despido,
+    crear_proceso_asignacion_activos,
     completar_tarea,
 )
 from apps.notifications.services import notificar
@@ -237,6 +238,13 @@ class Command(BaseCommand):
                 'Art. 160 N°5 — Incumplimiento grave de obligaciones',
             )
             self.stdout.write(f'  Despido #{p5.pk} en curso ({workers[4].nombre})')
+
+        if len(workers) >= 6:
+            p6 = crear_proceso_asignacion_activos(
+                rrhh, workers[5].pk,
+                'Solicitud de notebook para trabajo en terreno',
+            )
+            self.stdout.write(f'  Asignacion Activos TI #{p6.pk} en curso ({workers[5].nombre})')
 
     def _crear_notificaciones(self, usuarios, admin):
         for rol_nombre, user in usuarios.items():

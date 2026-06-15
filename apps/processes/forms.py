@@ -150,3 +150,25 @@ class DespidoForm(forms.Form):
         ).exists():
             raise ValidationError('Este trabajador ya tiene un proceso de despido en curso.')
         return worker
+
+
+class AsignacionActivosForm(forms.Form):
+    trabajador = forms.ModelChoiceField(
+        queryset=Worker.objects.filter(estado='activo').order_by('nombre'),
+        label='Trabajador',
+        widget=forms.Select(attrs={'class': 'form-select'}),
+        help_text='Selecciona el trabajador que recibira el equipo TI.',
+    )
+    comentario = forms.CharField(
+        required=False, max_length=500, label='Comentario',
+        widget=forms.Textarea(attrs={'class': 'form-control', 'rows': 2, 'placeholder': 'Tipo de equipo, sucursal, urgencia...'}),
+        help_text='Sugerencia opcional sobre el equipo a asignar.',
+    )
+
+    def __init__(self, *args, **kwargs):
+        user_cecos = kwargs.pop('user_cecos', None)
+        super().__init__(*args, **kwargs)
+        if user_cecos is not None:
+            self.fields['trabajador'].queryset = self.fields['trabajador'].queryset.filter(
+                centro_costo_actual__in=user_cecos,
+            )

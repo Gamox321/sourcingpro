@@ -1,0 +1,118 @@
+{% extends 'base.html' %}
+
+{% block title %}Registrar Cuenta TI — {{ worker.nombre }}{% endblock %}
+
+{% block breadcrumbs %}
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="/"><i class="fas fa-home"></i></a></li>
+        <li class="breadcrumb-item"><a href="{% url 'processes:process_detail' process.pk %}">Proceso #{{ process.pk }}</a></li>
+        <li class="breadcrumb-item active">Registrar Cuenta TI</li>
+    </ol>
+</nav>
+{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-7">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3 d-flex justify-content-between align-items-center">
+                <h6 class="m-0 font-weight-bold text-primary">
+                    <i class="fas fa-user-plus me-2"></i>Registrar Cuenta TI
+                </h6>
+                <span class="badge bg-primary">Contrataci&oacute;n</span>
+            </div>
+            <div class="card-body">
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <strong>Trabajador:</strong> {{ worker.nombre }}
+                    </div>
+                    <div class="col-md-6">
+                        <strong>Proceso:</strong>
+                        <span class="badge
+                            {% if process.tipo == 'contratacion' %}bg-primary
+                            {% elif process.tipo == 'cambio_ceco' %}bg-info
+                            {% elif process.tipo == 'termino' %}bg-warning text-dark
+                            {% elif process.tipo == 'despido' %}bg-danger
+                            {% else %}bg-success{% endif %}">
+                            {{ process.get_tipo_display }}
+                        </span>
+                        #{{ process.pk }}
+                    </div>
+                </div>
+
+                <div class="alert alert-light border mb-4">
+                    <i class="fas fa-info-circle text-primary me-2"></i>
+                    Esta cuenta es para un <strong>sistema externo</strong> (no relacionado con SourcingPro).
+                    Los datos ingresados son meramente informativos y quedar&aacute;n visibles en la ficha del trabajador.
+                </div>
+
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label class="form-label">Correo corporativo <span class="text-danger">*</span></label>
+                        <input type="email" name="email" class="form-control" required
+                               placeholder="nombre.apellido@empresa.cl"
+                               value="{{ worker.cuenta_ti_email|default:'' }}">
+                        <div class="form-text">Correo electr&oacute;nico creado para el trabajador en el sistema externo.</div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Clave inicial</label>
+                        <div class="input-group">
+                            <input type="text" name="clave" class="form-control" id="id_clave"
+                                   placeholder="Clave inicial asignada"
+                                   value="{{ worker.cuenta_ti_clave_inicial|default:'' }}">
+                            <button type="button" class="btn btn-outline-secondary" id="toggleClave" title="Mostrar/ocultar">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            <button type="button" class="btn btn-outline-success" id="generarClave" title="Generar clave segura">
+                                <i class="fas fa-dice me-1"></i>Generar
+                            </button>
+                        </div>
+                        <div class="form-text">Clave inicial para el primer acceso. Se recomienda generar una clave segura.</div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Notas (opcional)</label>
+                        <textarea name="notas" class="form-control" rows="2"
+                                  placeholder="Nombre de usuario, dominio, sistemas asociados...">{{ worker.cuenta_ti_notas|default:'' }}</textarea>
+                    </div>
+
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-success">
+                            <i class="fas fa-check me-1"></i>Registrar cuenta y completar tarea
+                        </button>
+                        <button type="submit" class="btn btn-outline-secondary"
+                                onclick="document.querySelector('input[name=email]').value=''; document.querySelector('input[name=clave]').value=''"
+                                data-confirm="&iquest;Completar la tarea sin registrar credenciales? Los datos no quedar&aacute;n guardados.">
+                            <i class="fas fa-forward me-1"></i>Completar sin registrar
+                        </button>
+                        <a href="{% url 'processes:process_detail' process.pk %}" class="btn btn-outline-secondary">
+                            Cancelar
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.getElementById('generarClave').addEventListener('click', function() {
+    var chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789!@#$%';
+    var pwd = '';
+    for (var i = 0; i < 16; i++) {
+        pwd += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    document.getElementById('id_clave').value = pwd;
+    document.getElementById('id_clave').type = 'text';
+});
+document.getElementById('toggleClave').addEventListener('click', function() {
+    var input = document.getElementById('id_clave');
+    var icon = this.querySelector('i');
+    input.type = input.type === 'password' ? 'text' : 'password';
+    icon.className = input.type === 'password' ? 'fas fa-eye' : 'fas fa-eye-slash';
+});
+</script>
+{% endblock %}

@@ -42,6 +42,18 @@ class Worker(models.Model):
     alerta_dias = models.PositiveIntegerField(
         default=30, verbose_name='Días de alerta para término'
     )
+    cuenta_ti_email = models.EmailField(
+        blank=True, null=True, verbose_name='Correo corporativo TI'
+    )
+    cuenta_ti_clave_inicial = models.CharField(
+        max_length=100, blank=True, null=True, verbose_name='Clave inicial TI'
+    )
+    cuenta_ti_fecha_creacion = models.DateTimeField(
+        blank=True, null=True, verbose_name='Fecha creación cuenta TI'
+    )
+    cuenta_ti_notas = models.TextField(
+        blank=True, null=True, verbose_name='Notas de la cuenta TI'
+    )
 
     class Meta:
         db_table = 'trabajador'

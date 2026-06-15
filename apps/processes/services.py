@@ -452,6 +452,30 @@ def crear_proceso_despido(usuario, worker_id, fecha, motivo, causal_legal):
     return proceso
 
 
+def crear_proceso_asignacion_activos(usuario, worker_id, comentario=''):
+    worker = Worker.objects.get(pk=worker_id)
+
+    proceso = Process.objects.create(
+        tipo=Process.TipoChoices.ASIGNACION_ACTIVOS,
+        trabajador=worker,
+        usuario_inicio=usuario,
+        ceco_origen=worker.centro_costo_actual,
+        motivo=comentario or 'Solicitud de asignacion de equipo TI',
+    )
+
+    _create_task(proceso, Task.TipoChoices.ASIGNAR_EQUIPO_TI,
+                 'Seleccionar y asignar equipo TI al trabajador.',
+                 orden=1)
+
+    _notificar_iniciador(proceso, 'proceso_inicio',
+                         f'Asignacion de Activos TI iniciada',
+                         f'Trabajador: {worker.nombre}.')
+    for t in proceso.tareas.all():
+        _notificar_tarea(t, 'tarea_cambio_estado')
+
+    return proceso
+
+
 def completar_tarea(task):
     from django.utils import timezone
     from apps.audit.models import AuditLog

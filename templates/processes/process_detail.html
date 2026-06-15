@@ -205,10 +205,15 @@
                                         </button>
                                     </form>
                                     {% else %}
-                                        {% if task.tipo == 'epp_induccion' or task.tipo == 'equipamiento' %}
+                                        {% if task.tipo == 'epp_induccion' or task.tipo == 'equipamiento' or task.tipo == 'asignar_equipo_ti' %}
                                         <a href="{% url 'processes:task_asset_assign' process.pk task.pk %}" class="btn btn-sm btn-success"
                                                 {% if task.esta_bloqueada %}disabled title="Tareas previas no completadas"{% endif %}>
                                             <i class="fas fa-box me-1"></i>Asignar activo
+                                        </a>
+                                        {% elif task.tipo == 'crear_cuenta_ti' %}
+                                        <a href="{% url 'processes:task_account_create' process.pk task.pk %}" class="btn btn-sm btn-info"
+                                                {% if task.esta_bloqueada %}disabled title="Tareas previas no completadas"{% endif %}>
+                                            <i class="fas fa-user-plus me-1"></i>Registrar cuenta
                                         </a>
                                         {% else %}
                                         <form method="post" action="{% url 'processes:task_complete' process.pk task.pk %}" class="d-inline"

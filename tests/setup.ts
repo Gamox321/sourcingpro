@@ -12,8 +12,9 @@ async function globalSetup() {
     `${venv} ${managePy} bootstrap_admin`,
     `${venv} ${managePy} seed_clients`,
     `${venv} ${managePy} seed_notifications`,
+    // Roles get wiped by flush (they come from data migration) — recreate them
     `${venv} ${managePy} shell -c "from apps.accounts.models import Role; [Role.objects.get_or_create(nombre=r) for r in ['rrhh','ti','jefatura','prevencion','finanzas','logistica']]"`,
-    `${venv} ${managePy} shell -c "from apps.inventory.models import AssetType; [AssetType.objects.get_or_create(nombre=n, defaults={'descripcion': d, 'es_personalizado': False}) for n, d in [('Equipos TI', 'Equipos tecnológicos'), ('EPP', 'Elementos de protección personal'), ('Vehículos', 'Vehículos'), ('Herramientas', 'Herramientas')]]"`,
+    // AssetType sub-types (es_ti, es_prevencion) are seeded by the _seed_asset_types call inside seed_demo
     `${venv} ${managePy} seed_demo`,
   ];
 

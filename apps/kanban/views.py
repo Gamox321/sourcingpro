@@ -2,7 +2,7 @@ from datetime import timedelta
 
 from django.db import models as db_models
 from django.http import JsonResponse
-from django.shortcuts import get_object_or_404
+from django.shortcuts import get_object_or_404, redirect
 from django.utils import timezone
 from django.views.generic import TemplateView, View
 
@@ -151,6 +151,11 @@ class KanbanColumnPartialView(RoleRequiredMixin, TemplateView):
     template_name = 'kanban/_column.html'
     roles_requeridos = ['administrador', 'ti', 'finanzas', 'logistica']
 
+    def dispatch(self, request, *args, **kwargs):
+        if request.headers.get('HX-Request') != 'true':
+            return redirect('kanban:board')
+        return super().dispatch(request, *args, **kwargs)
+
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
         qs = _get_tasks_queryset(self.request)
@@ -173,6 +178,11 @@ class KanbanColumnPartialView(RoleRequiredMixin, TemplateView):
 class KanbanCardDetailView(RoleRequiredMixin, TemplateView):
     template_name = 'kanban/_card_detail.html'
     roles_requeridos = ['administrador', 'ti', 'finanzas', 'logistica']
+
+    def get_template_names(self):
+        if self.request.headers.get('HX-Request') == 'true':
+            return ['kanban/_card_detail.html']
+        return ['kanban/card_detail.html']
 
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
@@ -240,6 +250,11 @@ class KanbanUpdateTaskView(RoleRequiredMixin, View):
 class KanbanLoadIndicatorView(RoleRequiredMixin, TemplateView):
     template_name = 'kanban/_load_indicator.html'
     roles_requeridos = ['administrador', 'ti', 'finanzas', 'logistica']
+
+    def dispatch(self, request, *args, **kwargs):
+        if request.headers.get('HX-Request') != 'true':
+            return redirect('kanban:board')
+        return super().dispatch(request, *args, **kwargs)
 
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)

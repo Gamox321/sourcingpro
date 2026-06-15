@@ -62,6 +62,11 @@ class JefaturaTrabajadorDetailView(RoleRequiredMixin, TemplateView):
     template_name = 'jefatura/_trabajador_ficha.html'
     roles_requeridos = ['administrador', 'jefatura']
 
+    def get_template_names(self):
+        if self.request.headers.get('HX-Request') == 'true':
+            return ['jefatura/_trabajador_ficha.html']
+        return ['jefatura/trabajador_detail.html']
+
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
         user = self.request.user

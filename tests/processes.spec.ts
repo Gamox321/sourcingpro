@@ -72,4 +72,22 @@ test.describe('Procesos', () => {
     }
   });
 
+  test('create asignacion de activos process', async ({ page }) => {
+    await page.goto('/procesos/nuevo/asignacion-activos/');
+    await expect(page.locator('.card-header h6')).toContainText('Asignacion de Activos TI');
+    await page.selectOption('#id_trabajador', { index: 1 });
+    await page.fill('#id_comentario', 'Notebook para terreno');
+    await page.locator('button.btn-primary').click();
+    await expect(page).toHaveURL(/\/procesos\/\d+\//);
+    await expect(page.locator('.alert-success')).toContainText('iniciado');
+    await expect(page.locator('table')).toContainText('Asignaci');
+  });
+
+  test('asignacion activos appears in type select', async ({ page }) => {
+    await page.goto('/procesos/nuevo/');
+    await expect(page.locator('.seleccion-proceso')).toContainText('Asignacion de Activos TI');
+    const cardCount = await page.locator('.seleccion-proceso .card').count();
+    expect(cardCount).toBeGreaterThanOrEqual(5);
+  });
+
 });

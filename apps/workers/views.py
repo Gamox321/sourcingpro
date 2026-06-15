@@ -67,7 +67,7 @@ class WorkerDetailView(RoleRequiredMixin, DetailView):
     model = Worker
     template_name = 'workers/worker_detail.html'
     context_object_name = 'worker'
-    roles_requeridos = ['administrador']
+    roles_requeridos = ['administrador', 'rrhh']
 
     def get_queryset(self):
         return Worker.objects.select_related('centro_costo_actual')

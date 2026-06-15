@@ -9,13 +9,14 @@ class Process(models.Model):
         CAMBIO_CECO = 'cambio_ceco', 'Cambio de Centro de Costo'
         TERMINO = 'termino', 'Término de Contrato'
         DESPIDO = 'despido', 'Despido'
+        ASIGNACION_ACTIVOS = 'asignacion_activos', 'Asignación de Activos TI'
 
     class EstadoChoices(models.TextChoices):
         EN_CURSO = 'en_curso', 'En curso'
         COMPLETADO = 'completado', 'Completado'
         CANCELADO = 'cancelado', 'Cancelado'
 
-    tipo = models.CharField(max_length=15, choices=TipoChoices.choices, verbose_name='Tipo')
+    tipo = models.CharField(max_length=20, choices=TipoChoices.choices, verbose_name='Tipo')
     estado = models.CharField(
         max_length=12, choices=EstadoChoices.choices,
         default=EstadoChoices.EN_CURSO, verbose_name='Estado'
@@ -77,6 +78,7 @@ class Task(models.Model):
         PREPARAR_BLOQUEO_ACCESOS = 'preparar_bloqueo_accesos', 'Preparar bloqueo de accesos'
         BLOQUEO_ACCESOS = 'bloqueo_accesos', 'Bloqueo de accesos'
         FINIQUITO_COORDINACION = 'finiquito_coordinacion', 'Coordinación de finiquito'
+        ASIGNAR_EQUIPO_TI = 'asignar_equipo_ti', 'Asignación de Equipo TI'
 
     TIPO_AREA_MAP = {
         TipoChoices.CREAR_CUENTA_TI: 'ti',
@@ -88,6 +90,7 @@ class Task(models.Model):
         TipoChoices.PREPARAR_BLOQUEO_ACCESOS: 'ti',
         TipoChoices.BLOQUEO_ACCESOS: 'ti',
         TipoChoices.FINIQUITO_COORDINACION: 'finanzas',
+        TipoChoices.ASIGNAR_EQUIPO_TI: 'ti',
     }
 
     class EstadoChoices(models.TextChoices):

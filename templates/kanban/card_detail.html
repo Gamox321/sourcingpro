@@ -1,0 +1,111 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ task.get_tipo_display }} — Proceso #{{ task.proceso.pk }}{% endblock %}
+
+{% block breadcrumbs %}
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="/"><i class="fas fa-home"></i></a></li>
+        <li class="breadcrumb-item"><a href="{% url 'processes:process_detail' task.proceso.pk %}">Proceso #{{ task.proceso.pk }}</a></li>
+        <li class="breadcrumb-item active">{{ task.get_tipo_display }}</li>
+    </ol>
+</nav>
+{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3 d-flex justify-content-between align-items-center">
+                <h6 class="m-0 font-weight-bold text-primary">
+                    <i class="fas fa-tasks me-2"></i>Detalle de Tarea
+                </h6>
+                <span class="badge
+                    {% if task.estado == 'completada' %}bg-success
+                    {% elif task.estado == 'pendiente' %}bg-secondary
+                    {% elif task.estado == 'en_proceso' %}bg-primary
+                    {% elif task.estado == 'vencida' %}bg-danger
+                    {% else %}bg-info{% endif %}">
+                    {{ task.get_estado_display }}
+                </span>
+            </div>
+            <div class="card-body">
+                <div class="row mb-3">
+                    <div class="col-sm-6">
+                        <strong>Proceso:</strong>
+                        {% if task.proceso.tipo == 'contratacion' %}<span class="badge bg-primary">Contrataci&oacute;n</span>
+                        {% elif task.proceso.tipo == 'cambio_ceco' %}<span class="badge bg-info">Cambio CeCo</span>
+                        {% elif task.proceso.tipo == 'termino' %}<span class="badge bg-warning text-dark">T&eacute;rmino</span>
+                        {% elif task.proceso.tipo == 'despido' %}<span class="badge bg-danger">Despido</span>{% endif %}
+                        #{{ task.proceso.pk }}
+                    </div>
+                    <div class="col-sm-6">
+                        <strong>Trabajador:</strong>
+                        <a href="{% url 'workers:worker_detail' task.proceso.trabajador.pk %}">{{ task.proceso.trabajador.nombre }}</a>
+                        <span class="text-muted">· {{ task.proceso.trabajador.cargo }}</span>
+                    </div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-sm-6">
+                        <strong>Responsable:</strong> {{ task.usuario_responsable.nombre|default:'Sin asignar' }}
+                    </div>
+                    <div class="col-sm-6">
+                        <strong>Urgencia:</strong>
+                        {% if task.urgencia == 'critica' %}<span class="badge bg-danger">Cr&iacute;tica</span>
+                        {% else %}<span class="badge bg-info">Normal</span>{% endif %}
+                    </div>
+                </div>
+                {% if task.plazo_limite %}
+                <div class="row mb-3">
+                    <div class="col-sm-6">
+                        <strong>Plazo l&iacute;mite:</strong> {{ task.plazo_limite|date:'d/m/Y H:i' }}
+                    </div>
+                    {% if task.fecha_completado %}
+                    <div class="col-sm-6">
+                        <strong>Completado:</strong> {{ task.fecha_completado|date:'d/m/Y H:i' }}
+                    </div>
+                    {% endif %}
+                </div>
+                {% endif %}
+                {% if task.descripcion %}
+                <div class="mb-3"><strong>Descripci&oacute;n:</strong><p class="mb-0">{{ task.descripcion }}</p></div>
+                {% endif %}
+                {% if task.proceso.motivo %}
+                <div class="mb-3"><strong>Motivo del proceso:</strong><p class="mb-0">{{ task.proceso.motivo }}</p></div>
+                {% endif %}
+                {% if historial %}
+                <hr><h6>Historial de cambios</h6>
+                <ul class="list-unstyled small">
+                    {% for h in historial %}
+                    <li class="mb-1"><span class="text-muted">{{ h.fecha_accion|date:'d/m/Y H:i' }}</span> — <strong>{{ h.usuario.nombre }}</strong> — {{ h.get_accion_display }}</li>
+                    {% endfor %}
+                </ul>
+                {% endif %}
+            </div>
+            <div class="card-footer bg-light d-flex gap-2">
+                <a href="{% url 'processes:process_detail' task.proceso.pk %}" class="btn btn-info">
+                    <i class="fas fa-eye me-1"></i>Ver Proceso
+                </a>
+                {% if es_responsable and task.estado != 'completada' and task.estado != 'gestionado_externo' and not task.omitida %}
+                    {% if task.tipo == 'epp_induccion' or task.tipo == 'equipamiento' %}
+                    <a href="{% url 'processes:task_asset_assign' task.proceso.pk task.pk %}" class="btn btn-success">
+                        <i class="fas fa-box me-1"></i>Asignar activo
+                    </a>
+                    {% else %}
+                    <form method="post" action="{% url 'processes:task_complete' task.proceso.pk task.pk %}" class="d-inline"
+                          data-confirm-form="&iquest;Confirmar que {{ task.get_tipo_display }} est&aacute; completada?">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-success">
+                            <i class="fas fa-check me-1"></i>Completar
+                        </button>
+                    </form>
+                    {% endif %}
+                {% endif %}
+                <a href="{% url 'workers:worker_detail' task.proceso.trabajador.pk %}" class="btn btn-outline-info">
+                    <i class="fas fa-id-card me-1"></i>Ficha Trabajador
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

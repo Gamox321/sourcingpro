@@ -56,6 +56,12 @@
                                                     <i class="fas fa-clock me-1"></i>{{ tarea.plazo_limite|date:"d/m/Y H:i" }}
                                                 </small>
                                                 {% endif %}
+                                                {% if tarea.tipo == 'crear_cuenta_ti' %}
+                                                <a href="{% url 'processes:task_account_create' tarea.proceso.pk tarea.pk %}" class="btn btn-sm btn-info ms-auto" title="Registrar cuenta TI"
+                                                        {% if tarea.tareas_anteriores.exists %}disabled{% endif %}>
+                                                    <i class="fas fa-user-plus me-1"></i>Registrar cuenta
+                                                </a>
+                                                {% else %}
                                                 <form method="post" action="{% url 'processes:task_complete' tarea.proceso.pk tarea.pk %}" class="d-inline ms-auto"
                                                       data-confirm-form="¿Confirmar que {{ tarea.get_tipo_display }} está completada?">
                                                     {% csrf_token %}
@@ -64,6 +70,7 @@
                                                         <i class="fas fa-check me-1"></i>Completar
                                                     </button>
                                                 </form>
+                                                {% endif %}
                                             </div>
                                         </div>
                                     </div>
@@ -113,6 +120,12 @@
                                                     <i class="fas fa-clock me-1"></i>{{ tarea.plazo_limite|date:"d/m/Y H:i" }}
                                                 </small>
                                                 {% endif %}
+                                                {% if tarea.tipo == 'crear_cuenta_ti' %}
+                                                <a href="{% url 'processes:task_account_create' tarea.proceso.pk tarea.pk %}" class="btn btn-sm btn-info ms-auto" title="Registrar cuenta TI"
+                                                        {% if tarea.tareas_anteriores.exists %}disabled{% endif %}>
+                                                    <i class="fas fa-user-plus me-1"></i>Registrar cuenta
+                                                </a>
+                                                {% else %}
                                                 <form method="post" action="{% url 'processes:task_complete' tarea.proceso.pk tarea.pk %}" class="d-inline ms-auto"
                                                       data-confirm-form="¿Confirmar que {{ tarea.get_tipo_display }} está completada?">
                                                     {% csrf_token %}
@@ -121,6 +134,7 @@
                                                         <i class="fas fa-check me-1"></i>Completar
                                                     </button>
                                                 </form>
+                                                {% endif %}
                                             </div>
                                         </div>
                                     </div>
