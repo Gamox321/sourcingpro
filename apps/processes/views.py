@@ -79,10 +79,10 @@ class ProcessCreateCambioCeCoView(RoleRequiredMixin, TemplateView):
         ctx['titulo'] = 'Nuevo Cambio de Centro de Costo'
         ctx['descripcion'] = 'Transfere un trabajador activo de un centro de costo a otro, gestionando devolucion de activos y reasignacion.'
         ctx['tareas_info'] = [
-            ('Devolucion de activos', 'Logistica'),
-            ('Creacion cuenta TI', 'TI'),
-            ('Induccion y EPP', 'Prevencion'),
-            ('Equipamiento', 'Logistica'),
+            ('Fase 1: Devolucion de activos (si tiene)', 'Logistica'),
+            ('Fase 2: Creacion cuenta TI', 'TI'),
+            ('Fase 2: Induccion y EPP', 'Prevencion'),
+            ('Fase 2: Equipamiento', 'Logistica'),
         ]
         return ctx
 
@@ -351,6 +351,15 @@ class TaskCompleteView(RoleRequiredMixin, View):
                     'No puede bloquear accesos hasta que Finanzas complete la coordinación de finiquito. '
                     f'<a href="mailto:?subject=Recordatorio: Finiquito proceso #{task.proceso.pk}" class="alert-link">Enviar recordatorio a Finanzas</a>'
                 )
+                return redirect('processes:process_detail', pk=pk)
+
+        if task.tipo in (Task.TipoChoices.FINIQUITO_COORDINACION,):
+            services.gestionar_externamente_tarea(task)
+            messages.success(request, f'Tarea {task.get_tipo_display()} marcada como gestionada externamente.')
+        else:
+            services.completar_tarea(task)
+            messages.success(request, f'Tarea {task.get_tipo_display()} completada.')
+
         return redirect('processes:process_detail', pk=pk)
 
 
@@ -380,6 +389,22 @@ class TaskAccountCreateView(RoleRequiredMixin, TemplateView):
             messages.warning(request, 'Esta tarea ya fue completada.')
             return redirect('processes:process_detail', pk=pk)
 
+        es_responsable = task.usuario_responsable == request.user
+        es_admin = request.user.roles.filter(nombre='administrador').exists()
+        if not (es_responsable or es_admin):
+            messages.error(request, 'No tienes permiso para completar esta tarea.')
+            return redirect('processes:process_detail', pk=pk)
+
+        anteriores = task.tareas_anteriores()
+        if anteriores.exists():
+            names = ', '.join([t.get_tipo_display() for t in anteriores])
+            messages.error(request, f'No puede completar esta tarea. Primero complete: {names}.')
+            return redirect('processes:process_detail', pk=pk)
+
+        if task.tipo != Task.TipoChoices.CREAR_CUENTA_TI:
+            messages.error(request, 'Esta tarea no es de creacion de cuenta TI.')
+            return redirect('processes:process_detail', pk=pk)
+
         worker = task.proceso.trabajador
         email = request.POST.get('email', '').strip()
         clave = request.POST.get('clave', '').strip()
@@ -398,21 +423,9 @@ class TaskAccountCreateView(RoleRequiredMixin, TemplateView):
         services.completar_tarea(task)
 
         if email:
-            messages.success(
-                request,
-                f'Cuenta TI registrada para {worker.nombre} ({email}). Tarea completada.'
-            )
+            messages.success(request, f'Cuenta TI registrada para {worker.nombre} ({email}). Tarea completada.')
         else:
             messages.success(request, f'Tarea completada (sin registrar credenciales).')
-
-        return redirect('processes:process_detail', pk=pk)
-
-        if task.tipo in (Task.TipoChoices.FINIQUITO_COORDINACION,):
-            services.gestionar_externamente_tarea(task)
-            messages.success(request, f'Tarea {task.get_tipo_display()} marcada como gestionada externamente.')
-        else:
-            services.completar_tarea(task)
-            messages.success(request, f'Tarea {task.get_tipo_display()} completada.')
 
         return redirect('processes:process_detail', pk=pk)
 
@@ -460,6 +473,18 @@ class TaskAssetAssignView(RoleRequiredMixin, TemplateView):
             messages.warning(request, 'Esta tarea ya fue completada.')
             return redirect('processes:process_detail', pk=pk)
 
+        es_responsable = task.usuario_responsable == request.user
+        es_admin = request.user.roles.filter(nombre='administrador').exists()
+        if not (es_responsable or es_admin):
+            messages.error(request, 'No tienes permiso para completar esta tarea.')
+            return redirect('processes:process_detail', pk=pk)
+
+        anteriores = task.tareas_anteriores()
+        if anteriores.exists():
+            names = ', '.join([t.get_tipo_display() for t in anteriores])
+            messages.error(request, f'No puede completar esta tarea. Primero complete: {names}.')
+            return redirect('processes:process_detail', pk=pk)
+
         asset_ids = request.POST.getlist('activos', [])
         if asset_ids:
             assigned = services.completar_tarea_con_activos(task, asset_ids)
@@ -473,14 +498,5 @@ class TaskAssetAssignView(RoleRequiredMixin, TemplateView):
         else:
             services.completar_tarea(task)
             messages.success(request, f'Tarea {task.get_tipo_display()} completada (sin asignar activos).')
-
-        return redirect('processes:process_detail', pk=pk)
-
-        if task.tipo in (Task.TipoChoices.FINIQUITO_COORDINACION,):
-            services.gestionar_externamente_tarea(task)
-            messages.success(request, f'Tarea {task.get_tipo_display()} marcada como gestionada externamente.')
-        else:
-            services.completar_tarea(task)
-            messages.success(request, f'Tarea {task.get_tipo_display()} completada.')
 
         return redirect('processes:process_detail', pk=pk)

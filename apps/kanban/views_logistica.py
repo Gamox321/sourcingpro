@@ -71,7 +71,7 @@ class LogisticaDevolucionesView(RoleRequiredMixin, ListView):
     def get_queryset(self):
         qs = AssetAssignment.objects.filter(
             fecha_devolucion__isnull=True,
-            proceso__tipo=Process.TipoChoices.TERMINO,
+            proceso__tipo__in=[Process.TipoChoices.TERMINO, Process.TipoChoices.CAMBIO_CECO],
             proceso__estado=Process.EstadoChoices.EN_CURSO,
         ).select_related('activo__tipo', 'trabajador', 'proceso')
 

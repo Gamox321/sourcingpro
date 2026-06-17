@@ -48,7 +48,9 @@ class RRHHDashboardView(RoleRequiredMixin, TemplateView):
         prox_30_dias = now + timedelta(days=30)
         contratos_por_vencer = Worker.objects.filter(
             estado=Worker.EstadoChoices.ACTIVO,
-            fecha_ingreso_efectiva__isnull=False,
+            fecha_termino_contrato__isnull=False,
+            fecha_termino_contrato__gte=now.date(),
+            fecha_termino_contrato__lte=(now + timedelta(days=30)).date(),
         ).count()
         
         ctx['stats'] = {

@@ -96,7 +96,7 @@ class CambioCeCoForm(forms.Form):
 
 class TerminoForm(forms.Form):
     trabajador = forms.ModelChoiceField(
-        queryset=Worker.objects.filter(estado__in=['activo', 'por_egresar']),
+        queryset=Worker.objects.filter(estado__in=[Worker.EstadoChoices.ACTIVO, Worker.EstadoChoices.POR_EGRESAR]),
         label='Trabajador',
         widget=forms.Select(attrs={'class': 'form-select'}),
     )
@@ -124,7 +124,7 @@ class TerminoForm(forms.Form):
 
 class DespidoForm(forms.Form):
     trabajador = forms.ModelChoiceField(
-        queryset=Worker.objects.filter(estado__in=['activo', 'por_egresar']),
+        queryset=Worker.objects.filter(estado__in=[Worker.EstadoChoices.ACTIVO, Worker.EstadoChoices.POR_EGRESAR]),
         label='Trabajador',
         widget=forms.Select(attrs={'class': 'form-select'}),
     )

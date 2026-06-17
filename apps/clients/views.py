@@ -5,6 +5,7 @@ from django.urls import reverse_lazy
 from django.views.generic import ListView, DetailView, CreateView, UpdateView, View
 
 from apps.accounts.decorators import RoleRequiredMixin
+from apps.workers.models import Worker
 from .models import CostCenter, Client
 
 
@@ -134,7 +135,7 @@ class CostCenterDeactivateView(RoleRequiredMixin, View):
             messages.success(request, 'Centro de costo reactivado.')
         else:
             if costcenter.trabajadores.filter(
-                estado__in=['activo', 'en_transito']
+                estado__in=[Worker.EstadoChoices.ACTIVO, Worker.EstadoChoices.EN_TRANSITO]
             ).exists():
                 messages.error(
                     request,

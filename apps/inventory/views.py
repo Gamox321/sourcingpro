@@ -137,8 +137,7 @@ class AssetAssignView(RoleRequiredMixin, View):
             return redirect('inventory:asset_detail', pk=pk)
 
         AssetAssignment.objects.create(activo=asset, trabajador=worker)
-        asset.estado = Asset.EstadoChoices.ASIGNADO
-        asset.save(update_fields=['estado'])
+        asset.cambiar_estado(Asset.EstadoChoices.ASIGNADO)
 
         messages.success(
             request,

@@ -200,7 +200,7 @@ def crear_proceso_cambio_ceco(usuario, worker_id, ceco_destino_id, fecha, motivo
     if activos_asignados.exists():
         _create_task(proceso, Task.TipoChoices.DEVOLUCION_ACTIVOS,
                      'Devolver activos asignados en CeCo de origen.',
-                     plazo_limite=fecha)
+                     plazo_limite=fecha, orden=1)
         for aa in activos_asignados:
             aa.activo.cambiar_estado(Asset.EstadoChoices.PENDIENTE_DEVOLUCION)
     else:
@@ -220,7 +220,7 @@ def crear_proceso_cambio_ceco(usuario, worker_id, ceco_destino_id, fecha, motivo
 def _generar_reincorporacion_cambio_ceco(proceso, worker, ceco_destino, fecha):
     _create_task(proceso, Task.TipoChoices.CREAR_CUENTA_TI,
                  'Actualizar accesos y cuenta para nuevo CeCo.',
-                 plazo_limite=fecha)
+                 plazo_limite=fecha, orden=2)
 
     from apps.inventory.models import AssetType
     epp_type = AssetType.objects.filter(nombre='EPP').first()
@@ -233,16 +233,16 @@ def _generar_reincorporacion_cambio_ceco(proceso, worker, ceco_destino, fecha):
     if tiene_epp_destino:
         _create_task(proceso, Task.TipoChoices.EPP_INDUCCION,
                      'Evaluar necesidad de EPP específico del nuevo CeCo.',
-                     plazo_limite=fecha)
+                     plazo_limite=fecha, orden=3)
     else:
         _create_task(proceso, Task.TipoChoices.EPP_INDUCCION,
                      'EPP específico del nuevo CeCo (omitido si vigente).',
                      plazo_limite=fecha, omitida=True,
-                     motivo_omision='Certificaciones vigentes')
+                     motivo_omision='Certificaciones vigentes', orden=3)
 
     _create_task(proceso, Task.TipoChoices.EQUIPAMIENTO,
                  'Asignar equipamiento del nuevo CeCo.',
-                 plazo_limite=fecha)
+                 plazo_limite=fecha, orden=4)
 
 
 def _completar_devolucion_cambio_ceco(proceso):
@@ -256,7 +256,6 @@ def _completar_devolucion_cambio_ceco(proceso):
     activos_pendientes = AssetAssignment.objects.filter(
         trabajador=worker,
         fecha_devolucion__isnull=True,
-        activo__estado=Asset.EstadoChoices.PENDIENTE_DEVOLUCION,
     ).count()
     
     if activos_pendientes > 0:
@@ -274,6 +273,12 @@ def _completar_devolucion_cambio_ceco(proceso):
     
     ceco_destino = proceso.ceco_destino
     fecha = timezone.now()
+
+    # Cerrar historial del CeCo anterior
+    CostCenterHistory.objects.filter(
+        trabajador=worker,
+        fecha_fin__isnull=True,
+    ).update(fecha_fin=fecha.date())
 
     CostCenterHistory.objects.create(
         trabajador=worker,
@@ -630,12 +635,22 @@ def cancelar_proceso(proceso, motivo_cancelacion=None):
         worker.estado = Worker.EstadoChoices.ELIMINADO
     elif proceso.tipo in (Process.TipoChoices.CAMBIO_CECO,):
         worker.estado = Worker.EstadoChoices.ACTIVO
+        worker.centro_costo_actual = proceso.ceco_origen
+
+        # Revertir activos PENDIENTE_DEVOLUCION a ASIGNADO
+        activos_en_devolucion = AssetAssignment.objects.filter(
+            trabajador=worker,
+            fecha_devolucion__isnull=True,
+            activo__estado=Asset.EstadoChoices.PENDIENTE_DEVOLUCION,
+        ).select_related('activo')
+        for aa in activos_en_devolucion:
+            aa.activo.cambiar_estado(Asset.EstadoChoices.ASIGNADO)
     elif proceso.tipo in (Process.TipoChoices.TERMINO,):
         worker.estado = Worker.EstadoChoices.ACTIVO
     elif proceso.tipo == Process.TipoChoices.DESPIDO:
         worker.estado = Worker.EstadoChoices.ACTIVO
 
-    worker.save(update_fields=['estado'])
+    worker.save(update_fields=['estado'] if proceso.tipo != Process.TipoChoices.CAMBIO_CECO else ['estado', 'centro_costo_actual'])
 
     proceso.estado = Process.EstadoChoices.CANCELADO
     proceso.fecha_cierre = timezone.now()

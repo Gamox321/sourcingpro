@@ -77,21 +77,39 @@
 
 {% if process.ceco_destino %}
 <div class="row mb-4">
-    <div class="col-12">
-        <a href="{% url 'clients:costcenter_detail' process.ceco_destino.pk %}" class="text-decoration-none">
-        <div class="card border-left-primary shadow py-2">
+    {% if process.tipo == 'cambio_ceco' and process.ceco_origen %}
+    <div class="col-md-6 mb-2 mb-md-0">
+        <a href="{% url 'clients:costcenter_detail' process.ceco_origen.pk %}" class="text-decoration-none">
+        <div class="card border-left-secondary shadow py-2">
             <div class="card-body py-2">
-                <div class="d-flex justify-content-between align-items-center">
-                    <div>
-                        <span class="text-xs text-primary text-uppercase">Centro de Costo Destino</span>
-                        <strong class="d-block">{{ process.ceco_destino.nombre }}</strong>
-                    </div>
-                    <i class="fas fa-chevron-right text-muted"></i>
-                </div>
+                <span class="text-xs text-secondary text-uppercase">Centro de Costo Origen</span>
+                <strong class="d-block">{{ process.ceco_origen.nombre }}</strong>
             </div>
         </div>
         </a>
     </div>
+    <div class="col-md-6">
+        <a href="{% url 'clients:costcenter_detail' process.ceco_destino.pk %}" class="text-decoration-none">
+        <div class="card border-left-primary shadow py-2">
+            <div class="card-body py-2">
+                <span class="text-xs text-primary text-uppercase">Centro de Costo Destino</span>
+                <strong class="d-block">{{ process.ceco_destino.nombre }}</strong>
+            </div>
+        </div>
+        </a>
+    </div>
+    {% else %}
+    <div class="col-12">
+        <a href="{% url 'clients:costcenter_detail' process.ceco_destino.pk %}" class="text-decoration-none">
+        <div class="card border-left-primary shadow py-2">
+            <div class="card-body py-2">
+                <span class="text-xs text-primary text-uppercase">Centro de Costo Destino</span>
+                <strong class="d-block">{{ process.ceco_destino.nombre }}</strong>
+            </div>
+        </div>
+        </a>
+    </div>
+    {% endif %}
 </div>
 {% endif %}
 
@@ -141,6 +159,16 @@
                             <small class="text-muted d-block">
                                 Requiere: {% for t in task.tareas_anteriores %}{{ t.get_tipo_display }}{% if not forloop.last %}, {% endif %}{% endfor %}
                             </small>
+                            {% endif %}
+                            {% if task.tipo == 'devolucion_activos' and process.tipo == 'cambio_ceco' and task.estado != 'completada' %}
+                            <div class="small mt-1">
+                                {% with total=process.trabajador.activos_asignados.all|length %}
+                                <span class="text-muted">{{ total }} activo{{ total|pluralize }} del trabajador</span>
+                                {% endwith %}
+                                <a href="{% url 'logistica:devoluciones' %}" class="d-block text-info" target="_blank">
+                                    <i class="fas fa-external-link-alt me-1"></i>Gestionar en Devoluciones
+                                </a>
+                            </div>
                             {% endif %}
                         </td>
                         <td>
@@ -222,7 +250,7 @@
                                             <button type="submit" class="btn btn-sm btn-success"
                                                     {% if task.esta_bloqueada %}disabled title="Tareas previas no completadas"{% endif %}>
                                                 <i class="fas fa-check me-1"></i>Completar
-                                            </button>
+    </form>
                                         </form>
                                         {% endif %}
                                     {% endif %}
