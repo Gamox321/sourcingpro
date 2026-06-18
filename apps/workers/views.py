@@ -13,28 +13,27 @@ from .models import Worker
 
 class WorkerListView(RoleRequiredMixin, ListView):
     model = Worker
-    template_name = 'workers/worker_list.html'
-    context_object_name = 'workers'
-    roles_requeridos = ['administrador']
+    template_name = "workers/worker_list.html"
+    context_object_name = "workers"
+    roles_requeridos = ["administrador"]
     paginate_by = 20
 
     def get_queryset(self):
-        qs = Worker.objects.select_related('centro_costo_actual')
+        qs = Worker.objects.select_related("centro_costo_actual")
 
         user = self.request.user
-        if user.roles.filter(nombre='jefatura').exists():
-            cecos = user.cecos_a_cargo.filter(estado='activo')
+        if user.roles.filter(nombre="jefatura").exists():
+            cecos = user.cecos_a_cargo.filter(estado="activo")
             qs = qs.filter(centro_costo_actual__in=cecos)
 
-        q = self.request.GET.get('q', '').strip()
-        estado = self.request.GET.get('estado', '')
-        ceco = self.request.GET.get('ceco', '')
-        cargo = self.request.GET.get('cargo', '')
+        q = self.request.GET.get("q", "").strip()
+        estado = self.request.GET.get("estado", "")
+        ceco = self.request.GET.get("ceco", "")
+        cargo = self.request.GET.get("cargo", "")
 
         if q:
             qs = qs.filter(
-                db_models.Q(nombre__icontains=q) |
-                db_models.Q(run__icontains=q)
+                db_models.Q(nombre__icontains=q) | db_models.Q(run__icontains=q)
             )
         if estado:
             qs = qs.filter(estado=estado)
@@ -43,130 +42,152 @@ class WorkerListView(RoleRequiredMixin, ListView):
         if cargo:
             qs = qs.filter(cargo__icontains=cargo)
 
-        if not self.request.GET.get('incluir_eliminados'):
+        if not self.request.GET.get("incluir_eliminados"):
             qs = qs.exclude(estado=Worker.EstadoChoices.ELIMINADO)
 
         return qs
 
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
-        ctx['query'] = self.request.GET.get('q', '')
-        ctx['filtro_estado'] = self.request.GET.get('estado', '')
-        ctx['filtro_ceco'] = self.request.GET.get('ceco', '')
-        ctx['filtro_cargo'] = self.request.GET.get('cargo', '')
-        ctx['incluir_eliminados'] = self.request.GET.get('incluir_eliminados', '')
+        ctx["query"] = self.request.GET.get("q", "")
+        ctx["filtro_estado"] = self.request.GET.get("estado", "")
+        ctx["filtro_ceco"] = self.request.GET.get("ceco", "")
+        ctx["filtro_cargo"] = self.request.GET.get("cargo", "")
+        ctx["incluir_eliminados"] = self.request.GET.get("incluir_eliminados", "")
         from apps.clients.models import CostCenter
-        cecos_qs = CostCenter.objects.filter(estado='activo')
-        if self.request.user.roles.filter(nombre='jefatura').exists():
+
+        cecos_qs = CostCenter.objects.filter(estado="activo")
+        if self.request.user.roles.filter(nombre="jefatura").exists():
             cecos_qs = cecos_qs.filter(jefatura=self.request.user)
-        ctx['costcenters'] = cecos_qs
+        ctx["costcenters"] = cecos_qs
         return ctx
 
 
 class WorkerDetailView(RoleRequiredMixin, DetailView):
     model = Worker
-    template_name = 'workers/worker_detail.html'
-    context_object_name = 'worker'
-    roles_requeridos = ['administrador', 'rrhh']
+    template_name = "workers/worker_detail.html"
+    context_object_name = "worker"
+    roles_requeridos = ["administrador", "rrhh"]
 
     def get_queryset(self):
-        return Worker.objects.select_related('centro_costo_actual')
+        return Worker.objects.select_related("centro_costo_actual")
 
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
-        ctx['historial_ceco'] = self.object.historial_ceco.select_related('centro_costo').all()
-        ctx['transiciones_permitidas'] = self.object.transiciones_permitidas()
-        ctx['procesos_activos'] = self.object.procesos.filter(
+        ctx["historial_ceco"] = self.object.historial_ceco.select_related(
+            "centro_costo"
+        ).all()
+        ctx["transiciones_permitidas"] = self.object.transiciones_permitidas()
+        ctx["procesos_activos"] = self.object.procesos.filter(
             estado=Process.EstadoChoices.EN_CURSO
-        ).order_by('-fecha_inicio')
-        ctx['procesos_cerrados'] = self.object.procesos.exclude(
+        ).order_by("-fecha_inicio")
+        ctx["procesos_cerrados"] = self.object.procesos.exclude(
             estado=Process.EstadoChoices.EN_CURSO
-        ).order_by('-fecha_inicio')
-        ctx['activos_asignados'] = AssetAssignment.objects.filter(
+        ).order_by("-fecha_inicio")
+        ctx["activos_asignados"] = AssetAssignment.objects.filter(
             trabajador=self.object, fecha_devolucion__isnull=True
-        ).select_related('activo__tipo')
+        ).select_related("activo__tipo")
         return ctx
 
 
 class WorkerCreateView(RoleRequiredMixin, CreateView):
     model = Worker
-    template_name = 'workers/worker_form.html'
-    fields = ['run', 'nombre', 'correo', 'cargo', 'fecha_ingreso_estimada', 'centro_costo_actual']
-    roles_requeridos = ['administrador']
-    success_url = reverse_lazy('workers:worker_list')
+    template_name = "workers/worker_form.html"
+    fields = [
+        "run",
+        "nombre",
+        "correo",
+        "cargo",
+        "fecha_ingreso_estimada",
+        "centro_costo_actual",
+    ]
+    roles_requeridos = ["administrador"]
+    success_url = reverse_lazy("workers:worker_list")
 
     def form_valid(self, form):
-        messages.success(self.request, 'Trabajador registrado exitosamente.')
+        messages.success(self.request, "Trabajador registrado exitosamente.")
         return super().form_valid(form)
 
 
 class WorkerUpdateView(RoleRequiredMixin, UpdateView):
     model = Worker
-    template_name = 'workers/worker_form.html'
-    fields = ['nombre', 'correo', 'cargo', 'fecha_ingreso_estimada', 'centro_costo_actual']
-    roles_requeridos = ['administrador']
-    success_url = reverse_lazy('workers:worker_list')
+    template_name = "workers/worker_form.html"
+    fields = [
+        "nombre",
+        "correo",
+        "cargo",
+        "fecha_ingreso_estimada",
+        "centro_costo_actual",
+    ]
+    roles_requeridos = ["administrador"]
+    success_url = reverse_lazy("workers:worker_list")
 
     def dispatch(self, request, *args, **kwargs):
         worker = self.get_object()
-        if worker.estado in ('desvinculado', 'eliminado'):
-            messages.error(request, 'No se puede editar un trabajador desvinculado o eliminado.')
-            return redirect('workers:worker_detail', pk=worker.pk)
+        if worker.estado in ("desvinculado", "eliminado"):
+            messages.error(
+                request, "No se puede editar un trabajador desvinculado o eliminado."
+            )
+            return redirect("workers:worker_detail", pk=worker.pk)
         return super().dispatch(request, *args, **kwargs)
 
     def form_valid(self, form):
-        messages.success(self.request, 'Trabajador actualizado exitosamente.')
+        messages.success(self.request, "Trabajador actualizado exitosamente.")
         return super().form_valid(form)
 
 
 class WorkerDeleteView(RoleRequiredMixin, View):
-    roles_requeridos = ['administrador']
+    roles_requeridos = ["administrador"]
 
     def post(self, request, pk):
         worker = get_object_or_404(Worker, pk=pk)
         if worker.estado != Worker.EstadoChoices.DESVINCULADO:
             messages.error(
                 request,
-                'Solo trabajadores desvinculados pueden ser eliminados lógicamente.'
+                "Solo trabajadores desvinculados pueden ser eliminados lógicamente.",
             )
         else:
             worker.estado = Worker.EstadoChoices.ELIMINADO
-            worker.save(update_fields=['estado'])
-            messages.success(request, f'{worker.nombre} ha sido eliminado lógicamente.')
-        return redirect('workers:worker_list')
+            worker.save(update_fields=["estado"])
+            messages.success(request, f"{worker.nombre} ha sido eliminado lógicamente.")
+        return redirect("workers:worker_list")
 
 
 class WorkerStateChangeView(RoleRequiredMixin, View):
-    roles_requeridos = ['administrador', 'rrhh']
+    roles_requeridos = ["administrador", "rrhh"]
 
     def post(self, request, pk):
         worker = get_object_or_404(Worker, pk=pk)
-        nuevo_estado = request.POST.get('estado', '')
-        motivo = request.POST.get('motivo', '').strip()
+        nuevo_estado = request.POST.get("estado", "")
+        motivo = request.POST.get("motivo", "").strip()
 
         if nuevo_estado not in dict(Worker.EstadoChoices.choices):
-            messages.error(request, 'Estado no válido.')
+            messages.error(request, "Estado no válido.")
         elif not worker.puede_transicionar_a(nuevo_estado):
             messages.error(
                 request,
-                f'No se puede cambiar de "{worker.get_estado_display()}" a "{dict(Worker.EstadoChoices.choices).get(nuevo_estado, nuevo_estado)}". '
-                'Esta transición no está permitida.'
+                (
+                    f'No se puede cambiar de "{worker.get_estado_display()}" '
+                    f'a "{dict(Worker.EstadoChoices.choices).get(nuevo_estado, nuevo_estado)}". '
+                    "Esta transición no está permitida."
+                ),
             )
         elif not motivo:
-            messages.error(request, 'Debes indicar un motivo para el cambio de estado manual.')
+            messages.error(
+                request, "Debes indicar un motivo para el cambio de estado manual."
+            )
         else:
             old_state = worker.get_estado_display()
             worker.estado = nuevo_estado
-            worker.save(update_fields=['estado'])
+            worker.save(update_fields=["estado"])
             notificar(
                 usuario=request.user,
-                tipo_evento='trabajador_cambio_estado_manual',
-                titulo='Cambio de estado manual',
-                descripcion=f'{worker.nombre}: {old_state} → {worker.get_estado_display()}. '
-                            f'Motivo: {motivo}',
+                tipo_evento="trabajador_cambio_estado_manual",
+                titulo="Cambio de estado manual",
+                descripcion=f"{worker.nombre}: {old_state} → {worker.get_estado_display()}. "
+                f"Motivo: {motivo}",
             )
             messages.success(
-                request,
-                f'Estado cambiado a {worker.get_estado_display()}.'
+                request, f"Estado cambiado a {worker.get_estado_display()}."
             )
-        return redirect('workers:worker_detail', pk=pk)
+        return redirect("workers:worker_detail", pk=pk)

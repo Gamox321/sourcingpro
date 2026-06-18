@@ -4,30 +4,37 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('inventory', '0006_assettype_es_prevencion'),
+        ("inventory", "0006_assettype_es_prevencion"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='asset',
-            name='marca',
-            field=models.CharField(blank=True, max_length=100, verbose_name='Marca'),
+            model_name="asset",
+            name="marca",
+            field=models.CharField(blank=True, max_length=100, verbose_name="Marca"),
         ),
         migrations.AddField(
-            model_name='asset',
-            name='modelo',
-            field=models.CharField(blank=True, max_length=100, verbose_name='Modelo'),
+            model_name="asset",
+            name="modelo",
+            field=models.CharField(blank=True, max_length=100, verbose_name="Modelo"),
         ),
         migrations.AddField(
-            model_name='asset',
-            name='numero_serie',
-            field=models.CharField(blank=True, max_length=100, verbose_name='Número de serie'),
+            model_name="asset",
+            name="numero_serie",
+            field=models.CharField(
+                blank=True, max_length=100, verbose_name="Número de serie"
+            ),
         ),
         migrations.AlterField(
-            model_name='assetassignment',
-            name='foto_evidencia_url',
-            field=models.CharField(blank=True, help_text='URL externa como alternativa a la subida de archivo. Ambos campos son mutuamente excluyentes en la práctica (la vista de logistica asigna uno y limpia el otro).', max_length=500, null=True, verbose_name='Foto evidencia (URL alternativa)'),
+            model_name="assetassignment",
+            name="foto_evidencia_url",
+            field=models.CharField(
+                blank=True,
+                help_text="URL externa como alternativa a la subida de archivo. Ambos campos son mutuamente excluyentes en la práctica (la vista de logistica asigna uno y limpia el otro).",
+                max_length=500,
+                null=True,
+                verbose_name="Foto evidencia (URL alternativa)",
+            ),
         ),
     ]

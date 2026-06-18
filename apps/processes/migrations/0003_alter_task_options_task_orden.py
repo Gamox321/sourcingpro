@@ -4,19 +4,24 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('processes', '0002_taskdeadlineconfig'),
+        ("processes", "0002_taskdeadlineconfig"),
     ]
 
     operations = [
         migrations.AlterModelOptions(
-            name='task',
-            options={'ordering': ['orden', '-urgencia', 'plazo_limite'], 'verbose_name': 'Tarea', 'verbose_name_plural': 'Tareas'},
+            name="task",
+            options={
+                "ordering": ["orden", "-urgencia", "plazo_limite"],
+                "verbose_name": "Tarea",
+                "verbose_name_plural": "Tareas",
+            },
         ),
         migrations.AddField(
-            model_name='task',
-            name='orden',
-            field=models.PositiveIntegerField(db_index=True, default=0, verbose_name='Orden'),
+            model_name="task",
+            name="orden",
+            field=models.PositiveIntegerField(
+                db_index=True, default=0, verbose_name="Orden"
+            ),
         ),
     ]

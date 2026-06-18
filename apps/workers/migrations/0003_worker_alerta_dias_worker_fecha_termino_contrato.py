@@ -4,20 +4,23 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('workers', '0002_remove_costcenterhistory_proceso_id_and_more'),
+        ("workers", "0002_remove_costcenterhistory_proceso_id_and_more"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='worker',
-            name='alerta_dias',
-            field=models.PositiveIntegerField(default=30, verbose_name='Días de alerta para término'),
+            model_name="worker",
+            name="alerta_dias",
+            field=models.PositiveIntegerField(
+                default=30, verbose_name="Días de alerta para término"
+            ),
         ),
         migrations.AddField(
-            model_name='worker',
-            name='fecha_termino_contrato',
-            field=models.DateField(blank=True, null=True, verbose_name='Fecha de término de contrato'),
+            model_name="worker",
+            name="fecha_termino_contrato",
+            field=models.DateField(
+                blank=True, null=True, verbose_name="Fecha de término de contrato"
+            ),
         ),
     ]

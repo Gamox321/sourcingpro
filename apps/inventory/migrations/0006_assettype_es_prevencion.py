@@ -4,40 +4,43 @@ from django.db import migrations, models
 
 
 def seed_prevencion_types(apps, schema_editor):
-    AssetType = apps.get_model('inventory', 'AssetType')
+    AssetType = apps.get_model("inventory", "AssetType")
     tipos_epp = [
-        ('Casco', 'Cascos de seguridad industrial'),
-        ('Arnés', 'Arneses y líneas de vida'),
-        ('Zapatos seguridad', 'Zapatos y botas de seguridad'),
-        ('Chaleco reflectante', 'Chalecos de alta visibilidad'),
-        ('Guantes', 'Guantes de protección'),
-        ('Lentes seguridad', 'Lentes y goggles de protección'),
-        ('Protector auditivo', 'Protectores auditivos (orejeras, tapones)'),
-        ('Respirador', 'Respiradores y mascarillas'),
-        ('Ropa trabajo', 'Ropa de trabajo y overoles'),
+        ("Casco", "Cascos de seguridad industrial"),
+        ("Arnés", "Arneses y líneas de vida"),
+        ("Zapatos seguridad", "Zapatos y botas de seguridad"),
+        ("Chaleco reflectante", "Chalecos de alta visibilidad"),
+        ("Guantes", "Guantes de protección"),
+        ("Lentes seguridad", "Lentes y goggles de protección"),
+        ("Protector auditivo", "Protectores auditivos (orejeras, tapones)"),
+        ("Respirador", "Respiradores y mascarillas"),
+        ("Ropa trabajo", "Ropa de trabajo y overoles"),
     ]
     for nombre, descripcion in tipos_epp:
         AssetType.objects.get_or_create(
             nombre=nombre,
             defaults={
-                'descripcion': descripcion,
-                'es_prevencion': True,
-            }
+                "descripcion": descripcion,
+                "es_prevencion": True,
+            },
         )
-    AssetType.objects.filter(nombre='EPP').update(es_prevencion=True)
+    AssetType.objects.filter(nombre="EPP").update(es_prevencion=True)
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('inventory', '0005_assettype_es_ti_and_more'),
+        ("inventory", "0005_assettype_es_ti_and_more"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='assettype',
-            name='es_prevencion',
-            field=models.BooleanField(default=False, verbose_name='Visible en Prevención'),
+            model_name="assettype",
+            name="es_prevencion",
+            field=models.BooleanField(
+                default=False, verbose_name="Visible en Prevención"
+            ),
         ),
-        migrations.RunPython(seed_prevencion_types, reverse_code=migrations.RunPython.noop),
+        migrations.RunPython(
+            seed_prevencion_types, reverse_code=migrations.RunPython.noop
+        ),
     ]

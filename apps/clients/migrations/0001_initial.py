@@ -6,7 +6,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     initial = True
 
     dependencies = [
@@ -15,32 +14,90 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.CreateModel(
-            name='Client',
+            name="Client",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('nombre', models.CharField(max_length=100, unique=True, verbose_name='Nombre')),
-                ('descripcion', models.CharField(blank=True, max_length=255, null=True, verbose_name='Descripción')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "nombre",
+                    models.CharField(
+                        max_length=100, unique=True, verbose_name="Nombre"
+                    ),
+                ),
+                (
+                    "descripcion",
+                    models.CharField(
+                        blank=True,
+                        max_length=255,
+                        null=True,
+                        verbose_name="Descripción",
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'Cliente',
-                'verbose_name_plural': 'Clientes',
-                'db_table': 'cliente',
+                "verbose_name": "Cliente",
+                "verbose_name_plural": "Clientes",
+                "db_table": "cliente",
             },
         ),
         migrations.CreateModel(
-            name='CostCenter',
+            name="CostCenter",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('nombre', models.CharField(max_length=100, verbose_name='Nombre')),
-                ('codigo', models.CharField(max_length=20, unique=True, verbose_name='Código')),
-                ('estado', models.CharField(choices=[('activo', 'Activo'), ('inactivo', 'Inactivo')], default='activo', max_length=10, verbose_name='Estado')),
-                ('cliente', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='centros_costo', to='clients.client', verbose_name='Cliente')),
-                ('jefatura', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='cecos_a_cargo', to=settings.AUTH_USER_MODEL, verbose_name='Jefatura responsable')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("nombre", models.CharField(max_length=100, verbose_name="Nombre")),
+                (
+                    "codigo",
+                    models.CharField(max_length=20, unique=True, verbose_name="Código"),
+                ),
+                (
+                    "estado",
+                    models.CharField(
+                        choices=[("activo", "Activo"), ("inactivo", "Inactivo")],
+                        default="activo",
+                        max_length=10,
+                        verbose_name="Estado",
+                    ),
+                ),
+                (
+                    "cliente",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="centros_costo",
+                        to="clients.client",
+                        verbose_name="Cliente",
+                    ),
+                ),
+                (
+                    "jefatura",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        related_name="cecos_a_cargo",
+                        to=settings.AUTH_USER_MODEL,
+                        verbose_name="Jefatura responsable",
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'Centro de Costo',
-                'verbose_name_plural': 'Centros de Costo',
-                'db_table': 'centro_costo',
+                "verbose_name": "Centro de Costo",
+                "verbose_name_plural": "Centros de Costo",
+                "db_table": "centro_costo",
             },
         ),
     ]

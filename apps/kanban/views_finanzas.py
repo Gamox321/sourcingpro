@@ -2,19 +2,18 @@ from django.utils import timezone
 from django.views.generic import TemplateView, ListView
 
 from apps.accounts.decorators import RoleRequiredMixin
-from apps.notifications.models import Notification
 from apps.notifications.views import NotificationListView
 from apps.processes.models import Process, Task
 
 
 class FinanzasNotificacionesView(NotificationListView):
-    template_name = 'finanzas/notificaciones.html'
-    roles_requeridos = ['administrador', 'finanzas']
+    template_name = "finanzas/notificaciones.html"
+    roles_requeridos = ["administrador", "finanzas"]
 
 
 class FinanzasDashboardView(RoleRequiredMixin, TemplateView):
-    template_name = 'finanzas/dashboard.html'
-    roles_requeridos = ['administrador', 'finanzas']
+    template_name = "finanzas/dashboard.html"
+    roles_requeridos = ["administrador", "finanzas"]
 
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
@@ -26,7 +25,7 @@ class FinanzasDashboardView(RoleRequiredMixin, TemplateView):
             tipo=Task.TipoChoices.FINIQUITO_COORDINACION,
             omitida=False,
             proceso__estado=Process.EstadoChoices.EN_CURSO,
-        ).select_related('proceso__trabajador', 'usuario_responsable')
+        ).select_related("proceso__trabajador", "usuario_responsable")
 
         tareas_pendientes = mis_tareas.filter(
             estado__in=[Task.EstadoChoices.PENDIENTE, Task.EstadoChoices.EN_PROCESO]
@@ -35,7 +34,10 @@ class FinanzasDashboardView(RoleRequiredMixin, TemplateView):
         # Finiquitos coordinados este mes
         finiquitos_mes = Task.objects.filter(
             tipo=Task.TipoChoices.FINIQUITO_COORDINACION,
-            estado__in=[Task.EstadoChoices.COMPLETADA, Task.EstadoChoices.GESTIONADO_EXTERNO],
+            estado__in=[
+                Task.EstadoChoices.COMPLETADA,
+                Task.EstadoChoices.GESTIONADO_EXTERNO,
+            ],
             fecha_completado__gte=primer_dia_mes,
         ).count()
 
@@ -56,47 +58,47 @@ class FinanzasDashboardView(RoleRequiredMixin, TemplateView):
             estado=Task.EstadoChoices.VENCIDA,
         ).count()
 
-        ctx['stats'] = {
-            'tareas_pendientes': tareas_pendientes.count(),
-            'finiquitos_mes': finiquitos_mes,
-            'termino_activos': termino_activos,
-            'despido_activos': despido_activos,
-            'tareas_vencidas': tareas_vencidas,
+        ctx["stats"] = {
+            "tareas_pendientes": tareas_pendientes.count(),
+            "finiquitos_mes": finiquitos_mes,
+            "termino_activos": termino_activos,
+            "despido_activos": despido_activos,
+            "tareas_vencidas": tareas_vencidas,
         }
 
-        ctx['mis_tareas'] = tareas_pendientes.order_by('-urgencia', 'plazo_limite')[:10]
+        ctx["mis_tareas"] = tareas_pendientes.order_by("-urgencia", "plazo_limite")[:10]
 
         return ctx
 
 
 class FinanzasFiniquitosView(RoleRequiredMixin, ListView):
     model = Process
-    template_name = 'finanzas/finiquitos.html'
-    context_object_name = 'procesos'
-    roles_requeridos = ['administrador', 'finanzas']
+    template_name = "finanzas/finiquitos.html"
+    context_object_name = "procesos"
+    roles_requeridos = ["administrador", "finanzas"]
     paginate_by = 20
 
     def get_queryset(self):
         qs = Process.objects.filter(
             tipo__in=[Process.TipoChoices.TERMINO, Process.TipoChoices.DESPIDO],
             estado=Process.EstadoChoices.EN_CURSO,
-        ).select_related('trabajador', 'usuario_inicio', 'ceco_origen')
+        ).select_related("trabajador", "usuario_inicio", "ceco_origen")
 
-        tipo = self.request.GET.get('tipo', '')
+        tipo = self.request.GET.get("tipo", "")
         if tipo:
             qs = qs.filter(tipo=tipo)
 
-        return qs.order_by('-fecha_inicio')
+        return qs.order_by("-fecha_inicio")
 
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
-        ctx['filtro_tipo'] = self.request.GET.get('tipo', '')
+        ctx["filtro_tipo"] = self.request.GET.get("tipo", "")
         return ctx
 
 
 class FinanzasTableroView(RoleRequiredMixin, TemplateView):
-    template_name = 'finanzas/tablero.html'
-    roles_requeridos = ['administrador', 'finanzas']
+    template_name = "finanzas/tablero.html"
+    roles_requeridos = ["administrador", "finanzas"]
 
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
@@ -105,12 +107,15 @@ class FinanzasTableroView(RoleRequiredMixin, TemplateView):
             tipo=Task.TipoChoices.FINIQUITO_COORDINACION,
             omitida=False,
             proceso__estado=Process.EstadoChoices.EN_CURSO,
-        ).select_related('proceso__trabajador', 'usuario_responsable')
+        ).select_related("proceso__trabajador", "usuario_responsable")
 
-        ctx['pendientes'] = qs.filter(estado=Task.EstadoChoices.PENDIENTE)
-        ctx['en_proceso'] = qs.filter(estado=Task.EstadoChoices.EN_PROCESO)
-        ctx['completadas'] = qs.filter(
-            estado__in=[Task.EstadoChoices.COMPLETADA, Task.EstadoChoices.GESTIONADO_EXTERNO]
+        ctx["pendientes"] = qs.filter(estado=Task.EstadoChoices.PENDIENTE)
+        ctx["en_proceso"] = qs.filter(estado=Task.EstadoChoices.EN_PROCESO)
+        ctx["completadas"] = qs.filter(
+            estado__in=[
+                Task.EstadoChoices.COMPLETADA,
+                Task.EstadoChoices.GESTIONADO_EXTERNO,
+            ]
         )
 
         return ctx

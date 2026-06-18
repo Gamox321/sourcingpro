@@ -6,7 +6,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     initial = True
 
     dependencies = [
@@ -15,24 +14,82 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.CreateModel(
-            name='AuditLog',
+            name="AuditLog",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('tabla_afectada', models.CharField(db_index=True, max_length=50, verbose_name='Tabla afectada')),
-                ('accion', models.CharField(choices=[('creacion', 'Creación'), ('modificacion', 'Modificación'), ('cambio_estado', 'Cambio de estado'), ('eliminacion_logica', 'Eliminación lógica'), ('escalamiento', 'Escalamiento'), ('cierre', 'Cierre')], max_length=20, verbose_name='Acción')),
-                ('descripcion', models.TextField(blank=True, null=True, verbose_name='Descripción')),
-                ('valor_anterior', models.JSONField(blank=True, null=True, verbose_name='Valor anterior')),
-                ('valor_nuevo', models.JSONField(blank=True, null=True, verbose_name='Valor nuevo')),
-                ('fecha_accion', models.DateTimeField(auto_now_add=True, db_index=True, verbose_name='Fecha de acción')),
-                ('id_entidad_afectada', models.IntegerField(verbose_name='ID de la entidad afectada')),
-                ('usuario', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL, verbose_name='Usuario')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "tabla_afectada",
+                    models.CharField(
+                        db_index=True, max_length=50, verbose_name="Tabla afectada"
+                    ),
+                ),
+                (
+                    "accion",
+                    models.CharField(
+                        choices=[
+                            ("creacion", "Creación"),
+                            ("modificacion", "Modificación"),
+                            ("cambio_estado", "Cambio de estado"),
+                            ("eliminacion_logica", "Eliminación lógica"),
+                            ("escalamiento", "Escalamiento"),
+                            ("cierre", "Cierre"),
+                        ],
+                        max_length=20,
+                        verbose_name="Acción",
+                    ),
+                ),
+                (
+                    "descripcion",
+                    models.TextField(blank=True, null=True, verbose_name="Descripción"),
+                ),
+                (
+                    "valor_anterior",
+                    models.JSONField(
+                        blank=True, null=True, verbose_name="Valor anterior"
+                    ),
+                ),
+                (
+                    "valor_nuevo",
+                    models.JSONField(blank=True, null=True, verbose_name="Valor nuevo"),
+                ),
+                (
+                    "fecha_accion",
+                    models.DateTimeField(
+                        auto_now_add=True, db_index=True, verbose_name="Fecha de acción"
+                    ),
+                ),
+                (
+                    "id_entidad_afectada",
+                    models.IntegerField(verbose_name="ID de la entidad afectada"),
+                ),
+                (
+                    "usuario",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        to=settings.AUTH_USER_MODEL,
+                        verbose_name="Usuario",
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'Auditoría',
-                'verbose_name_plural': 'Auditoría',
-                'db_table': 'bitacora',
-                'ordering': ['-fecha_accion'],
-                'indexes': [models.Index(fields=['tabla_afectada', 'id_entidad_afectada'], name='bitacora_tabla_a_136fc8_idx')],
+                "verbose_name": "Auditoría",
+                "verbose_name_plural": "Auditoría",
+                "db_table": "bitacora",
+                "ordering": ["-fecha_accion"],
+                "indexes": [
+                    models.Index(
+                        fields=["tabla_afectada", "id_entidad_afectada"],
+                        name="bitacora_tabla_a_136fc8_idx",
+                    )
+                ],
             },
         ),
     ]

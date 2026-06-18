@@ -3,7 +3,7 @@ from apps.processes.models import Task, TaskDeadlineConfig
 
 
 class Command(BaseCommand):
-    help = 'Crea configuración de plazos de tareas por defecto'
+    help = "Crea configuración de plazos de tareas por defecto"
 
     def handle(self, *args, **options):
         defaults = [
@@ -26,18 +26,20 @@ class Command(BaseCommand):
             config, created = TaskDeadlineConfig.objects.update_or_create(
                 tipo_tarea=tipo_tarea,
                 defaults={
-                    'plazo_dias': plazo_dias,
-                    'plazo_escalamiento_dias': plazo_escalamiento,
-                    'es_critica': es_critica,
-                }
+                    "plazo_dias": plazo_dias,
+                    "plazo_escalamiento_dias": plazo_escalamiento,
+                    "es_critica": es_critica,
+                },
             )
             if created:
                 created_count += 1
-                self.stdout.write(f'  Creado: {config}')
+                self.stdout.write(f"  Creado: {config}")
             else:
                 updated_count += 1
-                self.stdout.write(f'  Actualizado: {config}')
+                self.stdout.write(f"  Actualizado: {config}")
 
-        self.stdout.write(self.style.SUCCESS(
-            f'Configuración creada: {created_count}, Actualizada: {updated_count}'
-        ))
+        self.stdout.write(
+            self.style.SUCCESS(
+                f"Configuración creada: {created_count}, Actualizada: {updated_count}"
+            )
+        )

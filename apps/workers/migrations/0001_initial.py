@@ -5,48 +5,134 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     initial = True
 
     dependencies = [
-        ('clients', '0001_initial'),
+        ("clients", "0001_initial"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='Worker',
+            name="Worker",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('run', models.CharField(max_length=12, unique=True, verbose_name='RUN')),
-                ('nombre', models.CharField(max_length=100, verbose_name='Nombre completo')),
-                ('correo', models.EmailField(max_length=150, unique=True, verbose_name='Correo electrónico')),
-                ('cargo', models.CharField(max_length=100, verbose_name='Cargo')),
-                ('fecha_ingreso_estimada', models.DateField(blank=True, null=True, verbose_name='Fecha ingreso estimada')),
-                ('fecha_ingreso_efectiva', models.DateField(blank=True, null=True, verbose_name='Fecha ingreso efectiva')),
-                ('estado', models.CharField(choices=[('en_proceso', 'En proceso'), ('activo', 'Activo'), ('en_transito', 'En tránsito'), ('por_egresar', 'Por egresar'), ('despedido_en_proceso', 'Despedido en proceso'), ('desvinculado', 'Desvinculado'), ('eliminado', 'Eliminado')], default='en_proceso', max_length=25, verbose_name='Estado')),
-                ('centro_costo_actual', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='trabajadores', to='clients.costcenter', verbose_name='Centro de costo actual')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "run",
+                    models.CharField(max_length=12, unique=True, verbose_name="RUN"),
+                ),
+                (
+                    "nombre",
+                    models.CharField(max_length=100, verbose_name="Nombre completo"),
+                ),
+                (
+                    "correo",
+                    models.EmailField(
+                        max_length=150, unique=True, verbose_name="Correo electrónico"
+                    ),
+                ),
+                ("cargo", models.CharField(max_length=100, verbose_name="Cargo")),
+                (
+                    "fecha_ingreso_estimada",
+                    models.DateField(
+                        blank=True, null=True, verbose_name="Fecha ingreso estimada"
+                    ),
+                ),
+                (
+                    "fecha_ingreso_efectiva",
+                    models.DateField(
+                        blank=True, null=True, verbose_name="Fecha ingreso efectiva"
+                    ),
+                ),
+                (
+                    "estado",
+                    models.CharField(
+                        choices=[
+                            ("en_proceso", "En proceso"),
+                            ("activo", "Activo"),
+                            ("en_transito", "En tránsito"),
+                            ("por_egresar", "Por egresar"),
+                            ("despedido_en_proceso", "Despedido en proceso"),
+                            ("desvinculado", "Desvinculado"),
+                            ("eliminado", "Eliminado"),
+                        ],
+                        default="en_proceso",
+                        max_length=25,
+                        verbose_name="Estado",
+                    ),
+                ),
+                (
+                    "centro_costo_actual",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        related_name="trabajadores",
+                        to="clients.costcenter",
+                        verbose_name="Centro de costo actual",
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'Trabajador',
-                'verbose_name_plural': 'Trabajadores',
-                'db_table': 'trabajador',
+                "verbose_name": "Trabajador",
+                "verbose_name_plural": "Trabajadores",
+                "db_table": "trabajador",
             },
         ),
         migrations.CreateModel(
-            name='CostCenterHistory',
+            name="CostCenterHistory",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('fecha_inicio', models.DateField(verbose_name='Fecha inicio')),
-                ('fecha_fin', models.DateField(blank=True, null=True, verbose_name='Fecha fin')),
-                ('proceso_id', models.IntegerField(blank=True, null=True, verbose_name='ID del proceso origen')),
-                ('centro_costo', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='historial_trabajadores', to='clients.costcenter', verbose_name='Centro de costo')),
-                ('trabajador', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='historial_ceco', to='workers.worker', verbose_name='Trabajador')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("fecha_inicio", models.DateField(verbose_name="Fecha inicio")),
+                (
+                    "fecha_fin",
+                    models.DateField(blank=True, null=True, verbose_name="Fecha fin"),
+                ),
+                (
+                    "proceso_id",
+                    models.IntegerField(
+                        blank=True, null=True, verbose_name="ID del proceso origen"
+                    ),
+                ),
+                (
+                    "centro_costo",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="historial_trabajadores",
+                        to="clients.costcenter",
+                        verbose_name="Centro de costo",
+                    ),
+                ),
+                (
+                    "trabajador",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="historial_ceco",
+                        to="workers.worker",
+                        verbose_name="Trabajador",
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'Historial de CeCo',
-                'verbose_name_plural': 'Historiales de CeCo',
-                'db_table': 'historial_ceco',
-                'ordering': ['-fecha_inicio'],
+                "verbose_name": "Historial de CeCo",
+                "verbose_name_plural": "Historiales de CeCo",
+                "db_table": "historial_ceco",
+                "ordering": ["-fecha_inicio"],
             },
         ),
     ]

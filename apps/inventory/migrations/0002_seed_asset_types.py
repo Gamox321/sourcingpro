@@ -4,27 +4,38 @@ from django.db import migrations
 
 
 def seed_asset_types(apps, schema_editor):
-    AssetType = apps.get_model('inventory', 'AssetType')
+    AssetType = apps.get_model("inventory", "AssetType")
     tipos = [
-        ('Equipos TI', 'Computadores, laptops, teléfonos y otros equipos tecnológicos', False),
-        ('EPP', 'Elementos de protección personal: casco, zapatos, arnés, etc.', False),
-        ('Vehículos', 'Camionetas, autos y otros vehículos asignados en terreno', False),
-        ('Herramientas', 'Kits de herramientas y equipamiento de trabajo en campo', False),
+        (
+            "Equipos TI",
+            "Computadores, laptops, teléfonos y otros equipos tecnológicos",
+            False,
+        ),
+        ("EPP", "Elementos de protección personal: casco, zapatos, arnés, etc.", False),
+        (
+            "Vehículos",
+            "Camionetas, autos y otros vehículos asignados en terreno",
+            False,
+        ),
+        (
+            "Herramientas",
+            "Kits de herramientas y equipamiento de trabajo en campo",
+            False,
+        ),
     ]
     for nombre, descripcion, personalizado in tipos:
         AssetType.objects.get_or_create(
             nombre=nombre,
             defaults={
-                'descripcion': descripcion,
-                'es_personalizado': personalizado,
-            }
+                "descripcion": descripcion,
+                "es_personalizado": personalizado,
+            },
         )
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('inventory', '0001_initial'),
+        ("inventory", "0001_initial"),
     ]
 
     operations = [

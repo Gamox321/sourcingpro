@@ -4,30 +4,40 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('workers', '0003_worker_alerta_dias_worker_fecha_termino_contrato'),
+        ("workers", "0003_worker_alerta_dias_worker_fecha_termino_contrato"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='worker',
-            name='cuenta_ti_clave_inicial',
-            field=models.CharField(blank=True, max_length=100, null=True, verbose_name='Clave inicial TI'),
+            model_name="worker",
+            name="cuenta_ti_clave_inicial",
+            field=models.CharField(
+                blank=True, max_length=100, null=True, verbose_name="Clave inicial TI"
+            ),
         ),
         migrations.AddField(
-            model_name='worker',
-            name='cuenta_ti_email',
-            field=models.EmailField(blank=True, max_length=254, null=True, verbose_name='Correo corporativo TI'),
+            model_name="worker",
+            name="cuenta_ti_email",
+            field=models.EmailField(
+                blank=True,
+                max_length=254,
+                null=True,
+                verbose_name="Correo corporativo TI",
+            ),
         ),
         migrations.AddField(
-            model_name='worker',
-            name='cuenta_ti_fecha_creacion',
-            field=models.DateTimeField(blank=True, null=True, verbose_name='Fecha creación cuenta TI'),
+            model_name="worker",
+            name="cuenta_ti_fecha_creacion",
+            field=models.DateTimeField(
+                blank=True, null=True, verbose_name="Fecha creación cuenta TI"
+            ),
         ),
         migrations.AddField(
-            model_name='worker',
-            name='cuenta_ti_notas',
-            field=models.TextField(blank=True, null=True, verbose_name='Notas de la cuenta TI'),
+            model_name="worker",
+            name="cuenta_ti_notas",
+            field=models.TextField(
+                blank=True, null=True, verbose_name="Notas de la cuenta TI"
+            ),
         ),
     ]

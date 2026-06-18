@@ -4,20 +4,29 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('inventory', '0003_remove_assetassignment_proceso_id_and_more'),
+        ("inventory", "0003_remove_assetassignment_proceso_id_and_more"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='assetassignment',
-            name='foto_evidencia_url',
-            field=models.CharField(blank=True, max_length=500, null=True, verbose_name='Foto evidencia (URL alternativa)'),
+            model_name="assetassignment",
+            name="foto_evidencia_url",
+            field=models.CharField(
+                blank=True,
+                max_length=500,
+                null=True,
+                verbose_name="Foto evidencia (URL alternativa)",
+            ),
         ),
         migrations.AlterField(
-            model_name='assetassignment',
-            name='foto_evidencia',
-            field=models.FileField(blank=True, null=True, upload_to='evidencias/activos/', verbose_name='Foto/Archivo evidencia'),
+            model_name="assetassignment",
+            name="foto_evidencia",
+            field=models.FileField(
+                blank=True,
+                null=True,
+                upload_to="evidencias/activos/",
+                verbose_name="Foto/Archivo evidencia",
+            ),
         ),
     ]

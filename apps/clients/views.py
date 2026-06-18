@@ -11,69 +11,71 @@ from .models import CostCenter, Client
 
 class ClientListView(RoleRequiredMixin, ListView):
     model = Client
-    template_name = 'clients/client_list.html'
-    context_object_name = 'clients'
-    roles_requeridos = ['administrador', 'rrhh']
+    template_name = "clients/client_list.html"
+    context_object_name = "clients"
+    roles_requeridos = ["administrador", "rrhh"]
     paginate_by = 20
 
     def get_queryset(self):
         qs = Client.objects.all()
-        q = self.request.GET.get('q', '').strip()
+        q = self.request.GET.get("q", "").strip()
         if q:
-            qs = qs.filter(db_models.Q(nombre__icontains=q) | db_models.Q(descripcion__icontains=q))
+            qs = qs.filter(
+                db_models.Q(nombre__icontains=q) | db_models.Q(descripcion__icontains=q)
+            )
         return qs
 
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
-        ctx['query'] = self.request.GET.get('q', '')
+        ctx["query"] = self.request.GET.get("q", "")
         return ctx
 
 
 class ClientCreateView(RoleRequiredMixin, CreateView):
     model = Client
-    template_name = 'clients/client_form.html'
-    fields = ['nombre', 'descripcion']
-    roles_requeridos = ['administrador', 'rrhh']
-    success_url = reverse_lazy('clients:client_list')
+    template_name = "clients/client_form.html"
+    fields = ["nombre", "descripcion"]
+    roles_requeridos = ["administrador", "rrhh"]
+    success_url = reverse_lazy("clients:client_list")
 
     def form_valid(self, form):
-        messages.success(self.request, 'Cliente creado exitosamente.')
+        messages.success(self.request, "Cliente creado exitosamente.")
         return super().form_valid(form)
 
 
 class ClientUpdateView(RoleRequiredMixin, UpdateView):
     model = Client
-    template_name = 'clients/client_form.html'
-    fields = ['nombre', 'descripcion']
-    roles_requeridos = ['administrador', 'rrhh']
-    success_url = reverse_lazy('clients:client_list')
+    template_name = "clients/client_form.html"
+    fields = ["nombre", "descripcion"]
+    roles_requeridos = ["administrador", "rrhh"]
+    success_url = reverse_lazy("clients:client_list")
 
     def form_valid(self, form):
-        messages.success(self.request, 'Cliente actualizado exitosamente.')
+        messages.success(self.request, "Cliente actualizado exitosamente.")
         return super().form_valid(form)
 
 
 class CostCenterListView(RoleRequiredMixin, ListView):
     model = CostCenter
-    template_name = 'clients/costcenter_list.html'
-    context_object_name = 'costcenters'
-    roles_requeridos = ['administrador']
+    template_name = "clients/costcenter_list.html"
+    context_object_name = "costcenters"
+    roles_requeridos = ["administrador"]
     paginate_by = 20
 
     def get_queryset(self):
-        qs = CostCenter.objects.select_related('cliente', 'jefatura')
+        qs = CostCenter.objects.select_related("cliente", "jefatura")
 
         user = self.request.user
-        if user.roles.filter(nombre='jefatura').exists():
+        if user.roles.filter(nombre="jefatura").exists():
             qs = qs.filter(jefatura=user)
 
-        q = self.request.GET.get('q', '').strip()
-        estado = self.request.GET.get('estado', '')
+        q = self.request.GET.get("q", "").strip()
+        estado = self.request.GET.get("estado", "")
         if q:
             qs = qs.filter(
-                db_models.Q(nombre__icontains=q) |
-                db_models.Q(codigo__icontains=q) |
-                db_models.Q(cliente__nombre__icontains=q)
+                db_models.Q(nombre__icontains=q)
+                | db_models.Q(codigo__icontains=q)
+                | db_models.Q(cliente__nombre__icontains=q)
             )
         if estado:
             qs = qs.filter(estado=estado)
@@ -81,69 +83,72 @@ class CostCenterListView(RoleRequiredMixin, ListView):
 
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
-        ctx['query'] = self.request.GET.get('q', '')
-        ctx['filtro_estado'] = self.request.GET.get('estado', '')
+        ctx["query"] = self.request.GET.get("q", "")
+        ctx["filtro_estado"] = self.request.GET.get("estado", "")
         return ctx
 
 
 class CostCenterDetailView(RoleRequiredMixin, DetailView):
     model = CostCenter
-    template_name = 'clients/costcenter_detail.html'
-    context_object_name = 'costcenter'
-    roles_requeridos = ['administrador']
+    template_name = "clients/costcenter_detail.html"
+    context_object_name = "costcenter"
+    roles_requeridos = ["administrador"]
 
     def get_queryset(self):
-        return CostCenter.objects.select_related('cliente', 'jefatura')
+        return CostCenter.objects.select_related("cliente", "jefatura")
 
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
-        ctx['trabajadores'] = self.object.trabajadores.all()
+        ctx["trabajadores"] = self.object.trabajadores.all()
         return ctx
 
 
 class CostCenterCreateView(RoleRequiredMixin, CreateView):
     model = CostCenter
-    template_name = 'clients/costcenter_form.html'
-    fields = ['nombre', 'codigo', 'cliente', 'jefatura']
-    roles_requeridos = ['administrador', 'rrhh']
-    success_url = reverse_lazy('clients:costcenter_list')
+    template_name = "clients/costcenter_form.html"
+    fields = ["nombre", "codigo", "cliente", "jefatura"]
+    roles_requeridos = ["administrador", "rrhh"]
+    success_url = reverse_lazy("clients:costcenter_list")
 
     def form_valid(self, form):
-        messages.success(self.request, 'Centro de costo creado exitosamente.')
+        messages.success(self.request, "Centro de costo creado exitosamente.")
         return super().form_valid(form)
 
 
 class CostCenterUpdateView(RoleRequiredMixin, UpdateView):
     model = CostCenter
-    template_name = 'clients/costcenter_form.html'
-    fields = ['nombre', 'codigo', 'cliente', 'jefatura', 'estado']
-    roles_requeridos = ['administrador', 'rrhh']
-    success_url = reverse_lazy('clients:costcenter_list')
+    template_name = "clients/costcenter_form.html"
+    fields = ["nombre", "codigo", "cliente", "jefatura", "estado"]
+    roles_requeridos = ["administrador", "rrhh"]
+    success_url = reverse_lazy("clients:costcenter_list")
 
     def form_valid(self, form):
-        messages.success(self.request, 'Centro de costo actualizado exitosamente.')
+        messages.success(self.request, "Centro de costo actualizado exitosamente.")
         return super().form_valid(form)
 
 
 class CostCenterDeactivateView(RoleRequiredMixin, View):
-    roles_requeridos = ['administrador', 'rrhh']
+    roles_requeridos = ["administrador", "rrhh"]
 
     def post(self, request, pk):
         costcenter = CostCenter.objects.get(pk=pk)
         if costcenter.estado == CostCenter.EstadoChoices.INACTIVO:
             costcenter.estado = CostCenter.EstadoChoices.ACTIVO
-            messages.success(request, 'Centro de costo reactivado.')
+            messages.success(request, "Centro de costo reactivado.")
         else:
             if costcenter.trabajadores.filter(
-                estado__in=[Worker.EstadoChoices.ACTIVO, Worker.EstadoChoices.EN_TRANSITO]
+                estado__in=[
+                    Worker.EstadoChoices.ACTIVO,
+                    Worker.EstadoChoices.EN_TRANSITO,
+                ]
             ).exists():
                 messages.error(
                     request,
-                    'No se puede desactivar: tiene trabajadores activos o en tránsito. '
-                    'Inicia un proceso de cambio de CeCo para ellos primero.'
+                    "No se puede desactivar: tiene trabajadores activos o en tránsito. "
+                    "Inicia un proceso de cambio de CeCo para ellos primero.",
                 )
-                return redirect('clients:costcenter_detail', pk=pk)
+                return redirect("clients:costcenter_detail", pk=pk)
             costcenter.estado = CostCenter.EstadoChoices.INACTIVO
-            messages.success(request, 'Centro de costo desactivado.')
-        costcenter.save(update_fields=['estado'])
-        return redirect('clients:costcenter_list')
+            messages.success(request, "Centro de costo desactivado.")
+        costcenter.save(update_fields=["estado"])
+        return redirect("clients:costcenter_list")

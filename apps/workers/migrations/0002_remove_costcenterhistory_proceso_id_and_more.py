@@ -5,20 +5,26 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('processes', '0001_initial'),
-        ('workers', '0001_initial'),
+        ("processes", "0001_initial"),
+        ("workers", "0001_initial"),
     ]
 
     operations = [
         migrations.RemoveField(
-            model_name='costcenterhistory',
-            name='proceso_id',
+            model_name="costcenterhistory",
+            name="proceso_id",
         ),
         migrations.AddField(
-            model_name='costcenterhistory',
-            name='proceso',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='+', to='processes.process', verbose_name='Proceso origen'),
+            model_name="costcenterhistory",
+            name="proceso",
+            field=models.ForeignKey(
+                blank=True,
+                null=True,
+                on_delete=django.db.models.deletion.SET_NULL,
+                related_name="+",
+                to="processes.process",
+                verbose_name="Proceso origen",
+            ),
         ),
     ]

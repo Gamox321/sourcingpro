@@ -4,24 +4,41 @@ from django.db import migrations
 
 
 def seed_roles(apps, schema_editor):
-    Role = apps.get_model('accounts', 'Role')
+    Role = apps.get_model("accounts", "Role")
     roles = [
-        ('administrador', 'Gestión completa del sistema, usuarios, roles, tipos de activos y centros de costo'),
-        ('rrhh', 'Gestión completa de trabajadores, procesos, inventario y todos los módulos'),
-        ('jefatura', 'Inicio de procesos y visualización de fichas bajo su responsabilidad'),
-        ('ti', 'Gestión de tareas de su área y acceso restringido a inventario de Equipos TI'),
-        ('prevencion', 'Gestión de tareas de su área y acceso restringido a inventario de EPP'),
-        ('finanzas', 'Gestión de tareas de su área, sin acceso directo al inventario'),
-        ('logistica', 'Gestión de tareas de su área y acceso completo al inventario operativo'),
+        (
+            "administrador",
+            "Gestión completa del sistema, usuarios, roles, tipos de activos y centros de costo",
+        ),
+        (
+            "rrhh",
+            "Gestión completa de trabajadores, procesos, inventario y todos los módulos",
+        ),
+        (
+            "jefatura",
+            "Inicio de procesos y visualización de fichas bajo su responsabilidad",
+        ),
+        (
+            "ti",
+            "Gestión de tareas de su área y acceso restringido a inventario de Equipos TI",
+        ),
+        (
+            "prevencion",
+            "Gestión de tareas de su área y acceso restringido a inventario de EPP",
+        ),
+        ("finanzas", "Gestión de tareas de su área, sin acceso directo al inventario"),
+        (
+            "logistica",
+            "Gestión de tareas de su área y acceso completo al inventario operativo",
+        ),
     ]
     for nombre, descripcion in roles:
-        Role.objects.get_or_create(nombre=nombre, defaults={'descripcion': descripcion})
+        Role.objects.get_or_create(nombre=nombre, defaults={"descripcion": descripcion})
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('accounts', '0001_initial'),
+        ("accounts", "0001_initial"),
     ]
 
     operations = [

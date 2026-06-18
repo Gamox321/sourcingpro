@@ -4,26 +4,62 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('processes', '0001_initial'),
+        ("processes", "0001_initial"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='TaskDeadlineConfig',
+            name="TaskDeadlineConfig",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('tipo_tarea', models.CharField(choices=[('crear_cuenta_ti', 'Creación de cuenta TI'), ('examenes_preocupacionales', 'Exámenes preocupacionales'), ('epp_induccion', 'EPP e Inducción'), ('equipamiento', 'Equipamiento'), ('devolucion_activos', 'Devolución de activos'), ('recuperacion_activos', 'Recuperación de activos'), ('preparar_bloqueo_accesos', 'Preparar bloqueo de accesos'), ('bloqueo_accesos', 'Bloqueo de accesos'), ('finiquito_coordinacion', 'Coordinación de finiquito')], max_length=30, unique=True, verbose_name='Tipo de tarea')),
-                ('plazo_dias', models.PositiveIntegerField(default=5, verbose_name='Plazo (días)')),
-                ('plazo_escalamiento_dias', models.PositiveIntegerField(default=2, verbose_name='Plazo de escalamiento (días)')),
-                ('es_critica', models.BooleanField(default=False, verbose_name='Es crítica')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "tipo_tarea",
+                    models.CharField(
+                        choices=[
+                            ("crear_cuenta_ti", "Creación de cuenta TI"),
+                            ("examenes_preocupacionales", "Exámenes preocupacionales"),
+                            ("epp_induccion", "EPP e Inducción"),
+                            ("equipamiento", "Equipamiento"),
+                            ("devolucion_activos", "Devolución de activos"),
+                            ("recuperacion_activos", "Recuperación de activos"),
+                            ("preparar_bloqueo_accesos", "Preparar bloqueo de accesos"),
+                            ("bloqueo_accesos", "Bloqueo de accesos"),
+                            ("finiquito_coordinacion", "Coordinación de finiquito"),
+                        ],
+                        max_length=30,
+                        unique=True,
+                        verbose_name="Tipo de tarea",
+                    ),
+                ),
+                (
+                    "plazo_dias",
+                    models.PositiveIntegerField(default=5, verbose_name="Plazo (días)"),
+                ),
+                (
+                    "plazo_escalamiento_dias",
+                    models.PositiveIntegerField(
+                        default=2, verbose_name="Plazo de escalamiento (días)"
+                    ),
+                ),
+                (
+                    "es_critica",
+                    models.BooleanField(default=False, verbose_name="Es crítica"),
+                ),
             ],
             options={
-                'verbose_name': 'Configuración de Plazo de Tarea',
-                'verbose_name_plural': 'Configuraciones de Plazos de Tareas',
-                'db_table': 'config_plazo_tarea',
-                'unique_together': {('tipo_tarea',)},
+                "verbose_name": "Configuración de Plazo de Tarea",
+                "verbose_name_plural": "Configuraciones de Plazos de Tareas",
+                "db_table": "config_plazo_tarea",
+                "unique_together": {("tipo_tarea",)},
             },
         ),
     ]

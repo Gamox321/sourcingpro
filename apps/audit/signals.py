@@ -1,25 +1,24 @@
 from django.db.models.signals import pre_save, post_save, post_delete
 from django.dispatch import receiver
-from django.utils import timezone
 
 from apps.audit.models import AuditLog
 from apps.audit.middleware import get_current_user
 
 from apps.accounts.models import User as UserModel
-from apps.clients.models import Client, CostCenter
-from apps.workers.models import Worker, CostCenterHistory
-from apps.inventory.models import AssetType, Asset, AssetAssignment
+from apps.clients.models import CostCenter
+from apps.workers.models import Worker
+from apps.inventory.models import Asset, AssetAssignment
 from apps.processes.models import Process, Task
 
 
 TRACKED_MODELS = {
-    'Worker': Worker,
-    'Process': Process,
-    'Task': Task,
-    'CostCenter': CostCenter,
-    'Asset': Asset,
-    'AssetAssignment': AssetAssignment,
-    'User': UserModel,
+    "Worker": Worker,
+    "Process": Process,
+    "Task": Task,
+    "CostCenter": CostCenter,
+    "Asset": Asset,
+    "AssetAssignment": AssetAssignment,
+    "User": UserModel,
 }
 
 
@@ -32,7 +31,7 @@ def _serialize(instance):
     for field in instance._meta.fields:
         name = field.name
         value = getattr(instance, name)
-        if hasattr(value, 'isoformat'):
+        if hasattr(value, "isoformat"):
             value = str(value)
         if isinstance(value, (int, float, str, bool, type(None))):
             data[name] = value
@@ -47,7 +46,7 @@ def _serialize(instance):
 def _get_accion(created, old_data, new_data):
     if created:
         return AuditLog.AccionChoices.CREACION
-    if old_data and old_data.get('estado') != new_data.get('estado'):
+    if old_data and old_data.get("estado") != new_data.get("estado"):
         return AuditLog.AccionChoices.CAMBIO_ESTADO
     return AuditLog.AccionChoices.MODIFICACION
 
@@ -60,7 +59,7 @@ def _log_action(instance, accion, old_data=None, new_data=None, descripcion=None
     AuditLog.objects.create(
         tabla_afectada=_get_table_name(instance.__class__),
         accion=accion,
-        descripcion=descripcion or f'{accion} en {instance._meta.verbose_name}',
+        descripcion=descripcion or f"{accion} en {instance._meta.verbose_name}",
         valor_anterior=old_data,
         valor_nuevo=new_data or _serialize(instance),
         usuario=user,
@@ -115,7 +114,7 @@ def audit_post_delete(sender, instance, **kwargs):
         AuditLog.objects.create(
             tabla_afectada=_get_table_name(sender),
             accion=AuditLog.AccionChoices.ELIMINACION_LOGICA,
-            descripcion=f'Eliminación de {instance._meta.verbose_name} #{instance.pk}',
+            descripcion=f"Eliminación de {instance._meta.verbose_name} #{instance.pk}",
             valor_anterior=old_data or _serialize(instance),
             usuario=user,
             id_entidad_afectada=instance.pk,

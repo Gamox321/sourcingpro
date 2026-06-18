@@ -7,25 +7,25 @@ from .models import Notification, NotificationConfig
 
 
 EVENTOS_NOTIFICABLES = [
-    'proceso_inicio',
-    'proceso_cierre',
-    'proceso_despido_inicio',
-    'tarea_cambio_estado',
-    'tarea_proxima_vencer',
-    'tarea_vencida',
-    'tarea_escalada',
-    'tarea_critica_bloqueo',
-    'recuperacion_activos_alerta',
-    'trabajador_cambio_estado_manual',
-    'trabajador_edicion_bloqueada',
-    'ceco_desactivacion_con_activos',
-    'ceco_cambio_automatico',
-    'auth_usuario_creado',
-    'auth_enlace_recuperacion',
-    'auth_desactivacion_con_tareas',
-    'auth_sesion_por_vencer',
-    'devolucion_incompleta',
-    'devolucion_validada',
+    "proceso_inicio",
+    "proceso_cierre",
+    "proceso_despido_inicio",
+    "tarea_cambio_estado",
+    "tarea_proxima_vencer",
+    "tarea_vencida",
+    "tarea_escalada",
+    "tarea_critica_bloqueo",
+    "recuperacion_activos_alerta",
+    "trabajador_cambio_estado_manual",
+    "trabajador_edicion_bloqueada",
+    "ceco_desactivacion_con_activos",
+    "ceco_cambio_automatico",
+    "auth_usuario_creado",
+    "auth_enlace_recuperacion",
+    "auth_desactivacion_con_tareas",
+    "auth_sesion_por_vencer",
+    "devolucion_incompleta",
+    "devolucion_validada",
 ]
 
 
@@ -34,7 +34,11 @@ def _get_config_owner():
     if user is not None and user.is_authenticated:
         return user
     from apps.accounts.models import User
-    return User.objects.filter(roles__nombre='administrador', is_active=True).first() or User.objects.first()
+
+    return (
+        User.objects.filter(roles__nombre="administrador", is_active=True).first()
+        or User.objects.first()
+    )
 
 
 def _config_activo(tipo_evento, canal):
@@ -63,31 +67,55 @@ def _crear_notificacion(usuario, tipo_evento, contenido, canal, proceso, tarea):
     )
 
 
-def _crear_notificacion_interna(usuario, tipo_evento, contenido, proceso=None, tarea=None):
+def _crear_notificacion_interna(
+    usuario, tipo_evento, contenido, proceso=None, tarea=None
+):
     if not _config_activo(tipo_evento, Notification.CanalChoices.INTERNO):
         return None
-    _crear_notificacion(usuario, tipo_evento, contenido, Notification.CanalChoices.INTERNO, proceso, tarea)
+    _crear_notificacion(
+        usuario,
+        tipo_evento,
+        contenido,
+        Notification.CanalChoices.INTERNO,
+        proceso,
+        tarea,
+    )
 
 
-def _enviar_email(usuario, tipo_evento, asunto, contenido_html, proceso=None, tarea=None):
+def _enviar_email(
+    usuario, tipo_evento, asunto, contenido_html, proceso=None, tarea=None
+):
     if not _config_activo(tipo_evento, Notification.CanalChoices.CORREO):
         return None
 
     send_mail(
         subject=asunto,
-        message=contenido_html.replace('\n', '\n'),
-        from_email=settings.DEFAULT_FROM_EMAIL or 'noreply@sourcingpro.cl',
+        message=contenido_html.replace("\n", "\n"),
+        from_email=settings.DEFAULT_FROM_EMAIL or "noreply@sourcingpro.cl",
         recipient_list=[usuario.email],
         fail_silently=True,
         html_message=f'<html><body style="font-family:Arial,sans-serif;padding:20px">'
-                     f'{contenido_html.replace(chr(10), "<br>")}</body></html>',
+        f"{contenido_html.replace(chr(10), '<br>')}</body></html>",
     )
 
-    _crear_notificacion(usuario, tipo_evento, contenido_html, Notification.CanalChoices.CORREO, proceso, tarea)
+    _crear_notificacion(
+        usuario,
+        tipo_evento,
+        contenido_html,
+        Notification.CanalChoices.CORREO,
+        proceso,
+        tarea,
+    )
 
 
-def notificar(usuario, tipo_evento, titulo, descripcion, enlace='', proceso=None, tarea=None):
-    contenido = f'{titulo}\n{descripcion}' if not enlace else f'{titulo}\n{descripcion}\n{enlace}'
+def notificar(
+    usuario, tipo_evento, titulo, descripcion, enlace="", proceso=None, tarea=None
+):
+    contenido = (
+        f"{titulo}\n{descripcion}"
+        if not enlace
+        else f"{titulo}\n{descripcion}\n{enlace}"
+    )
 
     _crear_notificacion_interna(
         usuario=usuario,
@@ -100,7 +128,7 @@ def notificar(usuario, tipo_evento, titulo, descripcion, enlace='', proceso=None
     _enviar_email(
         usuario=usuario,
         tipo_evento=tipo_evento,
-        asunto=f'SourcingPro — {titulo}',
+        asunto=f"SourcingPro — {titulo}",
         contenido_html=contenido,
         proceso=proceso,
         tarea=tarea,
