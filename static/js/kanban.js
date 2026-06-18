@@ -73,7 +73,7 @@ function abrirDetalle(taskId) {
     var controller = new AbortController();
     var timeout = setTimeout(function () { controller.abort(); }, 10000);
 
-    fetch('/kanban/tarea/' + taskId + '/', { signal: controller.signal })
+    fetch('/kanban/tarea/' + taskId + '/', { headers: { 'HX-Request': 'true' }, signal: controller.signal })
         .then(function (r) { return r.text(); })
         .then(function (html) {
             clearTimeout(timeout);
@@ -101,7 +101,7 @@ function abrirDetalle(taskId) {
 
 /* Reload load indicator */
 function actualizarIndicadorCarga() {
-    fetch('/kanban/carga/')
+    fetch('/kanban/carga/', { headers: { 'HX-Request': 'true' } })
         .then(function (r) { return r.text(); })
         .then(function (html) {
             var el = document.getElementById('load-indicator');

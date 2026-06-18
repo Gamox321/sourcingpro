@@ -46,6 +46,9 @@ class Asset(models.Model):
 
     codigo = models.CharField(max_length=50, unique=True, verbose_name='Código')
     nombre = models.CharField(max_length=150, verbose_name='Nombre')
+    marca = models.CharField(max_length=100, blank=True, verbose_name='Marca')
+    modelo = models.CharField(max_length=100, blank=True, verbose_name='Modelo')
+    numero_serie = models.CharField(max_length=100, blank=True, verbose_name='Número de serie')
     estado = models.CharField(
         max_length=25, choices=EstadoChoices.choices,
         default=EstadoChoices.DISPONIBLE, verbose_name='Estado'

@@ -33,6 +33,14 @@ class Command(BaseCommand):
         roles_map = {r.nombre: r for r in Role.objects.all()}
 
         usuarios = self._crear_usuarios(roles_map, admin)
+
+        # Asignar centros de costo a la jefatura para que pueda ver trabajadores
+        jefatura_user = usuarios.get('jefatura')
+        if jefatura_user:
+            for ceco in cecos:
+                ceco.jefatura = jefatura_user
+                ceco.save()
+
         workers = self._crear_workers(cecos)
         self._crear_activos(cecos, workers, admin)
         self._crear_procesos(usuarios, workers, cecos)
@@ -212,6 +220,8 @@ class Command(BaseCommand):
             'fecha_ingreso_estimada': (now + timedelta(days=14)).date(),
             'motivo': 'Nuevo puesto creado',
         })
+        for t in p2.tareas.all().order_by('orden')[:3]:
+            completar_tarea(t)
         self.stdout.write(f'  Contratación #{p2.pk} en curso (Camila Reyes)')
 
         if len(workers) >= 3:

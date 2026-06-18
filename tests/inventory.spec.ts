@@ -18,14 +18,16 @@ test.describe('Inventario', () => {
     await page.goto('/inventario/nuevo/');
     await expect(page.locator('.card-header h6')).toContainText('Nuevo Activo');
 
+    const assetCode = 'TST-' + Date.now().toString(36).toUpperCase();
+
     await page.selectOption('#id_tipo', { index: 1 });
-    await page.fill('#id_codigo', 'TST-001');
+    await page.fill('#id_codigo', assetCode);
     await page.fill('#id_nombre', 'Activo de Prueba');
     await page.locator('button.btn-primary').click();
 
     await expect(page).toHaveURL('/inventario/');
     await expect(page.locator('.alert-success')).toContainText('registrado exitosamente');
-    await expect(page.locator('table')).toContainText('TST-001');
+    await expect(page.locator('table')).toContainText(assetCode);
   });
 
   test('edit existing asset', async ({ page }) => {

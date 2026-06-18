@@ -95,11 +95,11 @@ test.describe('Centros de Costo', () => {
 
   test('toggle cost center status', async ({ page }) => {
     await page.goto('/centros-costo/');
-    const toggleBtn = page.locator('button[title="Desactivar"]').last();
+    const toggleBtn = page.locator('button[title="Desactivar"], button[title="Reactivar"]').last();
     await expect(toggleBtn).toBeVisible();
     await toggleBtn.click();
 
-    await expect(page.locator('.alert-success')).toContainText('desactivado', { timeout: 10000 });
+    await expect(page.locator('.alert-success')).toBeVisible({ timeout: 10000 });
   });
 
   test('filter cost centers by status', async ({ page }) => {

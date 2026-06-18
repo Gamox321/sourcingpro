@@ -198,12 +198,17 @@ class LogisticaRegistrarDevolucionView(RoleRequiredMixin, View):
         asignacion.save()
         
         # Actualizar estado del activo según corresponda
+        if asignacion.activo.estado == Asset.EstadoChoices.ASIGNADO:
+            asignacion.activo.cambiar_estado(Asset.EstadoChoices.PENDIENTE_DEVOLUCION)
+
         if estado_devolucion == 'bueno':
             asignacion.activo.cambiar_estado(Asset.EstadoChoices.DISPONIBLE)
         elif estado_devolucion == 'danado':
             asignacion.activo.cambiar_estado(Asset.EstadoChoices.EN_REVISION)
         elif estado_devolucion == 'con_perdida':
-            messages.warning(request, f'Activo {asignacion.activo.codigo} marcado como perdido.')
+            asignacion.activo.motivo_baja = f'Activo perdido durante devolución: {asignacion.activo.codigo}'
+            asignacion.activo.save(update_fields=['motivo_baja'])
+            asignacion.activo.cambiar_estado(Asset.EstadoChoices.DADO_DE_BAJA)
         
         messages.success(request, f'Devolución de {asignacion.activo.nombre} registrada exitosamente.')
         return redirect('logistica:devoluciones')
@@ -237,12 +242,17 @@ class LogisticaRegistrarRecuperacionView(RoleRequiredMixin, View):
         asignacion.save()
         
         # Actualizar estado del activo según corresponda
+        if asignacion.activo.estado == Asset.EstadoChoices.ASIGNADO:
+            asignacion.activo.cambiar_estado(Asset.EstadoChoices.PENDIENTE_DEVOLUCION)
+
         if estado_devolucion == 'bueno':
             asignacion.activo.cambiar_estado(Asset.EstadoChoices.DISPONIBLE)
         elif estado_devolucion == 'danado':
             asignacion.activo.cambiar_estado(Asset.EstadoChoices.EN_REVISION)
         elif estado_devolucion == 'con_perdida':
-            messages.warning(request, f'Activo {asignacion.activo.codigo} marcado como perdido.')
+            asignacion.activo.motivo_baja = f'Activo perdido durante recuperación: {asignacion.activo.codigo}'
+            asignacion.activo.save(update_fields=['motivo_baja'])
+            asignacion.activo.cambiar_estado(Asset.EstadoChoices.DADO_DE_BAJA)
         
         messages.success(request, f'Recuperación de {asignacion.activo.nombre} registrada exitosamente.')
         return redirect('logistica:recuperaciones')

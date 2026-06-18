@@ -83,7 +83,7 @@ class AssetDetailView(RoleRequiredMixin, DetailView):
 class AssetCreateView(RoleRequiredMixin, CreateView):
     model = Asset
     template_name = 'inventory/asset_form.html'
-    fields = ['codigo', 'nombre', 'tipo']
+    fields = ['codigo', 'nombre', 'tipo', 'marca', 'modelo', 'numero_serie']
     roles_requeridos = ROLES_INVENTARIO
     success_url = reverse_lazy('inventory:asset_list')
 
@@ -95,7 +95,7 @@ class AssetCreateView(RoleRequiredMixin, CreateView):
 class AssetUpdateView(RoleRequiredMixin, UpdateView):
     model = Asset
     template_name = 'inventory/asset_form.html'
-    fields = ['codigo', 'nombre', 'tipo']
+    fields = ['codigo', 'nombre', 'tipo', 'marca', 'modelo', 'numero_serie']
     roles_requeridos = ROLES_INVENTARIO
     success_url = reverse_lazy('inventory:asset_list')
 

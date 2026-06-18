@@ -177,7 +177,7 @@ class KanbanColumnPartialView(RoleRequiredMixin, TemplateView):
 
 class KanbanCardDetailView(RoleRequiredMixin, TemplateView):
     template_name = 'kanban/_card_detail.html'
-    roles_requeridos = ['administrador', 'ti', 'finanzas', 'logistica']
+    roles_requeridos = ['administrador', 'ti', 'prevencion', 'finanzas', 'logistica']
 
     def get_template_names(self):
         if self.request.headers.get('HX-Request') == 'true':
