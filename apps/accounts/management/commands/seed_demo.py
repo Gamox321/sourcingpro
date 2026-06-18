@@ -12,6 +12,7 @@ from apps.processes.services import (
     crear_proceso_termino,
     crear_proceso_despido,
     crear_proceso_asignacion_activos,
+    crear_proceso_asignacion_epp,
     completar_tarea,
 )
 from apps.notifications.services import notificar
@@ -373,6 +374,16 @@ class Command(BaseCommand):
             )
             self.stdout.write(
                 f"  Asignacion Activos TI #{p6.pk} en curso ({workers[5].nombre})"
+            )
+
+        if len(workers) >= 7:
+            p7 = crear_proceso_asignacion_epp(
+                rrhh,
+                workers[6].pk,
+                "Solicitud de casco y botas para nuevo proyecto",
+            )
+            self.stdout.write(
+                f"  Asignacion EPP #{p7.pk} en curso ({workers[6].nombre})"
             )
 
     def _crear_notificaciones(self, usuarios, admin):

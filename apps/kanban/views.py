@@ -58,10 +58,10 @@ def _get_tasks_queryset(request):
 
 class KanbanBoardView(RoleRequiredMixin, TemplateView):
     template_name = "kanban/board.html"
-    roles_requeridos = ["administrador", "ti", "finanzas", "logistica"]
+    roles_requeridos = ["administrador", "ti", "prevencion", "finanzas", "logistica"]
 
     def get_template_names(self):
-        if self.request.headers.get("HX-Request") == "true":
+        if self.request.headers.get("HX-Request") == "true" or self.request.GET.get("partial"):
             return ["kanban/_board_partial.html"]
         return ["kanban/board.html"]
 
@@ -155,10 +155,10 @@ class KanbanBoardView(RoleRequiredMixin, TemplateView):
 
 class KanbanColumnPartialView(RoleRequiredMixin, TemplateView):
     template_name = "kanban/_column.html"
-    roles_requeridos = ["administrador", "ti", "finanzas", "logistica"]
+    roles_requeridos = ["administrador", "ti", "prevencion", "finanzas", "logistica"]
 
     def dispatch(self, request, *args, **kwargs):
-        if request.headers.get("HX-Request") != "true":
+        if request.headers.get("HX-Request") != "true" and not request.GET.get("partial"):
             return redirect("kanban:board")
         return super().dispatch(request, *args, **kwargs)
 
@@ -189,7 +189,7 @@ class KanbanCardDetailView(RoleRequiredMixin, TemplateView):
     roles_requeridos = ["administrador", "ti", "prevencion", "finanzas", "logistica"]
 
     def get_template_names(self):
-        if self.request.headers.get("HX-Request") == "true":
+        if self.request.headers.get("HX-Request") == "true" or self.request.GET.get("partial"):
             return ["kanban/_card_detail.html"]
         return ["kanban/card_detail.html"]
 
@@ -274,10 +274,10 @@ class KanbanUpdateTaskView(RoleRequiredMixin, View):
 
 class KanbanLoadIndicatorView(RoleRequiredMixin, TemplateView):
     template_name = "kanban/_load_indicator.html"
-    roles_requeridos = ["administrador", "ti", "finanzas", "logistica"]
+    roles_requeridos = ["administrador", "ti", "prevencion", "finanzas", "logistica"]
 
     def dispatch(self, request, *args, **kwargs):
-        if request.headers.get("HX-Request") != "true":
+        if request.headers.get("HX-Request") != "true" and not request.GET.get("partial"):
             return redirect("kanban:board")
         return super().dispatch(request, *args, **kwargs)
 

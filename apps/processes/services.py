@@ -1,7 +1,7 @@
 import datetime
 import logging
 
-from django.db import transaction
+from django.db import models as db_models, transaction
 from django.utils import timezone
 
 from apps.accounts.models import User, Role
@@ -230,16 +230,34 @@ def crear_proceso_cambio_ceco(usuario, worker_id, ceco_destino_id, fecha, motivo
 
     activos_asignados = AssetAssignment.objects.filter(
         trabajador=worker, fecha_devolucion__isnull=True
-    ).select_related("activo")
+    ).select_related("activo__tipo")
 
-    if activos_asignados.exists():
-        _create_task(
-            proceso,
-            Task.TipoChoices.DEVOLUCION_ACTIVOS,
-            "Devolver activos asignados en CeCo de origen.",
-            plazo_limite=fecha,
-            orden=1,
+    tiene_activos = activos_asignados.exists()
+
+    if tiene_activos:
+        ti_assets = activos_asignados.filter(
+            db_models.Q(activo__tipo__es_ti=True)
+            | db_models.Q(activo__tipo__es_ti=False, activo__tipo__es_prevencion=False)
         )
+        epp_assets = activos_asignados.filter(activo__tipo__es_prevencion=True)
+
+        if ti_assets.exists():
+            _create_task(
+                proceso,
+                Task.TipoChoices.DEVOLUCION_ACTIVOS,
+                "Devolver equipos TI y activos generales asignados en CeCo de origen.",
+                plazo_limite=fecha,
+                orden=1,
+            )
+        if epp_assets.exists():
+            _create_task(
+                proceso,
+                Task.TipoChoices.DEVOLUCION_EPP,
+                "Devolver elementos de proteccion personal asignados en CeCo de origen.",
+                plazo_limite=fecha,
+                orden=1,
+            )
+
         for aa in activos_asignados:
             aa.activo.cambiar_estado(Asset.EstadoChoices.PENDIENTE_DEVOLUCION)
     else:
@@ -446,14 +464,6 @@ def crear_proceso_despido(usuario, worker_id, fecha, motivo, causal_legal):
 
     _create_task(
         proceso,
-        Task.TipoChoices.RECUPERACION_ACTIVOS,
-        "Recuperar todos los activos asignados al trabajador.",
-        urgencia=Task.UrgenciaChoices.CRITICA,
-        plazo_limite=fecha,
-        orden=1,
-    )
-    _create_task(
-        proceso,
         Task.TipoChoices.BLOQUEO_ACCESOS,
         "Bloquear todos los accesos y cuentas del trabajador.",
         urgencia=Task.UrgenciaChoices.CRITICA,
@@ -470,9 +480,45 @@ def crear_proceso_despido(usuario, worker_id, fecha, motivo, causal_legal):
 
     asignaciones = AssetAssignment.objects.filter(
         trabajador=worker, fecha_devolucion__isnull=True
-    ).select_related("activo")
-    for aa in asignaciones:
-        aa.activo.cambiar_estado(Asset.EstadoChoices.PENDIENTE_DEVOLUCION)
+    ).select_related("activo__tipo")
+
+    if asignaciones.exists():
+        ti_assets = asignaciones.filter(
+            db_models.Q(activo__tipo__es_ti=True)
+            | db_models.Q(activo__tipo__es_ti=False, activo__tipo__es_prevencion=False)
+        )
+        epp_assets = asignaciones.filter(activo__tipo__es_prevencion=True)
+
+        if ti_assets.exists():
+            _create_task(
+                proceso,
+                Task.TipoChoices.RECUPERACION_ACTIVOS,
+                "Recuperar todos los activos TI y generales asignados al trabajador.",
+                urgencia=Task.UrgenciaChoices.CRITICA,
+                plazo_limite=fecha,
+                orden=1,
+            )
+        if epp_assets.exists():
+            _create_task(
+                proceso,
+                Task.TipoChoices.DEVOLUCION_EPP,
+                "Recuperar elementos de proteccion personal del trabajador.",
+                urgencia=Task.UrgenciaChoices.CRITICA,
+                plazo_limite=fecha,
+                orden=1,
+            )
+
+        for aa in asignaciones:
+            aa.activo.cambiar_estado(Asset.EstadoChoices.PENDIENTE_DEVOLUCION)
+    else:
+        _create_task(
+            proceso,
+            Task.TipoChoices.RECUPERACION_ACTIVOS,
+            "Recuperar todos los activos asignados al trabajador.",
+            urgencia=Task.UrgenciaChoices.CRITICA,
+            plazo_limite=fecha,
+            orden=1,
+        )
 
     # Notificaciones por email a roles involucrados
     from apps.notifications.services import notificar
@@ -534,6 +580,24 @@ def crear_proceso_despido(usuario, worker_id, fecha, motivo, causal_legal):
     except Exception:
         pass
 
+    # Alertar a Prevencion para recuperar EPP
+    try:
+        prevencion_users = User.objects.filter(
+            roles__nombre=Role.RoleChoices.PREVENCION, is_active=True
+        ).distinct()
+        for prevencion_user in prevencion_users:
+            notificar(
+                usuario=prevencion_user,
+                tipo_evento="recuperacion_activos_alerta",
+                titulo=f"Recuperación de EPP — {worker.nombre}",
+                descripcion=f"Proceso de despido iniciado para {worker.nombre}. "
+                f"Favor recuperar elementos de proteccion personal (casco, botas, etc.).",
+                enlace="",
+                proceso=proceso,
+            )
+    except Exception:
+        pass
+
     _notificar_iniciador(
         proceso,
         "proceso_inicio",
@@ -576,6 +640,36 @@ def crear_proceso_asignacion_activos(usuario, worker_id, comentario=""):
     return proceso
 
 
+def crear_proceso_asignacion_epp(usuario, worker_id, comentario=""):
+    worker = Worker.objects.get(pk=worker_id)
+
+    proceso = Process.objects.create(
+        tipo=Process.TipoChoices.ASIGNACION_EPP,
+        trabajador=worker,
+        usuario_inicio=usuario,
+        ceco_origen=worker.centro_costo_actual,
+        motivo=comentario or "Solicitud de asignacion de EPP",
+    )
+
+    _create_task(
+        proceso,
+        Task.TipoChoices.ASIGNAR_EPP,
+        "Seleccionar y asignar EPP al trabajador.",
+        orden=1,
+    )
+
+    _notificar_iniciador(
+        proceso,
+        "proceso_inicio",
+        "Asignacion de EPP iniciada",
+        f"Trabajador: {worker.nombre}.",
+    )
+    for t in proceso.tareas.all():
+        _notificar_tarea(t, "tarea_cambio_estado")
+
+    return proceso
+
+
 def completar_tarea(task):
     from django.utils import timezone
     from apps.audit.models import AuditLog
@@ -600,7 +694,8 @@ def completar_tarea(task):
 
     # RF-13: Validar devolución completa en cambio de CeCo
     if (
-        task.tipo == Task.TipoChoices.DEVOLUCION_ACTIVOS
+        task.tipo
+        in (Task.TipoChoices.DEVOLUCION_ACTIVOS, Task.TipoChoices.DEVOLUCION_EPP)
         and task.proceso.tipo == Process.TipoChoices.CAMBIO_CECO
     ):
         devolucion_completa = _completar_devolucion_cambio_ceco(task.proceso)
@@ -635,6 +730,34 @@ def completar_tarea_con_activos(task, asset_ids):
         assigned.append(asset.codigo)
     completar_tarea(task)
     return assigned
+
+
+def completar_tarea_con_devolucion(task, asset_ids, notas=""):
+    worker = task.proceso.trabajador
+    returned = []
+    now = timezone.now()
+    for asset_id in asset_ids:
+        asignacion = AssetAssignment.objects.filter(
+            activo_id=asset_id, trabajador=worker, fecha_devolucion__isnull=True
+        ).first()
+        if not asignacion:
+            continue
+        asignacion.fecha_devolucion = now
+        asignacion.estado_devolucion = AssetAssignment.EstadoDevolucionChoices.BUENO
+        if notas:
+            current = asignacion.activo.descripcion or ""
+            asignacion.activo.descripcion = (
+                current + f"\n[DEVOLUCION: {now.date()}] {notas}"
+            ).strip()
+            asignacion.activo.save(update_fields=["descripcion"])
+        asignacion.save(update_fields=["fecha_devolucion", "estado_devolucion"])
+        if asignacion.activo.estado == Asset.EstadoChoices.ASIGNADO:
+            asignacion.activo.cambiar_estado(Asset.EstadoChoices.PENDIENTE_DEVOLUCION)
+        if asignacion.activo.estado == Asset.EstadoChoices.PENDIENTE_DEVOLUCION:
+            asignacion.activo.cambiar_estado(Asset.EstadoChoices.DISPONIBLE)
+        returned.append(asignacion.activo.codigo)
+    completar_tarea(task)
+    return returned
 
 
 def gestionar_externamente_tarea(task):

@@ -1,0 +1,118 @@
+{% extends 'base.html' %}
+
+{% block title %}Devolver {{ asset_label }} — {{ worker.nombre }}{% endblock %}
+
+{% block breadcrumbs %}
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="/"><i class="fas fa-home"></i></a></li>
+        <li class="breadcrumb-item"><a href="{% url 'processes:process_detail' process.pk %}">Proceso #{{ process.pk }}</a></li>
+        <li class="breadcrumb-item active">Devolver {{ asset_label }}</li>
+    </ol>
+</nav>
+{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-7">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3 d-flex justify-content-between align-items-center">
+                <h6 class="m-0 font-weight-bold text-primary">
+                    <i class="fas fa-undo me-2"></i>Devolver {{ asset_label }}
+                </h6>
+                <span class="badge
+                    {% if process.tipo == 'cambio_ceco' %}bg-info
+                    {% elif process.tipo == 'termino' %}bg-warning text-dark
+                    {% else %}bg-danger{% endif %}">
+                    {{ process.get_tipo_display }}
+                </span>
+            </div>
+            <div class="card-body">
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <strong>Trabajador:</strong> {{ worker.nombre }}
+                    </div>
+                    <div class="col-md-6">
+                        <strong>Tarea:</strong> {{ task.get_tipo_display }}
+                    </div>
+                </div>
+
+                <div class="alert alert-light border mb-4">
+                    <i class="fas fa-info-circle text-primary me-2"></i>
+                    Selecciona los activos a devolver. Al confirmar, se registrar&aacute; la devoluci&oacute;n
+                    y el activo quedar&aacute; disponible para reasignaci&oacute;n.
+                    Puedes agregar notas sobre el estado del activo.
+                </div>
+
+                {% if pending_assets %}
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="table-responsive" style="max-height: 350px; overflow-y: auto;">
+                        <table class="table table-sm table-hover mb-0">
+                            <thead class="table-light sticky-top">
+                                <tr>
+                                    <th style="width: 40px;">#</th>
+                                    <th>C&oacute;digo</th>
+                                    <th>Nombre</th>
+                                    <th>Tipo</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for aa in pending_assets %}
+                                <tr>
+                                    <td>
+                                        <input type="checkbox" name="activos" value="{{ aa.activo.pk }}" class="form-check-input">
+                                    </td>
+                                    <td><code>{{ aa.activo.codigo }}</code></td>
+                                    <td>{{ aa.activo.nombre }}</td>
+                                    <td><span class="badge bg-light text-dark">{{ aa.activo.tipo.nombre }}</span></td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="mb-3 mt-3">
+                        <label class="form-label">Notas sobre el estado de los activos (opcional)</label>
+                        <textarea name="notas" class="form-control" rows="2"
+                                  placeholder="Ej: Laptop en buen estado, monitor con detalle estetico, casco con rayones..."></textarea>
+                        <div class="form-text">Esta informaci&oacute;n quedar&aacute; registrada en el activo para referencia futura.</div>
+                    </div>
+
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-success" data-confirm="&iquest;Confirmar devoluci&oacute;n de los activos seleccionados y completar la tarea?">
+                            <i class="fas fa-check me-1"></i>Confirmar devoluci&oacute;n y completar tarea
+                        </button>
+                        <button type="submit" class="btn btn-outline-secondary"
+                                onclick="document.querySelectorAll('input[name=activos]').forEach(function(c){c.checked=false})"
+                                data-confirm="&iquest;Completar la tarea sin devolver activos?">
+                            <i class="fas fa-forward me-1"></i>Completar sin devolver
+                        </button>
+                        <a href="{% url 'processes:process_detail' process.pk %}" class="btn btn-outline-secondary">
+                            Cancelar
+                        </a>
+                    </div>
+                </form>
+                {% else %}
+                <div class="text-center text-muted py-4">
+                    <i class="fas fa-box-open fa-3x mb-3 d-block"></i>
+                    <p class="mb-3">No hay activos {{ asset_label }} pendientes de devoluci&oacute;n.</p>
+                    <div class="d-flex gap-2 justify-content-center">
+                        <form method="post" class="d-inline"
+                              data-confirm-form="&iquest;Completar la tarea sin devolver activos?">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-warning">
+                                <i class="fas fa-check me-1"></i>Completar tarea de todos modos
+                            </button>
+                        </form>
+                        <a href="{% url 'processes:process_detail' process.pk %}" class="btn btn-outline-secondary">
+                            Cancelar
+                        </a>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -82,12 +82,12 @@ class ContratacionForm(forms.Form):
 
 class CambioCeCoForm(forms.Form):
     trabajador = forms.ModelChoiceField(
-        queryset=Worker.objects.filter(estado="activo"),
+        queryset=Worker.objects.filter(estado=Worker.EstadoChoices.ACTIVO),
         label="Trabajador",
         widget=forms.Select(attrs={"class": "form-select"}),
     )
     ceco_destino = forms.ModelChoiceField(
-        queryset=CostCenter.objects.filter(estado="activo"),
+        queryset=CostCenter.objects.filter(estado=CostCenter.EstadoChoices.ACTIVO),
         label="Centro de costo destino",
         widget=forms.Select(attrs={"class": "form-select"}),
     )
@@ -130,6 +130,17 @@ class CambioCeCoForm(forms.Form):
                 "Este trabajador ya tiene un cambio de CeCo en curso."
             )
         return worker
+
+    def clean(self):
+        cleaned_data = super().clean()
+        worker = cleaned_data.get("trabajador")
+        ceco_destino = cleaned_data.get("ceco_destino")
+        if worker and ceco_destino and worker.centro_costo_actual == ceco_destino:
+            raise ValidationError(
+                f"El trabajador ya pertenece a {ceco_destino.nombre}. "
+                "Seleccione un centro de costo diferente."
+            )
+        return cleaned_data
 
 
 class TerminoForm(forms.Form):
@@ -237,6 +248,38 @@ class AsignacionActivosForm(forms.Form):
             }
         ),
         help_text="Sugerencia opcional sobre el equipo a asignar.",
+    )
+
+    def __init__(self, *args, **kwargs):
+        user_cecos = kwargs.pop("user_cecos", None)
+        super().__init__(*args, **kwargs)
+        if user_cecos is not None:
+            self.fields["trabajador"].queryset = self.fields[
+                "trabajador"
+            ].queryset.filter(
+                centro_costo_actual__in=user_cecos,
+            )
+
+
+class AsignacionEPPForm(forms.Form):
+    trabajador = forms.ModelChoiceField(
+        queryset=Worker.objects.filter(estado=Worker.EstadoChoices.ACTIVO).order_by("nombre"),
+        label="Trabajador",
+        widget=forms.Select(attrs={"class": "form-select"}),
+        help_text="Selecciona el trabajador que recibira el EPP.",
+    )
+    comentario = forms.CharField(
+        required=False,
+        max_length=500,
+        label="Comentario",
+        widget=forms.Textarea(
+            attrs={
+                "class": "form-control",
+                "rows": 2,
+                "placeholder": "Tipo de EPP, urgencia...",
+            }
+        ),
+        help_text="Sugerencia opcional sobre el EPP a asignar.",
     )
 
     def __init__(self, *args, **kwargs):

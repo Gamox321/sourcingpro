@@ -254,6 +254,34 @@ a.text-decoration-none .card.border-left-secondary:hover {
 }
 
 /* =============================================
+   Professional Polish — Notification Dropdown
+   ============================================= */
+#alertsDropdown + .dropdown-menu {
+    min-width: 18rem;
+    max-width: 22rem;
+    width: auto;
+    right: 0;
+    left: auto;
+    transform: none !important;
+}
+#alertsDropdown + .dropdown-menu .dropdown-item {
+    white-space: normal;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+}
+#alertsDropdown + .dropdown-menu .dropdown-item .text-truncate {
+    max-width: 100%;
+}
+/* Ensure counter badge stays contained */
+.badge-counter {
+    font-size: 0.6rem;
+    position: absolute;
+    right: 2px;
+    top: 2px;
+    transform: scale(1);
+}
+
+/* =============================================
    Professional Polish — Alert/Badge refinements
    ============================================= */
 .badge {

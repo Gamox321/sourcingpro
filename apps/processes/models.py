@@ -10,6 +10,7 @@ class Process(models.Model):
         TERMINO = "termino", "Término de Contrato"
         DESPIDO = "despido", "Despido"
         ASIGNACION_ACTIVOS = "asignacion_activos", "Asignación de Activos TI"
+        ASIGNACION_EPP = "asignacion_epp", "Asignación de EPP"
 
     class EstadoChoices(models.TextChoices):
         EN_CURSO = "en_curso", "En curso"
@@ -113,6 +114,8 @@ class Task(models.Model):
         BLOQUEO_ACCESOS = "bloqueo_accesos", "Bloqueo de accesos"
         FINIQUITO_COORDINACION = "finiquito_coordinacion", "Coordinación de finiquito"
         ASIGNAR_EQUIPO_TI = "asignar_equipo_ti", "Asignación de Equipo TI"
+        DEVOLUCION_EPP = "devolucion_epp", "Devolución de EPP"
+        ASIGNAR_EPP = "asignar_epp", "Asignación de EPP"
 
     TIPO_AREA_MAP = {
         TipoChoices.CREAR_CUENTA_TI: "ti",
@@ -125,6 +128,8 @@ class Task(models.Model):
         TipoChoices.BLOQUEO_ACCESOS: "ti",
         TipoChoices.FINIQUITO_COORDINACION: "finanzas",
         TipoChoices.ASIGNAR_EQUIPO_TI: "ti",
+        TipoChoices.DEVOLUCION_EPP: "prevencion",
+        TipoChoices.ASIGNAR_EPP: "prevencion",
     }
 
     class EstadoChoices(models.TextChoices):

@@ -74,10 +74,23 @@ function abrirDetalle(taskId) {
     var timeout = setTimeout(function () { controller.abort(); }, 10000);
 
     fetch('/kanban/tarea/' + taskId + '/', { headers: { 'HX-Request': 'true' }, signal: controller.signal })
-        .then(function (r) { return r.text(); })
+        .then(function (r) {
+            if (!r.ok) throw new Error('HTTP ' + r.status);
+            return r.text();
+        })
         .then(function (html) {
             clearTimeout(timeout);
-            content.innerHTML = html;
+            // Only inject if it looks like a partial, not a full page
+            if (html.trim().startsWith('<') && !html.includes('<html') && !html.includes('<body')) {
+                content.innerHTML = html;
+            } else {
+                content.innerHTML = '<div class="modal-body text-center py-5">' +
+                    '<i class="fas fa-exclamation-triangle fa-2x text-warning mb-3 d-block"></i>' +
+                    '<p class="text-muted">No se pudo cargar el detalle.</p>' +
+                    '<button class="btn btn-primary btn-sm" onclick="abrirDetalle(' + taskId + ')">' +
+                    '<i class="fas fa-redo me-1"></i>Reintentar</button>' +
+                    '</div>';
+            }
         })
         .catch(function (err) {
             clearTimeout(timeout);
@@ -102,10 +115,19 @@ function abrirDetalle(taskId) {
 /* Reload load indicator */
 function actualizarIndicadorCarga() {
     fetch('/kanban/carga/', { headers: { 'HX-Request': 'true' } })
-        .then(function (r) { return r.text(); })
+        .then(function (r) {
+            if (!r.ok) throw new Error('HTTP ' + r.status);
+            return r.text();
+        })
         .then(function (html) {
-            var el = document.getElementById('load-indicator');
-            if (el) el.innerHTML = html;
+            // Only inject if it looks like a partial, not a full page
+            if (html.trim().startsWith('<') && !html.includes('<html') && !html.includes('<body')) {
+                var el = document.getElementById('load-indicator');
+                if (el) el.innerHTML = html;
+            }
+        })
+        .catch(function () {
+            // Silently fail — load indicator is non-critical
         });
 }
 

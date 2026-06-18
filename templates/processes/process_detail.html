@@ -162,11 +162,15 @@
                             {% endif %}
                             {% if task.tipo == 'devolucion_activos' and process.tipo == 'cambio_ceco' and task.estado != 'completada' %}
                             <div class="small mt-1">
-                                {% with total=process.trabajador.activos_asignados.all|length %}
-                                <span class="text-muted">{{ total }} activo{{ total|pluralize }} del trabajador</span>
-                                {% endwith %}
                                 <a href="{% url 'logistica:devoluciones' %}" class="d-block text-info" target="_blank">
                                     <i class="fas fa-external-link-alt me-1"></i>Gestionar en Devoluciones
+                                </a>
+                            </div>
+                            {% endif %}
+                            {% if task.tipo == 'devolucion_epp' and process.tipo == 'cambio_ceco' and task.estado != 'completada' %}
+                            <div class="small mt-1">
+                                <a href="{% url 'prevencion:inventario' %}" class="d-block text-warning" target="_blank">
+                                    <i class="fas fa-external-link-alt me-1"></i>Gestionar en Inventario EPP
                                 </a>
                             </div>
                             {% endif %}
@@ -233,7 +237,7 @@
                                         </button>
                                     </form>
                                     {% else %}
-                                        {% if task.tipo == 'epp_induccion' or task.tipo == 'equipamiento' or task.tipo == 'asignar_equipo_ti' %}
+                                        {% if task.tipo == 'epp_induccion' or task.tipo == 'equipamiento' or task.tipo == 'asignar_equipo_ti' or task.tipo == 'asignar_epp' %}
                                         <a href="{% url 'processes:task_asset_assign' process.pk task.pk %}" class="btn btn-sm btn-success"
                                                 {% if task.esta_bloqueada %}disabled title="Tareas previas no completadas"{% endif %}>
                                             <i class="fas fa-box me-1"></i>Asignar activo
@@ -243,6 +247,11 @@
                                                 {% if task.esta_bloqueada %}disabled title="Tareas previas no completadas"{% endif %}>
                                             <i class="fas fa-user-plus me-1"></i>Registrar cuenta
                                         </a>
+                                        {% elif task.tipo == 'devolucion_activos' or task.tipo == 'devolucion_epp' or task.tipo == 'recuperacion_activos' %}
+                                        <a href="{% url 'processes:task_asset_return' process.pk task.pk %}" class="btn btn-sm btn-warning"
+                                                {% if task.esta_bloqueada %}disabled title="Tareas previas no completadas"{% endif %}>
+                                            <i class="fas fa-undo me-1"></i>Devolver activos
+                                        </a>
                                         {% else %}
                                         <form method="post" action="{% url 'processes:task_complete' process.pk task.pk %}" class="d-inline"
                                               data-confirm-form="Confirmar que {{ task.get_tipo_display }} esta completada?">
@@ -250,7 +259,7 @@
                                             <button type="submit" class="btn btn-sm btn-success"
                                                     {% if task.esta_bloqueada %}disabled title="Tareas previas no completadas"{% endif %}>
                                                 <i class="fas fa-check me-1"></i>Completar
-    </form>
+                                            </button>
                                         </form>
                                         {% endif %}
                                     {% endif %}

@@ -173,6 +173,11 @@
                                            {% if tarea.tareas_anteriores.exists %}disabled{% endif %}>
                                             <i class="fas fa-box me-1"></i>Asignar equipo
                                         </a>
+                                        {% elif tarea.tipo == 'devolucion_activos' or tarea.tipo == 'recuperacion_activos' %}
+                                        <a href="{% url 'processes:task_asset_return' tarea.proceso.pk tarea.pk %}" class="btn btn-sm btn-warning"
+                                           {% if tarea.tareas_anteriores.exists %}disabled{% endif %}>
+                                            <i class="fas fa-undo me-1"></i>Devolver
+                                        </a>
                                         {% else %}
                                         <form method="post" action="{% url 'processes:task_complete' tarea.proceso.pk tarea.pk %}" class="d-inline"
                                               data-confirm-form="¿Confirmar que {{ tarea.get_tipo_display }} está completada?">

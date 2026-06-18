@@ -7,7 +7,8 @@ from django.views.generic import ListView, DetailView, TemplateView, View
 from django.utils.decorators import method_decorator
 
 from apps.accounts.decorators import RoleRequiredMixin
-from apps.inventory.models import Asset
+from apps.inventory.models import Asset, AssetAssignment
+from apps.workers.models import Worker
 from .models import Process, Task
 from .forms import (
     ContratacionForm,
@@ -15,6 +16,7 @@ from .forms import (
     TerminoForm,
     DespidoForm,
     AsignacionActivosForm,
+    AsignacionEPPForm,
 )
 from . import services
 
@@ -69,6 +71,9 @@ class ProcessCreateContratacionView(RoleRequiredMixin, TemplateView):
                 return redirect("processes:process_detail", pk=proceso.pk)
             except Exception as e:
                 messages.error(request, f"Error al crear el proceso: {e}")
+        else:
+            for error in form.non_field_errors():
+                messages.error(request, error)
         ctx = self.get_context_data()
         ctx["form"] = form
         return self.render_to_response(ctx)
@@ -88,7 +93,8 @@ class ProcessCreateCambioCeCoView(RoleRequiredMixin, TemplateView):
             "gestionando devolucion de activos y reasignacion."
         )
         ctx["tareas_info"] = [
-            ("Fase 1: Devolucion de activos (si tiene)", "Logistica"),
+            ("Fase 1: Devolucion activos TI (si tiene)", "Logistica"),
+            ("Fase 1: Devolucion EPP (si tiene)", "Prevencion"),
             ("Fase 2: Creacion cuenta TI", "TI"),
             ("Fase 2: Induccion y EPP", "Prevencion"),
             ("Fase 2: Equipamiento", "Logistica"),
@@ -110,6 +116,9 @@ class ProcessCreateCambioCeCoView(RoleRequiredMixin, TemplateView):
                 return redirect("processes:process_detail", pk=proceso.pk)
             except Exception as e:
                 messages.error(request, f"Error: {e}")
+        else:
+            for error in form.non_field_errors():
+                messages.error(request, error)
         ctx = self.get_context_data()
         ctx["form"] = form
         return self.render_to_response(ctx)
@@ -149,6 +158,9 @@ class ProcessCreateTerminoView(RoleRequiredMixin, TemplateView):
                 return redirect("processes:process_detail", pk=proceso.pk)
             except Exception as e:
                 messages.error(request, f"Error: {e}")
+        else:
+            for error in form.non_field_errors():
+                messages.error(request, error)
         ctx = self.get_context_data()
         ctx["form"] = form
         return self.render_to_response(ctx)
@@ -168,7 +180,8 @@ class ProcessCreateDespidoView(RoleRequiredMixin, TemplateView):
             "recuperacion de activos y finiquito. Requiere confirmacion RRHH."
         )
         ctx["tareas_info"] = [
-            ("Recuperacion de activos", "Logistica"),
+            ("Recuperacion activos TI (si tiene)", "Logistica"),
+            ("Recuperacion EPP (si tiene)", "Prevencion"),
             ("Bloqueo de accesos (CRITICO)", "TI"),
             ("Coordinacion finiquito", "Finanzas"),
         ]
@@ -189,6 +202,9 @@ class ProcessCreateDespidoView(RoleRequiredMixin, TemplateView):
                 return redirect("processes:process_detail", pk=proceso.pk)
             except Exception as e:
                 messages.error(request, f"Error: {e}")
+        else:
+            for error in form.non_field_errors():
+                messages.error(request, error)
         ctx = self.get_context_data()
         ctx["form"] = form
         return self.render_to_response(ctx)
@@ -229,6 +245,48 @@ class ProcessCreateAsignacionActivosView(RoleRequiredMixin, TemplateView):
                 return redirect("processes:process_detail", pk=proceso.pk)
             except Exception as e:
                 messages.error(request, f"Error: {e}")
+        else:
+            for error in form.non_field_errors():
+                messages.error(request, error)
+        ctx = self.get_context_data()
+        ctx["form"] = form
+        return self.render_to_response(ctx)
+
+
+class ProcessCreateAsignacionEPPView(RoleRequiredMixin, TemplateView):
+    template_name = "processes/process_form.html"
+    roles_requeridos = ROLES_PROCESOS
+
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        ctx["form"] = AsignacionEPPForm(user_cecos=_get_user_cecos(self.request.user))
+        ctx["tipo"] = "asignacion_epp"
+        ctx["titulo"] = "Asignacion de EPP"
+        ctx["descripcion"] = (
+            "Solicita la asignacion de EPP a un trabajador activo. "
+            "El area de Prevencion seleccionara y asignara los elementos de proteccion."
+        )
+        ctx["tareas_info"] = [
+            ("Asignacion de EPP", "Prevencion"),
+        ]
+        return ctx
+
+    def post(self, request):
+        form = AsignacionEPPForm(request.POST, user_cecos=_get_user_cecos(request.user))
+        if form.is_valid():
+            try:
+                proceso = services.crear_proceso_asignacion_epp(
+                    usuario=request.user,
+                    worker_id=form.cleaned_data["trabajador"].pk,
+                    comentario=form.cleaned_data.get("comentario", ""),
+                )
+                messages.success(request, "Proceso de asignacion de EPP iniciado.")
+                return redirect("processes:process_detail", pk=proceso.pk)
+            except Exception as e:
+                messages.error(request, f"Error: {e}")
+        else:
+            for error in form.non_field_errors():
+                messages.error(request, error)
         ctx = self.get_context_data()
         ctx["form"] = form
         return self.render_to_response(ctx)
@@ -387,13 +445,87 @@ class TaskCompleteView(RoleRequiredMixin, View):
 
         if task.tipo in (Task.TipoChoices.FINIQUITO_COORDINACION,):
             services.gestionar_externamente_tarea(task)
-            messages.success(
-                request,
-                f"Tarea {task.get_tipo_display()} marcada como gestionada externamente.",
-            )
+            messages.success(request, f"Tarea {task.get_tipo_display()} marcada como gestionada externamente.")
         else:
             services.completar_tarea(task)
             messages.success(request, f"Tarea {task.get_tipo_display()} completada.")
+
+        return redirect("processes:process_detail", pk=pk)
+
+
+class TaskAssetReturnView(RoleRequiredMixin, TemplateView):
+    template_name = "processes/task_asset_return.html"
+    roles_requeridos = ROLES_PROCESOS + ["ti", "prevencion", "finanzas", "logistica"]
+
+    def dispatch(self, request, *args, **kwargs):
+        self.task = get_object_or_404(
+            Task.objects.select_related("proceso__trabajador", "usuario_responsable"),
+            pk=kwargs["task_pk"],
+            proceso_id=kwargs["pk"],
+        )
+        return super().dispatch(request, *args, **kwargs)
+
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        ctx["task"] = self.task
+        ctx["process"] = self.task.proceso
+        ctx["worker"] = self.task.proceso.trabajador
+
+        if self.task.tipo in (Task.TipoChoices.DEVOLUCION_ACTIVOS, Task.TipoChoices.RECUPERACION_ACTIVOS):
+            ctx["asset_label"] = "Equipos TI y activos"
+            ctx["pending_assets"] = AssetAssignment.objects.filter(
+                trabajador=self.task.proceso.trabajador,
+                fecha_devolucion__isnull=True,
+            ).exclude(
+                activo__tipo__es_prevencion=True
+            ).select_related("activo__tipo").order_by("activo__tipo__nombre", "activo__codigo")
+        elif self.task.tipo == Task.TipoChoices.DEVOLUCION_EPP:
+            ctx["asset_label"] = "EPP"
+            ctx["pending_assets"] = AssetAssignment.objects.filter(
+                trabajador=self.task.proceso.trabajador,
+                fecha_devolucion__isnull=True,
+                activo__tipo__es_prevencion=True,
+            ).select_related("activo__tipo").order_by("activo__tipo__nombre", "activo__codigo")
+        else:
+            ctx["asset_label"] = "Activos"
+            ctx["pending_assets"] = AssetAssignment.objects.none()
+
+        return ctx
+
+    def post(self, request, pk, task_pk):
+        task = self.task
+
+        if task.estado in (Task.EstadoChoices.COMPLETADA, Task.EstadoChoices.GESTIONADO_EXTERNO):
+            messages.warning(request, "Esta tarea ya fue completada.")
+            return redirect("processes:process_detail", pk=pk)
+
+        es_responsable = task.usuario_responsable == request.user
+        es_admin = request.user.roles.filter(nombre="administrador").exists()
+        if not (es_responsable or es_admin):
+            messages.error(request, "No tienes permiso para completar esta tarea.")
+            return redirect("processes:process_detail", pk=pk)
+
+        anteriores = task.tareas_anteriores()
+        if anteriores.exists():
+            names = ", ".join([t.get_tipo_display() for t in anteriores])
+            messages.error(request, f"No puede completar esta tarea. Primero complete: {names}.")
+            return redirect("processes:process_detail", pk=pk)
+
+        asset_ids = request.POST.getlist("activos", [])
+        notas = request.POST.get("notas", "").strip()
+
+        if asset_ids:
+            returned = services.completar_tarea_con_devolucion(task, asset_ids, notas)
+            if returned:
+                messages.success(
+                    request,
+                    f"Tarea completada. {len(returned)} activos devueltos: {', '.join(returned)}.",
+                )
+            else:
+                messages.success(request, "Tarea completada (sin activos devueltos).")
+        else:
+            services.completar_tarea(task)
+            messages.success(request, f"Tarea {task.get_tipo_display()} completada (sin devolver activos).")
 
         return redirect("processes:process_detail", pk=pk)
 
@@ -495,7 +627,7 @@ class TaskAssetAssignView(RoleRequiredMixin, TemplateView):
         ctx["process"] = self.task.proceso
         ctx["worker"] = self.task.proceso.trabajador
 
-        if self.task.tipo == Task.TipoChoices.EPP_INDUCCION:
+        if self.task.tipo in (Task.TipoChoices.EPP_INDUCCION, Task.TipoChoices.ASIGNAR_EPP):
             ctx["asset_label"] = "EPP"
             ctx["available_assets"] = (
                 Asset.objects.filter(
@@ -505,6 +637,11 @@ class TaskAssetAssignView(RoleRequiredMixin, TemplateView):
                 .select_related("tipo")
                 .order_by("tipo__nombre", "codigo")
             )
+            ctx["assigned_assets"] = AssetAssignment.objects.filter(
+                trabajador=self.task.proceso.trabajador,
+                fecha_devolucion__isnull=True,
+                activo__tipo__es_prevencion=True,
+            ).select_related("activo__tipo").order_by("activo__tipo__nombre", "activo__codigo")
         elif self.task.tipo in (
             Task.TipoChoices.EQUIPAMIENTO,
             Task.TipoChoices.ASIGNAR_EQUIPO_TI,
@@ -518,9 +655,16 @@ class TaskAssetAssignView(RoleRequiredMixin, TemplateView):
                 .select_related("tipo")
                 .order_by("tipo__nombre", "codigo")
             )
+            ctx["assigned_assets"] = AssetAssignment.objects.filter(
+                trabajador=self.task.proceso.trabajador,
+                fecha_devolucion__isnull=True,
+            ).exclude(
+                activo__tipo__es_prevencion=True
+            ).select_related("activo__tipo").order_by("activo__tipo__nombre", "activo__codigo")
         else:
             ctx["asset_label"] = "Activo"
             ctx["available_assets"] = Asset.objects.none()
+            ctx["assigned_assets"] = AssetAssignment.objects.none()
 
         return ctx
 
@@ -549,20 +693,25 @@ class TaskAssetAssignView(RoleRequiredMixin, TemplateView):
             return redirect("processes:process_detail", pk=pk)
 
         asset_ids = request.POST.getlist("activos", [])
+        return_ids = request.POST.getlist("devolver", [])
+        notas = request.POST.get("notas", "").strip()
+
+        actions = []
         if asset_ids:
             assigned = services.completar_tarea_con_activos(task, asset_ids)
             if assigned:
-                messages.success(
-                    request,
-                    f"Tarea completada. {len(assigned)} activos asignados: {', '.join(assigned)}.",
-                )
-            else:
-                messages.success(request, "Tarea completada (sin activos asignados).")
-        else:
+                actions.append(f"{len(assigned)} asignados")
+        if return_ids:
+            returned = services.completar_tarea_con_devolucion(task, return_ids, notas)
+            if returned:
+                actions.append(f"{len(returned)} devueltos")
+
+        if actions:
+            messages.success(request, f"Tarea completada. {', '.join(actions)}.")
+        elif not asset_ids and not return_ids:
             services.completar_tarea(task)
-            messages.success(
-                request,
-                f"Tarea {task.get_tipo_display()} completada (sin asignar activos).",
-            )
+            messages.success(request, f"Tarea {task.get_tipo_display()} completada (sin cambios).")
+        else:
+            messages.success(request, f"Tarea {task.get_tipo_display()} completada.")
 
         return redirect("processes:process_detail", pk=pk)

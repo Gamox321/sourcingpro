@@ -36,6 +36,11 @@ urlpatterns = [
         name="process_create_asignacion_activos",
     ),
     path(
+        "procesos/nuevo/asignacion-epp/",
+        views.ProcessCreateAsignacionEPPView.as_view(),
+        name="process_create_asignacion_epp",
+    ),
+    path(
         "procesos/<int:pk>/", views.ProcessDetailView.as_view(), name="process_detail"
     ),
     path(
@@ -57,5 +62,10 @@ urlpatterns = [
         "procesos/<int:pk>/tareas/<int:task_pk>/registrar-cuenta/",
         views.TaskAccountCreateView.as_view(),
         name="task_account_create",
+    ),
+    path(
+        "procesos/<int:pk>/tareas/<int:task_pk>/devolver-activos/",
+        views.TaskAssetReturnView.as_view(),
+        name="task_asset_return",
     ),
 ]
