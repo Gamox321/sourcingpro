@@ -73,7 +73,7 @@ function abrirDetalle(taskId) {
     var controller = new AbortController();
     var timeout = setTimeout(function () { controller.abort(); }, 10000);
 
-    fetch('/kanban/tarea/' + taskId + '/', { headers: { 'HX-Request': 'true' }, signal: controller.signal })
+    fetch('/kanban/tarea/' + taskId + '/?partial=1', { headers: { 'HX-Request': 'true' }, signal: controller.signal })
         .then(function (r) {
             if (!r.ok) throw new Error('HTTP ' + r.status);
             return r.text();
@@ -114,7 +114,7 @@ function abrirDetalle(taskId) {
 
 /* Reload load indicator */
 function actualizarIndicadorCarga() {
-    fetch('/kanban/carga/', { headers: { 'HX-Request': 'true' } })
+    fetch('/kanban/carga/?partial=1', { headers: { 'HX-Request': 'true' } })
         .then(function (r) {
             if (!r.ok) throw new Error('HTTP ' + r.status);
             return r.text();
@@ -171,6 +171,13 @@ document.addEventListener('DOMContentLoaded', function () {
     document.addEventListener('change', function (e) {
         if (e.target.matches('#archivadas')) {
             e.target.closest('form').submit();
+        }
+    });
+
+    /* Refresh load indicator after HTMX filter swaps */
+    document.addEventListener('htmx:afterSwap', function (e) {
+        if (e.detail.target && e.detail.target.id === 'kanban-board') {
+            actualizarIndicadorCarga();
         }
     });
 });

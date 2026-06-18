@@ -276,11 +276,6 @@ class KanbanLoadIndicatorView(RoleRequiredMixin, TemplateView):
     template_name = "kanban/_load_indicator.html"
     roles_requeridos = ["administrador", "ti", "prevencion", "finanzas", "logistica"]
 
-    def dispatch(self, request, *args, **kwargs):
-        if request.headers.get("HX-Request") != "true" and not request.GET.get("partial"):
-            return redirect("kanban:board")
-        return super().dispatch(request, *args, **kwargs)
-
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
         ctx["cargas_area"] = self._get_carga_por_area()
