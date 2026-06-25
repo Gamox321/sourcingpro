@@ -1,4 +1,5 @@
 from django.utils import timezone
+from django.utils.html import strip_tags
 from django.core.mail import send_mail
 from django.conf import settings
 
@@ -90,8 +91,8 @@ def _enviar_email(
 
     send_mail(
         subject=asunto,
-        message=contenido_html.replace("\n", "\n"),
-        from_email=settings.DEFAULT_FROM_EMAIL or "noreply@sourcingpro.cl",
+        message=strip_tags(contenido_html),
+        from_email=settings.DEFAULT_FROM_EMAIL,
         recipient_list=[usuario.email],
         fail_silently=True,
         html_message=f'<html><body style="font-family:Arial,sans-serif;padding:20px">'

@@ -718,7 +718,7 @@ def completar_tarea_con_activos(task, asset_ids):
     worker = task.proceso.trabajador
     assigned = []
     for asset_id in asset_ids:
-        asset = Asset.objects.filter(pk=asset_id, estado="disponible").first()
+        asset = Asset.objects.filter(pk=asset_id, estado=Asset.EstadoChoices.DISPONIBLE).first()
         if not asset:
             continue
         AssetAssignment.objects.create(

@@ -101,7 +101,6 @@ class KanbanBoardView(RoleRequiredMixin, TemplateView):
         from apps.workers.models import Worker
         from apps.notifications.models import Notification
 
-        timezone.now()
         activos = Process.objects.filter(estado=Process.EstadoChoices.EN_CURSO).count()
         tareas_pendientes = Task.objects.filter(
             omitida=False,

@@ -40,7 +40,7 @@ class ContratacionForm(forms.Form):
         ),
     )
     centro_costo = forms.ModelChoiceField(
-        queryset=CostCenter.objects.filter(estado="activo"),
+        queryset=CostCenter.objects.filter(estado=CostCenter.EstadoChoices.ACTIVO),
         label="Centro de costo",
         widget=forms.Select(attrs={"class": "form-select"}),
     )

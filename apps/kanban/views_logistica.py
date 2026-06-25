@@ -15,7 +15,6 @@ class LogisticaDashboardView(RoleRequiredMixin, TemplateView):
 
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
-        timezone.now()
 
         # Tareas de Logística
         mis_tareas = Task.objects.filter(

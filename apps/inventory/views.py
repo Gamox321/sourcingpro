@@ -209,10 +209,14 @@ class AssetReturnView(RoleRequiredMixin, View):
         if asset.estado == Asset.EstadoChoices.ASIGNADO:
             asset.cambiar_estado(Asset.EstadoChoices.PENDIENTE_DEVOLUCION)
 
-        if estado_dev == AssetAssignment.EstadoDevolucionChoices.BUENO:
-            asset.cambiar_estado(Asset.EstadoChoices.DISPONIBLE)
-        elif estado_dev == AssetAssignment.EstadoDevolucionChoices.DANADO:
-            asset.cambiar_estado(Asset.EstadoChoices.EN_REVISION)
+        if asset.estado in (
+            Asset.EstadoChoices.PENDIENTE_DEVOLUCION,
+            Asset.EstadoChoices.EN_REVISION,
+        ):
+            if estado_dev == AssetAssignment.EstadoDevolucionChoices.BUENO:
+                asset.cambiar_estado(Asset.EstadoChoices.DISPONIBLE)
+            elif estado_dev == AssetAssignment.EstadoDevolucionChoices.DANADO:
+                asset.cambiar_estado(Asset.EstadoChoices.EN_REVISION)
 
         messages.success(request, f"Devolución de {asset.codigo} registrada.")
         return redirect("inventory:asset_detail", pk=pk)
