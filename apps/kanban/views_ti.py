@@ -108,7 +108,9 @@ class TIInventarioView(RoleRequiredMixin, ListView):
         )
         if not tipos_ti:
             return Asset.objects.none()
-        qs = Asset.objects.filter(tipo__in=tipos_ti).select_related("tipo")
+        qs = Asset.objects.filter(tipo__in=tipos_ti).select_related("tipo").prefetch_related(
+            "asignaciones__trabajador"
+        )
 
         q = self.request.GET.get("q", "").strip()
         estado = self.request.GET.get("estado", "")
@@ -130,6 +132,15 @@ class TIInventarioView(RoleRequiredMixin, ListView):
         ctx["query"] = self.request.GET.get("q", "")
         ctx["filtro_estado"] = self.request.GET.get("estado", "")
         ctx["incluir_baja"] = self.request.GET.get("incluir_baja", "")
+        tipos_ti = AssetType.objects.filter(es_ti=True)
+        base_qs = Asset.objects.filter(tipo__in=tipos_ti)
+        ctx["stats"] = {
+            "total": base_qs.count(),
+            "disponibles": base_qs.filter(estado=Asset.EstadoChoices.DISPONIBLE).count(),
+            "asignados": base_qs.filter(estado=Asset.EstadoChoices.ASIGNADO).count(),
+            "pendientes": base_qs.filter(estado=Asset.EstadoChoices.PENDIENTE_DEVOLUCION).count(),
+            "en_revision": base_qs.filter(estado=Asset.EstadoChoices.EN_REVISION).count(),
+        }
         return ctx
 
 

@@ -276,6 +276,12 @@
                 </a>
             </li>
             <li class="nav-item">
+                <a class="nav-link{% if '/prevencion/devoluciones' in request.path %} active{% endif %}" href="{% url 'prevencion:devoluciones' %}">
+                    <i class="fas fa-undo"></i>
+                    <span>Devoluciones</span>
+                </a>
+            </li>
+            <li class="nav-item">
                 <a class="nav-link{% if '/prevencion/inventario' in request.path %} active{% endif %}" href="{% url 'prevencion:inventario' %}">
                     <i class="fas fa-hard-hat"></i>
                     <span>Inventario EPP</span>
@@ -345,12 +351,6 @@
                 <a class="nav-link{% if '/logistica/devoluciones' in request.path %} active{% endif %}" href="{% url 'logistica:devoluciones' %}">
                     <i class="fas fa-undo"></i>
                     <span>Devoluciones</span>
-                </a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link{% if '/logistica/recuperaciones' in request.path %} active{% endif %}" href="{% url 'logistica:recuperaciones' %}">
-                    <i class="fas fa-box-open"></i>
-                    <span>Recuperaciones</span>
                 </a>
             </li>
             <li class="nav-item">

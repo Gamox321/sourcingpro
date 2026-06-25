@@ -289,3 +289,23 @@ a.text-decoration-none .card.border-left-secondary:hover {
     font-size: .78rem;
     padding: .35em .6em;
 }
+
+/* =============================================
+   Fix: SB Admin 2 bundles BS4 which sets
+   .form-check-input { position:absolute }.
+   With position:absolute and .card{position:relative},
+   checkboxes anchor to the card — not the table cell —
+   making them appear stuck while scrolling inside
+   table-responsive containers.
+   ============================================= */
+.form-check-input {
+    position: relative !important;
+    margin-top: 0 !important;
+    margin-left: 0 !important;
+}
+.table-responsive td .form-check-input,
+.table-responsive th .form-check-input {
+    position: relative !important;
+    margin-top: 0 !important;
+    margin-left: 0 !important;
+}

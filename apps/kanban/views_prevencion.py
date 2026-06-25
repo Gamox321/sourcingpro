@@ -7,7 +7,7 @@ from django.utils import timezone
 from django.views.generic import TemplateView, ListView, CreateView
 
 from apps.accounts.decorators import RoleRequiredMixin
-from apps.inventory.models import Asset, AssetType
+from apps.inventory.models import Asset, AssetAssignment, AssetType
 from apps.notifications.views import NotificationListView
 from apps.processes.models import Process, Task
 
@@ -132,7 +132,9 @@ class PrevencionInventarioView(RoleRequiredMixin, ListView):
         ).values_list("pk", flat=True)
         if not tipos_epp:
             return Asset.objects.none()
-        qs = Asset.objects.filter(tipo__in=tipos_epp).select_related("tipo")
+        qs = Asset.objects.filter(tipo__in=tipos_epp).select_related("tipo").prefetch_related(
+            "asignaciones__trabajador"
+        )
 
         q = self.request.GET.get("q", "").strip()
         estado = self.request.GET.get("estado", "")
@@ -154,6 +156,15 @@ class PrevencionInventarioView(RoleRequiredMixin, ListView):
         ctx["query"] = self.request.GET.get("q", "")
         ctx["filtro_estado"] = self.request.GET.get("estado", "")
         ctx["incluir_baja"] = self.request.GET.get("incluir_baja", "")
+        tipos_epp = AssetType.objects.filter(es_prevencion=True)
+        base_qs = Asset.objects.filter(tipo__in=tipos_epp)
+        ctx["stats"] = {
+            "total": base_qs.count(),
+            "disponibles": base_qs.filter(estado=Asset.EstadoChoices.DISPONIBLE).count(),
+            "asignados": base_qs.filter(estado=Asset.EstadoChoices.ASIGNADO).count(),
+            "pendientes": base_qs.filter(estado=Asset.EstadoChoices.PENDIENTE_DEVOLUCION).count(),
+            "en_revision": base_qs.filter(estado=Asset.EstadoChoices.EN_REVISION).count(),
+        }
         return ctx
 
 
@@ -263,6 +274,55 @@ class PrevencionAssetCreateView(RoleRequiredMixin, CreateView):
             self.request, f'{tipo_nombre} "{form.instance.nombre}" creado exitosamente.'
         )
         return super().form_valid(form)
+
+
+class PrevencionDevolucionesView(RoleRequiredMixin, ListView):
+    model = AssetAssignment
+    template_name = "prevencion/devoluciones.html"
+    context_object_name = "asignaciones"
+    roles_requeridos = ["administrador", "prevencion"]
+    paginate_by = 20
+
+    def get_queryset(self):
+        tipos_epp = AssetType.objects.filter(es_prevencion=True).values_list("pk", flat=True)
+        qs = AssetAssignment.objects.filter(
+            fecha_devolucion__isnull=False,
+            activo__tipo__in=tipos_epp,
+        ).select_related("activo__tipo", "trabajador", "proceso")
+
+        q = self.request.GET.get("q", "").strip()
+        estado_dev = self.request.GET.get("estado_devolucion", "")
+        fecha_desde = self.request.GET.get("fecha_desde", "")
+        fecha_hasta = self.request.GET.get("fecha_hasta", "")
+
+        if q:
+            qs = qs.filter(
+                db_models.Q(activo__codigo__icontains=q)
+                | db_models.Q(activo__nombre__icontains=q)
+                | db_models.Q(trabajador__nombre__icontains=q)
+            )
+        if estado_dev:
+            qs = qs.filter(estado_devolucion=estado_dev)
+        if fecha_desde:
+            qs = qs.filter(fecha_devolucion__date__gte=fecha_desde)
+        if fecha_hasta:
+            qs = qs.filter(fecha_devolucion__date__lte=fecha_hasta)
+
+        return qs.order_by("-fecha_devolucion")
+
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        tipos_epp = AssetType.objects.filter(es_prevencion=True)
+        base = AssetAssignment.objects.filter(
+            fecha_devolucion__isnull=False,
+            activo__tipo__in=tipos_epp,
+        )
+        ctx["query"] = self.request.GET.get("q", "")
+        ctx["filtro_estado"] = self.request.GET.get("estado_devolucion", "")
+        ctx["fecha_desde"] = self.request.GET.get("fecha_desde", "")
+        ctx["fecha_hasta"] = self.request.GET.get("fecha_hasta", "")
+        ctx["total"] = base.count()
+        return ctx
 
 
 class PrevencionNotificacionesView(NotificationListView):

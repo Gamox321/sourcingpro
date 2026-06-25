@@ -124,6 +124,7 @@ class AssetAssignment(models.Model):
         null=True,
         verbose_name="Estado de devolución",
     )
+    notas_devolucion = models.TextField(blank=True, null=True, verbose_name="Notas de devolución")
     foto_evidencia = models.FileField(
         upload_to="evidencias/activos/",
         blank=True,

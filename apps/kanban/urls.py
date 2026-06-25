@@ -121,6 +121,11 @@ prevencion_urlpatterns = (
     [
         path("", views_prevencion.PrevencionDashboardView.as_view(), name="dashboard"),
         path(
+            "devoluciones/",
+            views_prevencion.PrevencionDevolucionesView.as_view(),
+            name="devoluciones",
+        ),
+        path(
             "inventario/",
             views_prevencion.PrevencionInventarioView.as_view(),
             name="inventario",
@@ -179,16 +184,6 @@ logistica_urlpatterns = (
             "devoluciones/<int:pk>/registrar/",
             views_logistica.LogisticaRegistrarDevolucionView.as_view(),
             name="registrar_devolucion",
-        ),
-        path(
-            "recuperaciones/",
-            views_logistica.LogisticaRecuperacionesView.as_view(),
-            name="recuperaciones",
-        ),
-        path(
-            "recuperaciones/<int:pk>/registrar/",
-            views_logistica.LogisticaRegistrarRecuperacionView.as_view(),
-            name="registrar_recuperacion",
         ),
         path(
             "inventario/",

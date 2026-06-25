@@ -513,9 +513,10 @@ class TaskAssetReturnView(RoleRequiredMixin, TemplateView):
 
         asset_ids = request.POST.getlist("activos", [])
         notas = request.POST.get("notas", "").strip()
+        estado_dev = request.POST.get("estado_devolucion", "")
 
         if asset_ids:
-            returned = services.completar_tarea_con_devolucion(task, asset_ids, notas)
+            returned = services.completar_tarea_con_devolucion(task, asset_ids, notas, estado_dev)
             if returned:
                 messages.success(
                     request,
@@ -695,6 +696,7 @@ class TaskAssetAssignView(RoleRequiredMixin, TemplateView):
         asset_ids = request.POST.getlist("activos", [])
         return_ids = request.POST.getlist("devolver", [])
         notas = request.POST.get("notas", "").strip()
+        estado_dev = request.POST.get("estado_devolucion", "")
 
         actions = []
         if asset_ids:
@@ -702,7 +704,7 @@ class TaskAssetAssignView(RoleRequiredMixin, TemplateView):
             if assigned:
                 actions.append(f"{len(assigned)} asignados")
         if return_ids:
-            returned = services.completar_tarea_con_devolucion(task, return_ids, notas)
+            returned = services.completar_tarea_con_devolucion(task, return_ids, notas, estado_dev)
             if returned:
                 actions.append(f"{len(returned)} devueltos")
 

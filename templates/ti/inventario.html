@@ -15,6 +15,51 @@
 
 {% block content %}
 <div class="container-fluid">
+
+    <!-- Stat Cards -->
+    <div class="row mb-4">
+        <div class="col-xl-2 col-md-4 mb-2">
+            <div class="card border-left-primary shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">Total</div>
+                    <div class="h5 mb-0 font-weight-bold text-gray-800">{{ stats.total }}</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-2 col-md-4 mb-2">
+            <div class="card border-left-success shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="text-xs font-weight-bold text-success text-uppercase mb-1">Disponibles</div>
+                    <div class="h5 mb-0 font-weight-bold text-gray-800">{{ stats.disponibles }}</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-2 col-md-4 mb-2">
+            <div class="card border-left-info shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="text-xs font-weight-bold text-info text-uppercase mb-1">Asignados</div>
+                    <div class="h5 mb-0 font-weight-bold text-gray-800">{{ stats.asignados }}</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-4 mb-2">
+            <div class="card border-left-warning shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">Pend. devolucion</div>
+                    <div class="h5 mb-0 font-weight-bold text-gray-800">{{ stats.pendientes }}</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-4 mb-2">
+            <div class="card border-left-danger shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="text-xs font-weight-bold text-danger text-uppercase mb-1">En revision</div>
+                    <div class="h5 mb-0 font-weight-bold text-gray-800">{{ stats.en_revision }}</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div class="card shadow mb-4">
         <div class="card-header py-3">
             <div class="d-flex justify-content-between align-items-center">
@@ -27,26 +72,24 @@
             </div>
         </div>
         <div class="card-body">
-            <!-- Filtros -->
             <form method="get" class="row g-3 mb-4">
                 <div class="col-md-4">
-                    <input type="text" name="q" class="form-control" placeholder="Buscar por código o nombre..." value="{{ query }}">
+                    <input type="text" name="q" class="form-control" placeholder="Buscar por codigo o nombre..." value="{{ query }}">
                 </div>
                 <div class="col-md-3">
                     <select name="estado" class="form-select">
                         <option value="">Todos los estados</option>
                         <option value="disponible" {% if filtro_estado == 'disponible' %}selected{% endif %}>Disponible</option>
                         <option value="asignado" {% if filtro_estado == 'asignado' %}selected{% endif %}>Asignado</option>
-                        <option value="en_revision" {% if filtro_estado == 'en_revision' %}selected{% endif %}>En Revisión</option>
+                        <option value="pendiente_devolucion" {% if filtro_estado == 'pendiente_devolucion' %}selected{% endif %}>Pendiente devolucion</option>
+                        <option value="en_revision" {% if filtro_estado == 'en_revision' %}selected{% endif %}>En Revision</option>
                         <option value="dado_de_baja" {% if filtro_estado == 'dado_de_baja' %}selected{% endif %}>Dado de Baja</option>
                     </select>
                 </div>
                 <div class="col-md-3">
                     <div class="form-check mt-2">
                         <input class="form-check-input" type="checkbox" name="incluir_baja" id="incluir_baja" {% if incluir_baja %}checked{% endif %}>
-                        <label class="form-check-label" for="incluir_baja">
-                            Incluir dados de baja
-                        </label>
+                        <label class="form-check-label" for="incluir_baja">Incluir dados de baja</label>
                     </div>
                 </div>
                 <div class="col-md-2">
@@ -56,56 +99,81 @@
                 </div>
             </form>
 
-            <!-- Tabla -->
             {% if assets %}
             <div class="table-responsive">
-                <table class="table table-hover">
+                <table class="table table-hover table-sm">
                     <thead>
                         <tr>
-                            <th>Código</th>
+                            <th>Codigo</th>
                             <th>Nombre</th>
-                            <th>Tipo</th>
+                            <th>Marca / Modelo</th>
                             <th>Estado</th>
                             <th>Asignado a</th>
-                            <th>Fecha Registro</th>
-                            <th>Acciones</th>
+                            <th>Ult. devolucion</th>
+                            <th></th>
                         </tr>
                     </thead>
                     <tbody>
                         {% for asset in assets %}
-                        <tr>
+                        <tr class="
+                            {% if asset.estado == 'disponible' %}table-success{% endif %}
+                            {% if asset.estado == 'pendiente_devolucion' %}table-warning{% endif %}
+                            {% if asset.estado == 'en_revision' %}table-danger{% endif %}
+                            {% if asset.estado == 'dado_de_baja' %}table-secondary{% endif %}
+                        ">
                             <td><code>{{ asset.codigo }}</code></td>
                             <td>{{ asset.nombre }}</td>
-                            <td>{{ asset.tipo.nombre }}</td>
+                            <td class="small">
+                                {{ asset.marca|default:"—" }}{% if asset.marca and asset.modelo %} / {% endif %}{{ asset.modelo|default:"" }}
+                                {% if not asset.marca and not asset.modelo %}<span class="text-muted">—</span>{% endif %}
+                            </td>
                             <td>
                                 {% if asset.estado == 'disponible' %}
-                                <span class="badge bg-success">{{ asset.get_estado_display }}</span>
+                                <span class="badge bg-success">Disponible</span>
                                 {% elif asset.estado == 'asignado' %}
-                                <span class="badge bg-primary">{{ asset.get_estado_display }}</span>
-                                {% elif asset.estado == 'en_revision' %}
-                                <span class="badge bg-warning">{{ asset.get_estado_display }}</span>
+                                <span class="badge bg-primary">Asignado</span>
                                 {% elif asset.estado == 'pendiente_devolucion' %}
-                                <span class="badge bg-info">{{ asset.get_estado_display }}</span>
+                                <span class="badge bg-warning text-dark">Pend. devolucion</span>
+                                {% elif asset.estado == 'en_revision' %}
+                                <span class="badge bg-danger">En revision</span>
                                 {% else %}
-                                <span class="badge bg-secondary">{{ asset.get_estado_display }}</span>
+                                <span class="badge bg-secondary">Baja</span>
                                 {% endif %}
                             </td>
-                            <td>
-                                {% if asset.asignaciones.all %}
-                                    {% with ultima_asignacion=asset.asignaciones.all|first %}
-                                        {% if ultima_asignacion and not ultima_asignacion.fecha_devolucion %}
-                                            {{ ultima_asignacion.trabajador.nombre }}
-                                        {% else %}
-                                            <span class="text-muted">—</span>
+                            <td class="small">
+                                {% with activa=asset.asignaciones.all|dictsortreversed:"fecha_asignacion"|first %}
+                                    {% if activa and not activa.fecha_devolucion %}
+                                        <i class="fas fa-user me-1 text-primary"></i>
+                                        <strong>{{ activa.trabajador.nombre }}</strong>
+                                        <br><span class="text-muted">{{ activa.fecha_asignacion|date:"d/m/Y" }}</span>
+                                    {% elif activa and activa.fecha_devolucion %}
+                                        <span class="text-muted">Devuelto</span>
+                                    {% else %}
+                                        <span class="text-muted">—</span>
+                                    {% endif %}
+                                {% endwith %}
+                            </td>
+                            <td class="small">
+                                {% with activa=asset.asignaciones.all|dictsortreversed:"fecha_asignacion"|first %}
+                                    {% if activa and activa.fecha_devolucion %}
+                                        <span class="badge
+                                            {% if activa.estado_devolucion == 'bueno' %}bg-success
+                                            {% elif activa.estado_devolucion == 'danado' %}bg-warning text-dark
+                                            {% else %}bg-danger{% endif %}">
+                                            {{ activa.get_estado_devolucion_display }}
+                                        </span>
+                                        <br><span class="text-muted">{{ activa.fecha_devolucion|date:"d/m/Y" }}</span>
+                                        {% if activa.notas_devolucion %}
+                                        <br><i class="fas fa-comment-alt fa-xs text-muted me-1" title="{{ activa.notas_devolucion }}"></i>
+                                        <small class="text-muted" title="{{ activa.notas_devolucion }}">{{ activa.notas_devolucion|truncatechars:40 }}</small>
                                         {% endif %}
-                                    {% endwith %}
-                                {% else %}
-                                    <span class="text-muted">—</span>
-                                {% endif %}
+                                    {% else %}
+                                        <span class="text-muted">—</span>
+                                    {% endif %}
+                                {% endwith %}
                             </td>
-                            <td>{{ asset.fecha_registro|date:"d/m/Y" }}</td>
                             <td>
-                                <a href="{% url 'inventory:asset_detail' asset.pk %}" class="btn btn-sm btn-info" title="Ver detalle">
+                                <a href="{% url 'inventory:asset_detail' asset.pk %}" class="btn btn-sm btn-outline-info" title="Ver detalle">
                                     <i class="fas fa-eye"></i>
                                 </a>
                             </td>
@@ -115,27 +183,20 @@
                 </table>
             </div>
 
-            <!-- Paginación -->
-            {% if is_paginated %}
-            <nav aria-label="Navegación de páginas">
+            {% if page_obj.paginator.num_pages > 1 %}
+            <nav>
                 <ul class="pagination justify-content-center">
                     {% if page_obj.has_previous %}
                     <li class="page-item">
-                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if query %}&q={{ query }}{% endif %}{% if filtro_estado %}&estado={{ filtro_estado }}{% endif %}{% if incluir_baja %}&incluir_baja=on{% endif %}">
-                            <i class="fas fa-chevron-left"></i>
-                        </a>
+                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}&q={{ query }}&estado={{ filtro_estado }}&incluir_baja={{ incluir_baja }}"><i class="fas fa-chevron-left"></i></a>
                     </li>
                     {% endif %}
-
-                    <li class="page-item disabled">
-                        <span class="page-link">Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}</span>
+                    <li class="page-item active">
+                        <span class="page-link">{{ page_obj.number }} de {{ page_obj.paginator.num_pages }}</span>
                     </li>
-
                     {% if page_obj.has_next %}
                     <li class="page-item">
-                        <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if query %}&q={{ query }}{% endif %}{% if filtro_estado %}&estado={{ filtro_estado }}{% endif %}{% if incluir_baja %}&incluir_baja=on{% endif %}">
-                            <i class="fas fa-chevron-right"></i>
-                        </a>
+                        <a class="page-link" href="?page={{ page_obj.next_page_number }}&q={{ query }}&estado={{ filtro_estado }}&incluir_baja={{ incluir_baja }}"><i class="fas fa-chevron-right"></i></a>
                     </li>
                     {% endif %}
                 </ul>
@@ -143,10 +204,10 @@
             {% endif %}
 
             {% else %}
-            <p class="text-center text-muted mb-0">
+            <div class="text-center text-muted py-5">
                 <i class="fas fa-box-open fa-3x mb-3 d-block"></i>
-                No se encontraron equipos TI
-            </p>
+                <p>No se encontraron equipos TI</p>
+            </div>
             {% endif %}
         </div>
     </div>

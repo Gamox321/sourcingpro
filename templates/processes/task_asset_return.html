@@ -73,10 +73,19 @@
                     </div>
 
                     <div class="mb-3 mt-3">
+                        <label class="form-label">Estado de los activos devueltos</label>
+                        <select name="estado_devolucion" class="form-select" style="max-width: 250px;">
+                            <option value="bueno">Buen estado</option>
+                            <option value="danado">Dañado</option>
+                            <option value="con_perdida">Con pérdida</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-3 mt-3">
                         <label class="form-label">Notas sobre el estado de los activos (opcional)</label>
                         <textarea name="notas" class="form-control" rows="2"
                                   placeholder="Ej: Laptop en buen estado, monitor con detalle estetico, casco con rayones..."></textarea>
-                        <div class="form-text">Esta informaci&oacute;n quedar&aacute; registrada en el activo para referencia futura.</div>
+                        <div class="form-text">Esta informaci&oacute;n quedar&aacute; registrada y visible en la ficha del trabajador.</div>
                     </div>
 
                     <div class="d-flex gap-2">

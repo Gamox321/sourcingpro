@@ -732,10 +732,11 @@ def completar_tarea_con_activos(task, asset_ids):
     return assigned
 
 
-def completar_tarea_con_devolucion(task, asset_ids, notas=""):
+def completar_tarea_con_devolucion(task, asset_ids, notas="", estado_devolucion=None):
     worker = task.proceso.trabajador
     returned = []
     now = timezone.now()
+    estado = estado_devolucion or AssetAssignment.EstadoDevolucionChoices.BUENO
     for asset_id in asset_ids:
         asignacion = AssetAssignment.objects.filter(
             activo_id=asset_id, trabajador=worker, fecha_devolucion__isnull=True
@@ -743,14 +744,10 @@ def completar_tarea_con_devolucion(task, asset_ids, notas=""):
         if not asignacion:
             continue
         asignacion.fecha_devolucion = now
-        asignacion.estado_devolucion = AssetAssignment.EstadoDevolucionChoices.BUENO
+        asignacion.estado_devolucion = estado
         if notas:
-            current = asignacion.activo.descripcion or ""
-            asignacion.activo.descripcion = (
-                current + f"\n[DEVOLUCION: {now.date()}] {notas}"
-            ).strip()
-            asignacion.activo.save(update_fields=["descripcion"])
-        asignacion.save(update_fields=["fecha_devolucion", "estado_devolucion"])
+            asignacion.notas_devolucion = notas
+        asignacion.save(update_fields=["fecha_devolucion", "estado_devolucion", "notas_devolucion"])
         if asignacion.activo.estado == Asset.EstadoChoices.ASIGNADO:
             asignacion.activo.cambiar_estado(Asset.EstadoChoices.PENDIENTE_DEVOLUCION)
         if asignacion.activo.estado == Asset.EstadoChoices.PENDIENTE_DEVOLUCION:

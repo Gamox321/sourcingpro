@@ -76,42 +76,44 @@ class LogisticaDevolucionesView(RoleRequiredMixin, ListView):
     paginate_by = 20
 
     def get_queryset(self):
+        tipos_ti = AssetType.objects.filter(es_ti=True).values_list("pk", flat=True)
         qs = AssetAssignment.objects.filter(
-            fecha_devolucion__isnull=True,
-            proceso__tipo__in=[
-                Process.TipoChoices.TERMINO,
-                Process.TipoChoices.CAMBIO_CECO,
-            ],
-            proceso__estado=Process.EstadoChoices.EN_CURSO,
+            fecha_devolucion__isnull=False,
+            activo__tipo__in=tipos_ti,
         ).select_related("activo__tipo", "trabajador", "proceso")
 
-        return qs.order_by("fecha_asignacion")
+        q = self.request.GET.get("q", "").strip()
+        estado_dev = self.request.GET.get("estado_devolucion", "")
+        fecha_desde = self.request.GET.get("fecha_desde", "")
+        fecha_hasta = self.request.GET.get("fecha_hasta", "")
+
+        if q:
+            qs = qs.filter(
+                db_models.Q(activo__codigo__icontains=q)
+                | db_models.Q(activo__nombre__icontains=q)
+                | db_models.Q(trabajador__nombre__icontains=q)
+            )
+        if estado_dev:
+            qs = qs.filter(estado_devolucion=estado_dev)
+        if fecha_desde:
+            qs = qs.filter(fecha_devolucion__date__gte=fecha_desde)
+        if fecha_hasta:
+            qs = qs.filter(fecha_devolucion__date__lte=fecha_hasta)
+
+        return qs.order_by("-fecha_devolucion")
 
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
-        ctx["total_pendientes"] = self.get_queryset().count()
-        return ctx
-
-
-class LogisticaRecuperacionesView(RoleRequiredMixin, ListView):
-    model = AssetAssignment
-    template_name = "logistica/recuperaciones.html"
-    context_object_name = "asignaciones"
-    roles_requeridos = ["administrador", "logistica"]
-    paginate_by = 20
-
-    def get_queryset(self):
-        qs = AssetAssignment.objects.filter(
-            fecha_devolucion__isnull=True,
-            proceso__tipo=Process.TipoChoices.DESPIDO,
-            proceso__estado=Process.EstadoChoices.EN_CURSO,
-        ).select_related("activo__tipo", "trabajador", "proceso")
-
-        return qs.order_by("fecha_asignacion")
-
-    def get_context_data(self, **kwargs):
-        ctx = super().get_context_data(**kwargs)
-        ctx["total_pendientes"] = self.get_queryset().count()
+        tipos_ti = AssetType.objects.filter(es_ti=True)
+        base = AssetAssignment.objects.filter(
+            fecha_devolucion__isnull=False,
+            activo__tipo__in=tipos_ti,
+        )
+        ctx["query"] = self.request.GET.get("q", "")
+        ctx["filtro_estado"] = self.request.GET.get("estado_devolucion", "")
+        ctx["fecha_desde"] = self.request.GET.get("fecha_desde", "")
+        ctx["fecha_hasta"] = self.request.GET.get("fecha_hasta", "")
+        ctx["total"] = base.count()
         return ctx
 
 
@@ -232,53 +234,3 @@ class LogisticaRegistrarDevolucionView(RoleRequiredMixin, View):
         )
         return redirect("logistica:devoluciones")
 
-
-class LogisticaRegistrarRecuperacionView(RoleRequiredMixin, View):
-    roles_requeridos = ["administrador", "logistica"]
-
-    def post(self, request, pk):
-        asignacion = get_object_or_404(AssetAssignment, pk=pk)
-
-        estado_devolucion = request.POST.get("estado_devolucion")
-        foto_evidencia_url = request.POST.get("foto_evidencia", "")
-        foto_evidencia_file = request.FILES.get("foto_evidencia_file")
-
-        if estado_devolucion not in dict(
-            AssetAssignment.EstadoDevolucionChoices.choices
-        ):
-            messages.error(request, "Estado de recuperación no válido.")
-            return redirect("logistica:recuperaciones")
-
-        asignacion.fecha_devolucion = timezone.now()
-        asignacion.estado_devolucion = estado_devolucion
-
-        # Manejar subida de archivo (RF-31)
-        if foto_evidencia_file:
-            asignacion.foto_evidencia = foto_evidencia_file
-            asignacion.foto_evidencia_url = ""  # Limpiar URL si hay archivo
-        elif foto_evidencia_url:
-            asignacion.foto_evidencia_url = foto_evidencia_url
-            # No limpiar foto_evidencia para mantener archivo previo si existe
-
-        asignacion.save()
-
-        # Actualizar estado del activo según corresponda
-        if asignacion.activo.estado == Asset.EstadoChoices.ASIGNADO:
-            asignacion.activo.cambiar_estado(Asset.EstadoChoices.PENDIENTE_DEVOLUCION)
-
-        if estado_devolucion == "bueno":
-            asignacion.activo.cambiar_estado(Asset.EstadoChoices.DISPONIBLE)
-        elif estado_devolucion == "danado":
-            asignacion.activo.cambiar_estado(Asset.EstadoChoices.EN_REVISION)
-        elif estado_devolucion == "con_perdida":
-            asignacion.activo.motivo_baja = (
-                f"Activo perdido durante recuperación: {asignacion.activo.codigo}"
-            )
-            asignacion.activo.save(update_fields=["motivo_baja"])
-            asignacion.activo.cambiar_estado(Asset.EstadoChoices.DADO_DE_BAJA)
-
-        messages.success(
-            request,
-            f"Recuperación de {asignacion.activo.nombre} registrada exitosamente.",
-        )
-        return redirect("logistica:recuperaciones")
